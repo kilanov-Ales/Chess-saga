@@ -26,7 +26,7 @@ function updateVolume(val) {
     if (s) s.value = val;
 }
 
-// --- СИСТЕМА ОЗВУЧКИ ---
+// --- ОЗВУЧКА ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -69,26 +69,27 @@ function initBoard() {
 function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if (event) event.currentTarget.classList.add('active');
 }
 
-// АВТОМАТИЧЕСКИЙ ПЕРЕВОРОТ И ПОЛНЫЙ ЭКРАН
-async function requestLockOrientation() {
-    try {
-        if (document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen();
-        }
-        if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape');
-        }
-    } catch (err) {
-        console.log("Ориентация не заблокирована, но это ожидаемо на ПК");
+// ПЕРЕВОРОТ И ПОЛНЫЙ ЭКРАН (ТОЛЬКО ДЛЯ МОБИЛОК)
+async function goFullscreen() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+        try {
+            if (document.documentElement.requestFullscreen) {
+                await document.documentElement.requestFullscreen();
+            }
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (e) { console.log("Orientation lock not supported"); }
     }
 }
 
 function startGame() {
     resumeAudio();
-    requestLockOrientation(); // Вызов переворота
+    goFullscreen();
 
     const sc = scenarios[selectedScenarioKey];
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
@@ -157,18 +158,9 @@ function processMove() {
     speak(data.text, data.turn, stepForAudio);
 }
 
-function jumpToStep(idx) {
-    if (isSpeaking || idx < 0 || idx > maxReachedStep) return;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    currentStep = idx;
-    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-    if (currentStep > 0) updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
-    renderBoard();
-}
-
 function updateStats(data) {
     document.getElementById('move-counter').textContent = `ЭТАП: ${Math.floor((currentStep - 1) / 2) + 1}`;
-    document.getElementById('player-turn').textContent = `ХОД: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
+    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
 function updateVisuals(data, createLog) {
@@ -186,7 +178,6 @@ function updateVisuals(data, createLog) {
     if (createLog) {
         const log = document.createElement('div');
         log.className = `log-entry text-[11px] border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-        log.onclick = () => jumpToStep(currentStep);
         log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
         document.getElementById('narrative-box').scrollTop = document.getElementById('narrative-box').scrollHeight;
