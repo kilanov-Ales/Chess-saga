@@ -1,3 +1,4 @@
+// js/game.js
 const visualizationPath = "Visualization/";
 const figuresPath = "Figures/";
 const audioFolderPath = "audio/"; 
@@ -24,71 +25,37 @@ function updateVolume(val) {
     document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
-// --- НОВАЯ СИСТЕМА МАСШТАБИРОВАНИЯ ---
-function adaptLayout() {
-    const app = document.getElementById('main-app');
-    if (!app.classList.contains('app-visible')) return;
+function speak(text, turn, stepAtMoment) {
+    isSpeaking = true; 
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
 
-    const targetWidth = 1200;
-    const targetHeight = 700;
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
+    const audioPath = `${audioFolderPath}${fileName}`;
+    const voiceAudio = new Audio(audioPath);
+    const originalBgVolume = bgMusic.volume;
 
-    // Считаем коэффициент, чтобы вписать игру в экран
-    const scale = Math.min(windowWidth / targetWidth, windowHeight / targetHeight);
-    app.style.transform = `scale(${scale})`;
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
+    voiceAudio.onended = () => {
+        bgMusic.volume = originalBgVolume;
+        isSpeaking = false; 
+        finalizeTurnLogic();
+    };
+    voiceAudio.onerror = () => {
+        bgMusic.volume = originalBgVolume;
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'ru-RU';
+        msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
+        window.speechSynthesis.speak(msg);
+    };
+    voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
 }
 
-window.addEventListener('resize', adaptLayout);
-
-// --- ЗАПУСК ИГРЫ (FULLSCREEN + LANDSCAPE) ---
-async function startGame() {
-    resumeAudio();
-    const mainApp = document.getElementById('main-app');
-    const mainMenu = document.getElementById('main-menu');
-    const doc = document.documentElement;
-
-    // 1. Попытка входа в полноэкранный режим
-    try {
-        if (doc.requestFullscreen) {
-            await doc.requestFullscreen();
-        } else if (doc.webkitRequestFullscreen) {
-            await doc.webkitRequestFullscreen();
-        }
-    } catch (err) {
-        console.warn("Fullscreen denied");
-    }
-
-    // 2. Блокировка ориентации (только в Fullscreen)
-    if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape').catch(() => {
-            console.log("Orientation lock requires manual rotation on some devices");
-        });
-    }
-
-    // 3. Настройка интерфейса
-    document.getElementById('menu-vol').style.display = 'none';
-    mainMenu.style.display = 'none';
-    mainApp.classList.add('app-visible');
-    
-    // Применяем масштаб сразу после показа
-    setTimeout(adaptLayout, 100);
-
+function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
-    currentStep = 0; maxReachedStep = 0; isSpeaking = false;
-
-    // Очистка данных
-    document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
-    document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    document.getElementById('chronicle-list').innerHTML = '';
-    
-    updateVisuals({icon: '🏰', title: 'Затишье', text: 'Армии ждут...'}, false);
-
-    initBoard();
-    renderBoard();
+    if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
+        setTimeout(processMove, 600); 
+    }
 }
-
-// --- ОСТАЛЬНАЯ ЛОГИКА БЕЗ ИЗМЕНЕНИЙ ---
 
 function initBoard() {
     boardState = [
@@ -104,7 +71,26 @@ function initBoard() {
 function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    if (event.currentTarget) event.currentTarget.classList.add('active');
+    if (event) event.currentTarget.classList.add('active');
+}
+
+function startGame() {
+    resumeAudio();
+    document.getElementById('menu-vol').style.display = 'none';
+    const sc = scenarios[selectedScenarioKey];
+    currentStep = 0; maxReachedStep = 0; isSpeaking = false;
+
+    document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
+    document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
+    document.getElementById('chronicle-list').innerHTML = '';
+    
+    document.getElementById('main-menu').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('main-app').classList.add('app-visible');
+        initBoard();
+        renderBoard();
+    }, 800);
 }
 
 function renderBoard() {
@@ -125,7 +111,7 @@ function renderBoard() {
                 sq.onclick = processMove;
             }
             
-            if (boardState[r][c]) {
+            if (boardState[r] && boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
                 img.className = 'piece-img'; 
@@ -139,6 +125,8 @@ function renderBoard() {
 function processMove() {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
+    if (currentStep >= sc.story.length) return;
+    
     const data = sc.story[currentStep];
     const moveClean = data.move.replace(/[!+#]/g, '');
     const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
@@ -157,30 +145,19 @@ function processMove() {
     speak(data.text, data.turn, stepForAudio);
 }
 
-function speak(text, turn, stepAtMoment) {
-    isSpeaking = true; 
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
-    const voiceAudio = new Audio(`${audioFolderPath}${fileName}`);
-    const originalBgVolume = bgMusic.volume;
-
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
-    voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
-    voiceAudio.onerror = () => {
-        bgMusic.volume = originalBgVolume;
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'ru-RU';
-        msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
-        window.speechSynthesis.speak(msg);
-    };
-    voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
-}
-
-function finalizeTurnLogic() {
+function jumpToStep(stepIndex) {
+    if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
-    if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 600); 
+    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    currentStep = stepIndex;
+    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
+
+    if (currentStep > 0) {
+        updateVisuals(sc.story[currentStep - 1], false);
     }
+    renderBoard();
 }
 
 function updateStats(data) {
@@ -193,6 +170,8 @@ function updateVisuals(data, createLog) {
     if (data.capture) {
         document.getElementById('flash').classList.add('flash-active');
         setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
+        document.querySelector('.chess-board-outer').classList.add('shake-anim');
+        setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
     }
     
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
@@ -209,26 +188,21 @@ function updateVisuals(data, createLog) {
         const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
     }
 
+    // ИСПРАВЛЕНИЕ: Снова используем твои картинки галочек!
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
-        if(g) { g.className = "text-green-500 font-bold line-through"; g.innerHTML = `✔ ` + g.innerText.replace('• ', ''); }
+        if(g) { 
+            g.className = "text-green-500 font-bold transition-all"; 
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.style.textDecoration = "line-through";
+        }
     }
     if (data.egoal !== undefined) {
         const eg = document.getElementById(`eg${data.egoal}`);
-        if(eg) { eg.className = "text-red-500 font-bold line-through"; eg.innerHTML = `✔ ` + eg.innerText.replace('• ', ''); }
+        if(eg) { 
+            eg.className = "text-red-500 font-bold transition-all"; 
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.style.textDecoration = "line-through";
+        }
     }
-}
-
-function jumpToStep(stepIndex) {
-    if (isSpeaking) return;
-    const sc = scenarios[selectedScenarioKey];
-    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
-    currentStep = stepIndex;
-    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-    renderBoard();
-}
-
-function exitToMenu() {
-    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-    location.reload(); 
 }
