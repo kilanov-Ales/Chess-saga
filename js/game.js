@@ -15,7 +15,7 @@ bgMusic.volume = 0.05;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// --- СИСТЕМНЫЕ ФУНКЦИИ (Full Screen & Lock) ---
+// ПОЛНОЭКРАННЫЙ РЕЖИМ
 async function requestFullscreenAndLock() {
     try {
         const docEl = document.documentElement;
@@ -23,11 +23,9 @@ async function requestFullscreenAndLock() {
         else if (docEl.webkitRequestFullscreen) { await docEl.webkitRequestFullscreen(); }
 
         if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock failed"));
+            await screen.orientation.lock('landscape').catch(() => {});
         }
-    } catch (err) {
-        console.warn("Fullscreen error:", err);
-    }
+    } catch (err) { console.warn(err); }
 }
 
 function resumeAudio() {
@@ -106,22 +104,12 @@ function startGame() {
     requestFullscreenAndLock();
     resumeAudio();
 
-    // Сдвиг для ноутбука
-    if (window.innerWidth > 1024) {
-        document.querySelector('.left-panel').style.paddingLeft = '170px';
-    }
-
     document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
     
     currentStep = 0; 
     maxReachedStep = 0; 
     isSpeaking = false;
-
-    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
-    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -253,7 +241,7 @@ function updateVisuals(data, createLog) {
     if (createLog) {
         const logIndex = currentStep;
         const log = document.createElement('div');
-        log.className = `log-entry border-l-2 pl-3 py-2 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
         log.onclick = () => jumpToStep(logIndex + 1);
         log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
@@ -280,17 +268,13 @@ function updateVisuals(data, createLog) {
 
 function exitToMenu() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    // ПРИНУДИТЕЛЬНО РАЗБЛОКИРУЕМ ОРИЕНТАЦИЮ
     if (screen.orientation && screen.orientation.unlock) {
         screen.orientation.unlock();
     }
+
     setTimeout(() => {
         location.reload(); 
-    }, 400);
+    }, 450);
 }
-
-window.addEventListener('keydown', (e) => {
-    if (document.getElementById('main-app').classList.contains('app-visible')) {
-        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
-        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
-    }
-});
