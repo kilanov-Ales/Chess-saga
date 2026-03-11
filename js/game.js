@@ -25,29 +25,42 @@ function updateVolume(val) {
     document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
+// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
+
     const voiceAudio = new Audio(audioPath);
     const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
+    voiceAudio.onplay = () => {
+        bgMusic.volume = Math.min(originalBgVolume, 0.02); 
+    };
+
     voiceAudio.onended = () => {
         bgMusic.volume = originalBgVolume;
         isSpeaking = false; 
         finalizeTurnLogic();
     };
+
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'ru-RU';
-        msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
+        msg.onend = () => {
+            isSpeaking = false;
+            finalizeTurnLogic();
+        };
         window.speechSynthesis.speak(msg);
     };
-    voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
+
+    voiceAudio.play().catch(() => {
+        isSpeaking = false;
+        finalizeTurnLogic();
+    });
 }
 
 function finalizeTurnLogic() {
@@ -78,12 +91,27 @@ function startGame() {
     resumeAudio();
     document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
-    currentStep = 0; maxReachedStep = 0; isSpeaking = false;
+    
+    currentStep = 0; 
+    maxReachedStep = 0; 
+    isSpeaking = false;
+
+    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
+    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
+    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
+    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    document.getElementById('chronicle-list').innerHTML = '';
     
+    document.getElementById('chronicle-list').innerHTML = '';
+    document.getElementById('move-counter').textContent = `ХОД: 1`;
+    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
+
+    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+    document.getElementById('scene-title').textContent = "Ваша история начинается";
+    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
@@ -97,6 +125,7 @@ function renderBoard() {
     const boardEl = document.getElementById('board');
     if (!boardEl) return;
     boardEl.innerHTML = '';
+    
     const sc = scenarios[selectedScenarioKey];
     const next = sc.story[currentStep];
 
@@ -124,6 +153,7 @@ function renderBoard() {
 
 function processMove() {
     if (isSpeaking) return;
+
     const sc = scenarios[selectedScenarioKey];
     if (currentStep >= sc.story.length) return;
     
@@ -137,31 +167,61 @@ function processMove() {
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
     updateVisuals(data, true); 
+
     const stepForAudio = currentStep;
-    currentStep++; maxReachedStep = currentStep; 
+    currentStep++; 
+    maxReachedStep = currentStep; 
     
     renderBoard();
     updateStats(data);
     speak(data.text, data.turn, stepForAudio);
 }
 
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В JUMP TO STEP ---
 function jumpToStep(stepIndex) {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
+    
     if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     
     currentStep = stepIndex;
     boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
 
     if (currentStep > 0) {
-        updateVisuals(sc.story[currentStep - 1], false);
+        const data = sc.story[currentStep - 1];
+        updateVisuals(data, false);
+        
+        // Номер хода увеличивается только после завершения хода черных
+        // Если currentStep = 1 (после хода белых) -> ход 1
+        // Если currentStep = 2 (после хода черных) -> ход 1
+        // Если currentStep = 3 (после хода вторых белых) -> ход 2
+        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+        document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
+    } else {
+        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+        document.getElementById('scene-title').textContent = "Ваша история начинается";
+        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
+        document.getElementById('move-counter').textContent = `ХОД: 1`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
     }
+    
     renderBoard();
+
+    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
+        finalizeTurnLogic();
+    }
 }
 
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В UPDATE STATS ---
 function updateStats(data) {
+    // Если походил белый (data.turn === 'white'), currentStep уже увеличился на 1. 
+    // Значит для белых это переход от 0 к 1. Ход должен остаться 1.
+    // Если походил черный, currentStep стал 2. Ход должен стать 2 только для следующего хода белых.
     let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+    
     document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
@@ -188,7 +248,6 @@ function updateVisuals(data, createLog) {
         const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
     }
 
-    // ИСПРАВЛЕНИЕ: Снова используем твои картинки галочек!
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
@@ -206,3 +265,15 @@ function updateVisuals(data, createLog) {
         }
     }
 }
+
+function exitToMenu() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    location.reload(); 
+}
+
+window.addEventListener('keydown', (e) => {
+    if (document.getElementById('main-app').classList.contains('app-visible')) {
+        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
+        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
+    }
+});
