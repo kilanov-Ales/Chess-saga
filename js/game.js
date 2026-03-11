@@ -87,41 +87,33 @@ function selectScenario(key) {
     if (event) event.currentTarget.classList.add('active');
 }
 
-// --- ФУНКЦИЯ ДЛЯ ПЕРЕХОДА В ГОРИЗОНТАЛЬНЫЙ ПОЛНОЭКРАННЫЙ РЕЖИМ ---
+// УЛУЧШЕННЫЙ ПОВОРОТ ЭКРАНА
 async function enableMobileLandscape() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
         try {
-            // Запрос полного экрана
             const doc = document.documentElement;
             if (doc.requestFullscreen) await doc.requestFullscreen();
             else if (doc.webkitRequestFullscreen) await doc.webkitRequestFullscreen();
 
-            // Блокировка ориентации
             if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape');
+                await screen.orientation.lock('landscape').catch(() => {});
             }
+            window.scrollTo(0, 1);
         } catch (err) {
-            console.log("Orientation lock not supported or blocked");
+            console.log("Mobile UI layout applied");
         }
     }
 }
 
 function startGame() {
     resumeAudio();
-    enableMobileLandscape(); // Вызываем авто-поворот
+    enableMobileLandscape(); 
 
-    document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
-    
     currentStep = 0; 
     maxReachedStep = 0; 
     isSpeaking = false;
-
-    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
-    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -132,7 +124,7 @@ function startGame() {
 
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
     document.getElementById('scene-title').textContent = "Ваша история начинается";
-    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+    document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
 
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
@@ -175,7 +167,6 @@ function renderBoard() {
 
 function processMove() {
     if (isSpeaking) return;
-
     const sc = scenarios[selectedScenarioKey];
     if (currentStep >= sc.story.length) return;
     
@@ -202,9 +193,7 @@ function processMove() {
 function jumpToStep(stepIndex) {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
-    
     if (stepIndex < 0 || stepIndex > maxReachedStep) return;
-
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     
     currentStep = stepIndex;
@@ -213,7 +202,6 @@ function jumpToStep(stepIndex) {
     if (currentStep > 0) {
         const data = sc.story[currentStep - 1];
         updateVisuals(data, false);
-        
         let displayMove = Math.floor((currentStep - 1) / 2) + 1;
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
@@ -221,15 +209,8 @@ function jumpToStep(stepIndex) {
         document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
         document.getElementById('scene-title').textContent = "Ваша история начинается";
         document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
-        document.getElementById('move-counter').textContent = `ХОД: 1`;
-        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
     }
-    
     renderBoard();
-
-    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
-        finalizeTurnLogic();
-    }
 }
 
 function updateStats(data) {
@@ -240,8 +221,6 @@ function updateStats(data) {
 
 function updateVisuals(data, createLog) {
     if (data.capture) {
-        document.getElementById('flash').classList.add('flash-active');
-        setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
         document.querySelector('.chess-board-outer').classList.add('shake-anim');
         setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
     }
@@ -264,7 +243,6 @@ function updateVisuals(data, createLog) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
             g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
             g.style.textDecoration = "line-through";
         }
     }
@@ -272,20 +250,11 @@ function updateVisuals(data, createLog) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
             eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
             eg.style.textDecoration = "line-through";
         }
     }
 }
 
 function exitToMenu() {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
     location.reload(); 
 }
-
-window.addEventListener('keydown', (e) => {
-    if (document.getElementById('main-app').classList.contains('app-visible')) {
-        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
-        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
-    }
-});
