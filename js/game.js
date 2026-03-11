@@ -13,36 +13,75 @@ let isSpeaking = false;
 const bgMusic = document.getElementById('audio-bg');
 bgMusic.volume = 0.05; 
 
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// --- ДОБАВЛЕНО: ПОЛНОЭКРАННЫЙ РЕЖИМ И ПОВОРОТ ---
+async function requestFullscreenAndLock() {
+    try {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) { await docEl.requestFullscreen(); }
+        else if (docEl.webkitRequestFullscreen) { await docEl.webkitRequestFullscreen(); }
+
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(e => console.log("Ориентация не заблокирована"));
+        }
+    } catch (err) {
+        console.warn("Fullscreen error:", err);
+    }
+}
+
 function resumeAudio() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
 function updateVolume(val) {
     bgMusic.volume = val * 0.2; 
+    document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
-// ОЗВУЧКА И АВТОМАТИЗАЦИЯ ХОДОВ
+// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
-    const voiceAudio = new Audio(`${audioFolderPath}${selectedScenarioKey}_${stepAtMoment}.mp3`);
-    voiceAudio.onended = () => { isSpeaking = false; checkNextAutoMove(); };
+    const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
+    const audioPath = `${audioFolderPath}${fileName}`;
+
+    const voiceAudio = new Audio(audioPath);
+    const originalBgVolume = bgMusic.volume;
+
+    voiceAudio.onplay = () => {
+        bgMusic.volume = Math.min(originalBgVolume, 0.02); 
+    };
+
+    voiceAudio.onended = () => {
+        bgMusic.volume = originalBgVolume;
+        isSpeaking = false; 
+        finalizeTurnLogic();
+    };
+
     voiceAudio.onerror = () => {
+        bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'ru-RU';
-        msg.onend = () => { isSpeaking = false; checkNextAutoMove(); };
+        msg.onend = () => {
+            isSpeaking = false;
+            finalizeTurnLogic();
+        };
         window.speechSynthesis.speak(msg);
     };
-    voiceAudio.play().catch(() => { isSpeaking = false; checkNextAutoMove(); });
+
+    voiceAudio.play().catch(() => {
+        isSpeaking = false;
+        finalizeTurnLogic();
+    });
 }
 
-function checkNextAutoMove() {
+function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
     if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 900); 
+        setTimeout(processMove, 600); 
     }
 }
 
@@ -60,34 +99,55 @@ function initBoard() {
 function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-}
-
-async function lockOrientation() {
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        try {
-            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
-        } catch (e) {}
-    }
+    if (event) event.currentTarget.classList.add('active');
 }
 
 function startGame() {
+    requestFullscreenAndLock(); // <--- ДОБАВЛЕНО
     resumeAudio();
-    lockOrientation();
+
+    // --- ДОБАВЛЕНО: СДВИГ ДЛЯ НОУТБУКОВ ---
+    if (window.innerWidth > 1024) {
+        document.querySelector('.left-panel').style.paddingLeft = '150px';
+    }
+
+    document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
-    currentStep = 0; maxReachedStep = 0;
+    
+    currentStep = 0; 
+    maxReachedStep = 0; 
+    isSpeaking = false;
+
+    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
+    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
+    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
+    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
+
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('main-app').classList.add('app-visible');
-    initBoard();
-    renderBoard();
+    
+    document.getElementById('chronicle-list').innerHTML = '';
+    document.getElementById('move-counter').textContent = `ХОД: 1`;
+    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
+
+    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+    document.getElementById('scene-title').textContent = "Ваша история начинается";
+    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+
+    document.getElementById('main-menu').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('main-app').classList.add('app-visible');
+        initBoard();
+        renderBoard();
+    }, 800);
 }
 
 function renderBoard() {
     const boardEl = document.getElementById('board');
+    if (!boardEl) return;
     boardEl.innerHTML = '';
+    
     const sc = scenarios[selectedScenarioKey];
     const next = sc.story[currentStep];
 
@@ -101,10 +161,11 @@ function renderBoard() {
                 sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
-            if (boardState[r][c]) {
+            
+            if (boardState[r] && boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
-                img.className = 'piece-img';
+                img.className = 'piece-img'; 
                 sq.appendChild(img);
             }
             boardEl.appendChild(sq);
@@ -114,40 +175,117 @@ function renderBoard() {
 
 function processMove() {
     if (isSpeaking) return;
+
     const sc = scenarios[selectedScenarioKey];
+    if (currentStep >= sc.story.length) return;
+    
     const data = sc.story[currentStep];
-    const move = data.move.replace(/[!+#]/g, '');
-    const from = [8 - parseInt(move[1]), move.charCodeAt(0) - 97];
-    const to = [8 - parseInt(move[3]), move.charCodeAt(2) - 97];
+    const moveClean = data.move.replace(/[!+#]/g, '');
+    const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
+    const to = [8 - parseInt(moveClean[3]), moveClean.charCodeAt(2) - 97];
     
     boardState[to[0]][to[1]] = boardState[from[0]][from[1]];
     boardState[from[0]][from[1]] = '';
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
-    updateVisuals(data);
-    const savedStep = currentStep;
-    currentStep++; maxReachedStep = currentStep;
+    updateVisuals(data, true); 
+
+    const stepForAudio = currentStep;
+    currentStep++; 
+    maxReachedStep = currentStep; 
+    
     renderBoard();
-    speak(data.text, data.turn, savedStep);
+    updateStats(data);
+    speak(data.text, data.turn, stepForAudio);
 }
 
-function updateVisuals(data) {
+function jumpToStep(stepIndex) {
+    if (isSpeaking) return;
+    const sc = scenarios[selectedScenarioKey];
+    
+    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    currentStep = stepIndex;
+    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
+
+    if (currentStep > 0) {
+        const data = sc.story[currentStep - 1];
+        updateVisuals(data, false);
+        
+        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+        document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
+    } else {
+        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+        document.getElementById('scene-title').textContent = "Ваша история начинается";
+        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
+        document.getElementById('move-counter').textContent = `ХОД: 1`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
+    }
+    
+    renderBoard();
+
+    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
+        finalizeTurnLogic();
+    }
+}
+
+function updateStats(data) {
+    let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+    document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
+}
+
+function updateVisuals(data, createLog) {
     if (data.capture) {
         document.getElementById('flash').classList.add('flash-active');
         setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
+        document.querySelector('.chess-board-outer').classList.add('shake-anim');
+        setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
     }
+    
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
     document.getElementById('scene-title').textContent = data.title;
     document.getElementById('scene-desc').textContent = data.text;
-    
-    const log = document.createElement('div');
-    log.className = `p-3 border-l-4 ${data.turn === 'white' ? 'border-amber-500 bg-amber-500/10' : 'border-slate-600 bg-slate-800'}`;
-    log.innerHTML = `<span class="text-[9px] block font-bold uppercase">${data.turn === 'white' ? 'Игрок' : 'Враг'}</span><p class="text-[11px]">${data.text}</p>`;
-    document.getElementById('chronicle-list').appendChild(log);
-    const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
 
-    if (data.goal !== undefined) document.getElementById(`g${data.goal}`).style.textDecoration = "line-through";
-    if (data.egoal !== undefined) document.getElementById(`eg${data.egoal}`).style.textDecoration = "line-through";
+    if (createLog) {
+        const logIndex = currentStep;
+        const log = document.createElement('div');
+        log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.onclick = () => jumpToStep(logIndex + 1);
+        log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
+        document.getElementById('chronicle-list').appendChild(log);
+        const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
+    }
+
+    if (data.goal !== undefined) {
+        const g = document.getElementById(`g${data.goal}`);
+        if(g) { 
+            g.className = "text-green-500 font-bold transition-all"; 
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class=\"inline-block w-4 h-4 mr-1\"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.style.textDecoration = "line-through";
+        }
+    }
+    if (data.egoal !== undefined) {
+        const eg = document.getElementById(`eg${data.egoal}`);
+        if(eg) { 
+            eg.className = "text-red-500 font-bold transition-all"; 
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class=\"inline-block w-4 h-4 mr-1\"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.style.textDecoration = "line-through";
+        }
+    }
 }
 
-function exitToMenu() { location.reload(); }
+function exitToMenu() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    location.reload(); 
+}
+
+window.addEventListener('keydown', (e) => {
+    if (document.getElementById('main-app').classList.contains('app-visible')) {
+        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
+        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
+    }
+});
