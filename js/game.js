@@ -15,19 +15,6 @@ bgMusic.volume = 0.05;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// ПОЛНОЭКРАННЫЙ РЕЖИМ
-async function requestFullscreenAndLock() {
-    try {
-        const docEl = document.documentElement;
-        if (docEl.requestFullscreen) { await docEl.requestFullscreen(); }
-        else if (docEl.webkitRequestFullscreen) { await docEl.webkitRequestFullscreen(); }
-
-        if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape').catch(() => {});
-        }
-    } catch (err) { console.warn(err); }
-}
-
 function resumeAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     if (bgMusic.paused) bgMusic.play().catch(() => {});
@@ -101,15 +88,18 @@ function selectScenario(key) {
 }
 
 function startGame() {
-    requestFullscreenAndLock();
     resumeAudio();
-
     document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
     
     currentStep = 0; 
     maxReachedStep = 0; 
     isSpeaking = false;
+
+    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
+    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
+    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
+    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -187,6 +177,7 @@ function processMove() {
     speak(data.text, data.turn, stepForAudio);
 }
 
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В JUMP TO STEP ---
 function jumpToStep(stepIndex) {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
@@ -202,6 +193,10 @@ function jumpToStep(stepIndex) {
         const data = sc.story[currentStep - 1];
         updateVisuals(data, false);
         
+        // Номер хода увеличивается только после завершения хода черных
+        // Если currentStep = 1 (после хода белых) -> ход 1
+        // Если currentStep = 2 (после хода черных) -> ход 1
+        // Если currentStep = 3 (после хода вторых белых) -> ход 2
         let displayMove = Math.floor((currentStep - 1) / 2) + 1;
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
@@ -220,8 +215,13 @@ function jumpToStep(stepIndex) {
     }
 }
 
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В UPDATE STATS ---
 function updateStats(data) {
+    // Если походил белый (data.turn === 'white'), currentStep уже увеличился на 1. 
+    // Значит для белых это переход от 0 к 1. Ход должен остаться 1.
+    // Если походил черный, currentStep стал 2. Ход должен стать 2 только для следующего хода белых.
     let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+    
     document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
@@ -268,13 +268,12 @@ function updateVisuals(data, createLog) {
 
 function exitToMenu() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    
-    // ПРИНУДИТЕЛЬНО РАЗБЛОКИРУЕМ ОРИЕНТАЦИЮ
-    if (screen.orientation && screen.orientation.unlock) {
-        screen.orientation.unlock();
-    }
-
-    setTimeout(() => {
-        location.reload(); 
-    }, 450);
+    location.reload(); 
 }
+
+window.addEventListener('keydown', (e) => {
+    if (document.getElementById('main-app').classList.contains('app-visible')) {
+        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
+        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
+    }
+});
