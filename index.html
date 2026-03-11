@@ -7,81 +7,108 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #020617; --gold: #f59e0b; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        :root { --bg-dark: #020617; --gold: #f59e0b; --gold-dim: #78350f; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
             font-family: 'Philosopher', sans-serif;
             background-color: var(--bg-dark);
             color: #f8fafc;
+            margin: 0;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
         }
 
-        /* Полноэкранное меню */
+        /* --- ГЛАВНОЕ МЕНЮ --- */
         #main-menu {
             position: fixed; inset: 0; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            z-index: 5000; padding: 20px; text-align: center;
+            z-index: 5000; padding: 20px; transition: opacity 0.5s;
         }
 
-        /* Фикс заголовка (чтобы не плыл) */
         .title-main {
             font-family: 'Cinzel', serif;
-            font-size: clamp(2rem, 10vw, 5rem);
+            font-size: clamp(2.5rem, 8vw, 5rem);
             color: var(--gold);
             font-weight: bold;
             margin-bottom: 2rem;
-            line-height: 1;
+            text-align: center;
+            letter-spacing: -2px;
         }
 
-        /* Контейнер приложения */
+        .scenario-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 280px);
+            gap: 1.5rem;
+        }
+
+        .scenario-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .scenario-card:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .scenario-card.active { border-color: var(--gold); background: rgba(245, 158, 11, 0.1); }
+
+        /* --- ИГРОВОЙ ИНТЕРФЕЙС --- */
         #main-app {
-            display: none; 
-            width: 100vw; height: 100vh;
+            display: none;
             grid-template-columns: 1.2fr 0.8fr;
+            width: 100vw; height: 100vh;
             background: var(--bg-dark);
         }
         .app-visible { display: grid !important; }
 
         .left-panel {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #0f172a; position: relative; padding: 10px;
+            background: #0f172a; border-right: 1px solid #334155; position: relative; padding: 20px;
         }
 
-        /* Доска с гарантированным размером */
-        .chess-board-outer { 
-            padding: 5px; background: #27272a; border-radius: 8px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* Ползунок и Кнопки */
+        #menu-vol { position: absolute; bottom: 30px; z-index: 100; display: flex; align-items: center; gap: 10px; }
+        
+        .vol-game {
+            position: absolute; top: 25px; left: 25px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            background: rgba(15, 23, 42, 0.9); padding: 15px 10px; border-radius: 30px;
+            border: 1px solid var(--gold); z-index: 100;
         }
-        #board { 
+        .volume-slider { -webkit-appearance: slider-vertical; width: 12px; height: 100px; cursor: pointer; }
+
+        /* Шахматная доска */
+        .chess-board-outer { padding: 8px; background: #27272a; border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .chess-board { 
             display: grid; grid-template-columns: repeat(8, 1fr); 
-            width: min(550px, 85vw, 60vh); 
-            height: min(550px, 85vw, 60vh); 
-            background: #8b5e3c; /* Запасной цвет, если клетки не прогрузятся */
+            width: min(540px, 85vw, 62vh); height: min(540px, 85vw, 62vh); 
         }
-        .square { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; }
+        .square { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; }
         .square.light { background-color: #d6b08d; }
         .square.dark { background-color: #8b5e3c; }
-        .piece-img { width: 90%; height: 90%; object-fit: contain; }
+        .piece-img { width: 88%; height: 88%; object-fit: contain; pointer-events: none; }
 
-        /* Ползунки и кнопки */
-        #menu-vol { position: absolute; bottom: 20px; z-index: 100; display: flex; gap: 10px; align-items: center; }
-        .vol-game { position: absolute; top: 15px; left: 15px; z-index: 100; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; }
-        .volume-slider { width: 80px; height: 5px; cursor: pointer; }
+        /* Активная клетка для твоего кода */
+        .active-target { cursor: pointer; background-color: rgba(245, 158, 11, 0.4) !important; box-shadow: inset 0 0 15px var(--gold); }
 
-        .active-target { cursor: pointer; box-shadow: inset 0 0 15px var(--gold); background-color: rgba(245, 158, 11, 0.3) !important; }
+        /* Правая панель */
+        .right-panel { display: flex; flex-direction: column; padding: 25px; gap: 15px; background: var(--bg-dark); overflow: hidden; }
+        .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #narrative-box { flex: 1; overflow-y: auto; padding: 15px; }
 
-        /* Адаптив под мобилки */
-        @media (max-width: 900px) {
-            #main-app { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; overflow-y: auto; }
-            .left-panel { min-height: 100vh; }
-            .right-panel { min-height: 100vh; }
+        /* Адаптив под телефоны */
+        @media (max-width: 1024px) {
+            .scenario-selector { grid-template-columns: 1fr; width: 90%; }
+            #main-app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow-y: auto; }
+            .left-panel { padding-top: 80px; border-bottom: 1px solid #334155; }
+            .vol-game { flex-direction: row; height: auto; top: 15px; left: 15px; width: auto; padding: 8px 15px; }
+            .volume-slider { -webkit-appearance: auto; width: 80px; height: 10px; }
         }
 
-        /* Вспышка и тряска для твоего кода */
+        /* Эффекты для твоего кода */
         #flash { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 9999; }
         .flash-active { opacity: 0.3; }
         .shake-anim { animation: shake 0.3s; }
@@ -95,86 +122,88 @@
     <div id="main-menu">
         <h1 class="title-main">CHESS SAGA</h1>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mb-10">
-            <div class="scenario-card p-4 border border-slate-700 rounded-xl cursor-pointer active:border-amber-500 bg-slate-900/50" onclick="selectScenario('argus')">
-                <h3 class="text-amber-500 font-bold">Свет Аргуса</h3>
+        <div class="scenario-selector">
+            <div class="scenario-card active" onclick="selectScenario('argus')">
+                <h3 class="text-amber-500 font-bold text-xl">✨ Свет Аргуса</h3>
+                <p class="text-xs text-slate-400 mt-2 italic">История о самопожертвовании.</p>
             </div>
-            <div class="scenario-card p-4 border border-slate-700 rounded-xl cursor-pointer bg-slate-900/50" onclick="selectScenario('standard')">
-                <h3 class="text-sky-400 font-bold">Знамя Света</h3>
+            <div class="scenario-card" onclick="selectScenario('standard')">
+                <h3 class="text-sky-400 font-bold text-xl">🚩 Знамя Света</h3>
+                <p class="text-xs text-slate-400 mt-2 italic">Орден против Клана.</p>
             </div>
-            <div class="scenario-card p-4 border border-slate-700 rounded-xl cursor-pointer bg-slate-900/50" onclick="selectScenario('traxler')">
-                <h3 class="text-red-500 font-bold">Судьба Тракслера</h3>
+            <div class="scenario-card" onclick="selectScenario('traxler')">
+                <h3 class="text-red-500 font-bold text-xl">🌑 Судьба Тракслера</h3>
+                <p class="text-xs text-slate-400 mt-2 italic">Безумный гамбит.</p>
             </div>
         </div>
 
-        <button class="px-12 py-4 border-2 border-amber-500 text-amber-500 rounded-full font-bold uppercase tracking-widest active:bg-amber-500 active:text-white" onclick="startGame()">Начать битву</button>
+        <button class="mt-12 px-16 py-4 border-2 border-amber-500 text-amber-500 rounded-full font-bold uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all" onclick="startGame()">Начать битву</button>
         
         <div id="menu-vol">
-            <span class="text-xs">МУЗЫКА:</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Звук:</span>
             <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
         </div>
     </div>
 
     <div id="main-app">
         <div class="left-panel">
+            <div class="absolute top-5 right-5 text-3xl cursor-pointer text-amber-500 hover:scale-110 transition-transform" onclick="exitToMenu()">×</div>
+            
             <div class="vol-game">
                 <span class="text-[10px]">🔊</span>
                 <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
             </div>
 
-            <div class="text-center mb-4">
-                <div id="visual-stage"></div>
-                <h2 id="scene-title" class="text-amber-500 font-bold uppercase text-lg"></h2>
-                <p id="scene-desc" class="text-slate-400 text-xs italic"></p>
+            <div class="text-center mb-6">
+                <div id="visual-stage" class="flex justify-center mb-2"></div>
+                <h2 id="scene-title" class="text-amber-500 font-bold uppercase text-2xl font-[Cinzel]"></h2>
+                <p id="scene-desc" class="text-slate-400 italic text-sm mt-1"></p>
             </div>
 
             <div class="chess-board-outer">
-                <div id="board"></div>
+                <div id="board" class="chess-board"></div>
             </div>
         </div>
 
-        <div class="right-panel p-6 flex flex-col gap-4 bg-slate-950">
-            <div class="grid grid-cols-2 gap-2">
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
-                    <h3 class="text-[10px] text-sky-400 font-bold mb-1">ПЛАНЫ КОМПАНИИ</h3>
-                    <ul id="goals-list" class="text-[10px] space-y-1"></ul>
+        <div class="right-panel">
+            <div class="grid grid-cols-2 gap-4 h-32">
+                <div class="bg-slate-900/80 p-4 border border-slate-700 rounded-xl">
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">ПЛАНЫ КОМПАНИИ</h3>
+                    <ul id="goals-list" class="text-[11px] text-slate-300 space-y-1"></ul>
                 </div>
-                <div class="bg-slate-900 p-3 rounded-lg border border-red-900/30">
-                    <h3 class="text-[10px] text-red-500 font-bold mb-1">ЗАДУМЫ СОПЕРНИКА</h3>
-                    <ul id="enemy-goals" class="text-[10px] space-y-1"></ul>
+                <div class="bg-slate-900/80 p-4 border border-red-900/30 rounded-xl">
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">ЗАДУМЫ СОПЕРНИКА</h3>
+                    <ul id="enemy-goals" class="text-[11px] text-slate-400 space-y-1"></ul>
                 </div>
             </div>
 
-            <div class="flex justify-between text-[10px] font-bold text-amber-500 px-1">
-                <span id="move-counter">ХОД: 1</span>
-                <span id="player-turn">ОЧЕРЕДЬ: БЕЛЫЕ</span>
+            <div class="flex justify-between items-center px-2 py-1">
+                <span id="move-counter" class="text-xs font-mono text-amber-500 font-bold uppercase">Ход: 1</span>
+                <span id="player-turn" class="text-xs font-mono text-amber-500 font-bold uppercase">Белые</span>
             </div>
 
-            <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
-                <div class="bg-slate-800 p-2 text-[10px] text-center font-bold">ХРОНИКА СОБЫТИЙ</div>
-                <div id="narrative-box" class="flex-1 overflow-y-auto p-4">
-                    <div id="chronicle-list" class="space-y-3"></div>
+            <div class="chronicle-card shadow-2xl">
+                <div class="bg-slate-800 p-3 text-[10px] font-bold text-center border-b border-slate-700 uppercase tracking-widest text-slate-400">📜 Хроника Событий</div>
+                <div id="narrative-box">
+                    <div id="chronicle-list" class="space-y-4"></div>
                 </div>
             </div>
-            <button onclick="exitToMenu()" class="text-[10px] text-slate-500 hover:text-white uppercase">Выйти в меню</button>
         </div>
     </div>
 
     <script src="js/scenarios.js"></script>
     <script src="js/game.js"></script>
     <script>
-        // Небольшой фикс, чтобы startGame точно сработал с твоим game.js
+        // Перехват startGame для твоего кода, чтобы доска не была серой
         const originalStartGame = window.startGame;
         window.startGame = function() {
-            // Запуск оригинальной функции
             if (originalStartGame) originalStartGame();
             
-            // Принудительно отрисовываем доску через мгновение, 
-            // когда контейнер #main-app точно станет видимым
+            // Ждем завершения анимации исчезновения меню (800мс в твоем JS)
             setTimeout(() => {
-                if (window.renderBoard) window.renderBoard();
                 window.dispatchEvent(new Event('resize'));
-            }, 100);
+                if (window.renderBoard) window.renderBoard();
+            }, 850);
         };
     </script>
 </body>
