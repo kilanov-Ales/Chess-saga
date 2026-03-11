@@ -71,7 +71,7 @@
         /* Интерфейс игры */
         .app-container {
             display: none; 
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.2fr 1fr;
             width: 100vw;
             height: 100vh;
             opacity: 0;
@@ -100,7 +100,7 @@
         }
         .btn-exit-x {
             position: absolute; top: 1.5rem; left: 1.5rem;
-            width: 40px; height: 40px;
+            width: 45px; height: 45px;
             border: 1px solid rgba(245, 158, 11, 0.2);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -109,36 +109,45 @@
         }
         .btn-exit-x:hover { animation: exit-spin 0.4s forwards; }
 
-        /* --- РАЗМЕРЫ ДЛЯ НОУТБУКА --- */
+        /* --- РАЗМЕРЫ ДЛЯ НОУТБУКА (УВЕЛИЧЕНО) --- */
         @media (min-width: 1025px) {
-            .theater-zone-mini { max-width: 540px !important; }
-            .chess-board { width: 540px !important; height: 540px !important; }
+            .left-panel { padding-left: 50px; }
+            .theater-zone-mini { max-width: 650px !important; margin-bottom: 2rem; }
+            .theater-zone-mini h1 { font-size: 2.5rem !important; }
+            .theater-zone-mini p { font-size: 1.2rem !important; }
+            .visual-stage-mini img { width: 120px !important; height: 120px !important; }
+            .chess-board { width: 650px !important; height: 650px !important; }
         }
 
         /* --- МОБИЛЬНЫЙ ГОРИЗОНТАЛЬНЫЙ ВИД --- */
         @media (max-width: 1024px) and (orientation: landscape) {
-            .app-container { grid-template-columns: 1.1fr 1fr !important; }
-            .left-panel { padding: 10px !important; }
-            .vol-game { display: none !important; } /* Удаляем ползунок */
+            .app-container { grid-template-columns: 1fr 1fr !important; }
+            .left-panel { padding: 5px !important; }
+            .vol-game { display: none !important; }
             .theater-zone-mini { margin-bottom: 5px; }
-            .theater-zone-mini p { display: none !important; } /* Удаляем описание, оставляем заголовок */
-            .visual-stage-mini { min-height: 40px !important; }
-            .visual-stage-mini img { width: 50px !important; height: 50px !important; }
+            .theater-zone-mini p { display: none !important; } /* Скрываем текст */
+            .theater-zone-mini h1 { font-size: 1rem !important; }
+            .visual-stage-mini { min-height: 40px; }
+            .visual-stage-mini img { width: 40px !important; height: 40px !important; } /* Мелкий визуал */
             .chess-board { 
-                width: 72vh !important; /* Доска по высоте экрана */
-                height: 72vh !important; 
+                width: 92vh !important; /* На всю высоту */
+                height: 92vh !important; 
             }
-            .right-panel { padding: 10px !important; gap: 5px !important; }
-            .chronicle-card { flex: 1; }
+            .right-panel { padding: 10px !important; gap: 8px; }
         }
 
-        .theater-zone-mini { text-align: center; margin-bottom: 1rem; max-width: 480px; width: 100%; }
+        .theater-zone-mini { text-align: center; margin-bottom: 1rem; max-width: 480px; width: 100%; transition: all 0.3s; }
         .visual-stage-mini { display: flex; justify-content: center; align-items: center; min-height: 80px; filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3)); transition: all 0.5s; }
         .visual-stage-mini img { width: 70px; height: 70px; object-fit: contain; }
 
-        .chess-board-outer { padding: 8px; background: #27272a; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        /* ФИКСАЦИЯ ДОСКИ */
+        .chess-board-outer { 
+            padding: 8px; background: #27272a; border-radius: 8px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
+            flex-shrink: 0; /* Чтобы не плыла */
+        }
         .chess-board { display: grid; grid-template-columns: repeat(8, 1fr); width: 480px; height: 480px; }
-        .square { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .square { width: 100% !important; height: 100% !important; display: flex; align-items: center; justify-content: center; position: relative; }
         .square.light { background-color: #d6b08d; }
         .square.dark { background-color: #8b5e3c; }
         .piece-img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; z-index: 10; }
@@ -163,8 +172,6 @@
         .flash-active { opacity: 0.2; }
         .shake-anim { animation: shake 0.3s; }
         @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(5px, 0); } 75% { transform: translate(-5px, 0); } }
-        
-        .log-entry { border-left-width: 2px; padding: 0.5rem 0.75rem; cursor: pointer; transition: all 0.2s; font-size: 0.75rem; margin-bottom: 0.5rem; }
     </style>
 </head>
 <body onclick="resumeAudio()"> 
@@ -205,19 +212,19 @@
             </div>
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini"></div>
-                <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
-                <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут вашего приказа...</p>
+                <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2"></h1>
+                <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2"></p>
             </div>
             <div class="chess-board-outer"><div id="board" class="chess-board"></div></div>
         </div>
         <div class="right-panel">
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">ПЛАНЫ КОМПАНИИ</h3>
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Задачи</h3>
                     <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">ЗАДУМЫ СОПЕРНИКА</h3>
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Враг</h3>
                     <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
@@ -226,8 +233,8 @@
                 <span id="player-turn" class="text-xs font-mono text-amber-500">ОЧЕРЕДЬ: БЕЛЫЕ</span>
             </div>
             <div class="chronicle-card">
-                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника событий</h2></div>
-                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list"></div></div>
+                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника</h2></div>
+                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-4"></div></div>
             </div>
         </div>
     </div>
