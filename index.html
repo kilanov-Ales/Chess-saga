@@ -122,6 +122,7 @@
             max-width: 95vw;
         }
         
+        /* ИСПРАВЛЕНИЕ: Жесткие размеры, чтобы ничего не прыгало */
         .chess-board { 
             display: grid; 
             grid-template-columns: repeat(8, 1fr); 
@@ -185,6 +186,7 @@
             }
         }
 
+        /* ИСПРАВЛЕНИЕ: Делаем кнопку "живой" для кликов */
         button { cursor: pointer; pointer-events: auto; }
 
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
@@ -198,6 +200,8 @@
         <source src="Music_Background.mp3" type="audio/mpeg">
     </audio>
 
+    <div id="flash" class="flash-screen"></div>
+
     <div id="menu-vol" class="vol-menu volume-box">
         <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
         <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
@@ -208,19 +212,19 @@
         <p class="text-slate-400 italic mb-8 text-center">Выберите главу истории</p>
         
         <div class="scenario-selector">
-            <div class="scenario-card active" onclick="selectScenario('argus', event)">
+            <div class="scenario-card active" onclick="selectScenario('argus')">
                 <h3 class="text-amber-500 font-bold mb-2">
                     <img src="Visualization/✨.png" class="menu-icon"> Свет Аргуса
                 </h3>
                 <p class="text-xs text-slate-400">Поучительная история о самопожертвовании.</p>
             </div>
-            <div class="scenario-card" onclick="selectScenario('standard', event)">
+            <div class="scenario-card" onclick="selectScenario('standard')">
                 <h3 class="text-sky-400 font-bold mb-2">
                     <img src="Visualization/🚩.png" class="menu-icon"> Знамя Света
                 </h3>
                 <p class="text-xs text-slate-400">Орден Юстициария против Клана Кровавого Тотема.</p>
             </div>
-            <div class="scenario-card" onclick="selectScenario('traxler', event)">
+            <div class="scenario-card" onclick="selectScenario('traxler')">
                 <h3 class="text-red-500 font-bold mb-2">
                     <img src="Visualization/🌑.png" class="menu-icon"> Судьба Тракслера
                 </h3>
@@ -242,7 +246,7 @@
 
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/城堡.png" alt="scene">
+                    <img src="Visualization/🏰.png" alt="scene">
                 </div>
                 <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут...</p>
