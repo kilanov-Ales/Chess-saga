@@ -10,139 +10,192 @@
         :root {
             --bg-dark: #020617;
             --gold: #f59e0b;
-            --gold-dim: #78350f;
-            --red-exit: #ef4444;
+            --red-exit: #ff4444;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             font-family: 'Philosopher', sans-serif;
             background-color: var(--bg-dark);
             color: #f8fafc;
             margin: 0;
-            overflow-x: hidden;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
-            align-items: center; justify-content: center;
-            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
         }
-        h1, h2, h3 { font-family: 'Cinzel', serif; }
 
-        /* --- ГЛАВНОЕ МЕНЮ --- */
+        /* --- ГЛАВНОЕ МЕНЮ (Без громкости) --- */
         #main-menu {
-            position: fixed; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            position: fixed; inset: 0;
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            z-index: 5000; padding: 20px; transition: opacity 0.6s ease;
-        }
-        .main-title { font-size: clamp(2.5rem, 10vw, 5rem); color: var(--gold); font-weight: bold; text-align: center; margin-bottom: 2rem; }
-        
-        .scenario-selector { display: grid; grid-template-columns: repeat(3, 280px); gap: 1rem; }
-        @media (max-width: 900px) { .scenario-selector { grid-template-columns: 1fr; width: 100%; max-width: 320px; } }
-
-        .scenario-card {
-            background: rgba(15, 23, 42, 0.8); border: 1px solid #334155;
-            padding: 1.25rem; border-radius: 1.5rem; cursor: pointer; transition: 0.3s;
-        }
-        .scenario-card.active { border-color: var(--gold); background: rgba(245, 158, 11, 0.1); }
-        .menu-icon { width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px; }
-
-        /* --- ИГРОВОЙ ИНТЕРФЕЙС --- */
-        .app-container { display: none; grid-template-columns: 1.2fr 0.8fr; width: 100vw; height: 100vh; }
-        .app-visible { display: grid !important; opacity: 1 !important; }
-
-        .left-panel {
-            background: #0f172a; border-right: 1px solid #334155;
+            z-index: 5000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; padding: 20px;
+            padding: 20px;
         }
 
-        /* Фикс визуализации (строго 160px) */
-        .theater-zone-mini {
-            height: 160px; width: 100%; max-width: 400px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; margin-bottom: 10px;
-        }
-        .visual-stage-mini { height: 80px; display: flex; align-items: center; justify-content: center; }
-        .visual-stage-mini img { width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 0 15px var(--gold)); }
-
-        /* Доска */
-        .chess-board-outer { padding: 10px; background: #27272a; border-radius: 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .chess-board { 
-            display: grid; grid-template-columns: repeat(8, 1fr); 
-            width: min(480px, 85vw, 55vh); height: min(480px, 85vw, 55vh); 
-        }
-        .square { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; }
-        .square.light { background-color: #d6b08d; }
-        .square.dark { background-color: #8b5e3c; }
-        .piece-img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; z-index: 10; }
-
-        /* Подсветка хода */
-        .square.active-target { animation: target-pulse 1.5s infinite; z-index: 20; cursor: pointer; }
-        @keyframes target-pulse {
-            0%, 100% { box-shadow: inset 0 0 0px var(--gold); background-color: rgba(245, 158, 11, 0.3); }
-            50% { box-shadow: inset 0 0 30px var(--gold); background-color: rgba(245, 158, 11, 0.6); }
-        }
-
-        /* Кнопка Выхода */
+        /* --- КНОПКА ВЫХОДА С АНИМАЦИЕЙ --- */
         .btn-exit-x {
             position: absolute; top: 20px; left: 20px;
-            width: 45px; height: 45px; border-radius: 50%;
-            border: 1px solid var(--gold); color: var(--gold);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            color: var(--gold);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
-            z-index: 1000; background: rgba(15, 23, 42, 0.6);
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 9999;
+            background: rgba(15, 23, 42, 0.7);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s, border-color 0.3s, background-color 0.3s;
         }
-        .btn-exit-x:hover { transform: rotate(90deg); color: var(--red-exit); border-color: var(--red-exit); }
-        .btn-exit-x:active { background: var(--red-exit); color: white; transform: scale(0.9); }
+        /* Вращение при наведении */
+        .btn-exit-x:hover {
+            transform: rotate(90deg);
+            color: var(--red-exit);
+            border-color: var(--red-exit);
+        }
+        /* Становится красной при нажатии */
+        .btn-exit-x:active {
+            background-color: var(--red-exit) !important;
+            color: white !important;
+            transform: scale(0.9) rotate(90deg);
+        }
 
-        /* Громкость в игре */
+        /* --- ФИКСИРОВАННАЯ ВИЗУАЛИЗАЦИЯ --- */
+        .theater-zone-mini {
+            width: 100%;
+            height: 180px; /* Жестко фиксируем высоту */
+            flex-shrink: 0; /* Запрещаем сжиматься */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 15px;
+            pointer-events: none;
+        }
+        .visual-stage-mini {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .visual-stage-mini img {
+            max-height: 80px;
+            width: auto;
+            filter: drop-shadow(0 0 15px var(--gold));
+        }
+
+        /* --- ИГРОВОЙ КОНТЕЙНЕР --- */
+        .app-container {
+            display: none;
+            grid-template-columns: 1.1fr 0.9fr;
+            width: 100vw;
+            height: 100vh;
+        }
+        .app-visible { display: grid !important; }
+
+        .left-panel {
+            background: #0f172a;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-right: 1px solid #334155;
+        }
+
+        .chess-board-outer {
+            padding: 10px;
+            background: #27272a;
+            border-radius: 2rem; /* Закругленные края */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            width: min(500px, 85vw, 50vh);
+            height: min(500px, 85vw, 50vh);
+        }
+
+        /* --- ПОДВЕТКА ХОДА --- */
+        .square.active-target {
+            position: relative;
+            cursor: pointer;
+        }
+        .square.active-target::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(245, 158, 11, 0.4);
+            animation: pulse-gold 1.5s infinite;
+            z-index: 5;
+        }
+        @keyframes pulse-gold {
+            0% { box-shadow: inset 0 0 0px var(--gold); }
+            50% { box-shadow: inset 0 0 20px var(--gold); }
+            100% { box-shadow: inset 0 0 0px var(--gold); }
+        }
+
+        /* --- ГРОМКОСТЬ В ИГРЕ --- */
         .vol-game {
-            position: absolute; top: 100px; left: 1.5rem;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            background: rgba(15, 23, 42, 0.8); padding: 15px 10px;
-            border-radius: 2rem; border: 1px solid var(--gold); z-index: 100;
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 20px 10px;
+            border-radius: 3rem;
+            border: 1px solid var(--gold);
+            z-index: 100;
         }
-        .volume-slider { -webkit-appearance: slider-vertical; width: 12px; height: 100px; cursor: pointer; }
+        .volume-slider {
+            -webkit-appearance: slider-vertical;
+            width: 8px;
+            height: 120px;
+            cursor: pointer;
+        }
 
-        /* Адаптив под альбомный вид и мобилки */
+        /* --- АДАПТИВ И ГОРИЗОНТАЛЬНЫЙ ВИД --- */
         @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow-y: auto; }
-            .left-panel { min-height: 100vh; padding-top: 80px; border-right: none; border-bottom: 1px solid #334155; }
-            .vol-game { top: 20px; right: 20px; left: auto; flex-direction: row; height: auto; padding: 10px; }
+            .app-container { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; overflow-y: auto; }
+            .left-panel { height: 100vh; border-right: none; border-bottom: 1px solid #334155; }
+            .vol-game { top: 20px; right: 20px; left: auto; bottom: auto; flex-direction: row; height: auto; padding: 10px 15px; }
             .volume-slider { -webkit-appearance: auto; width: 80px; height: 10px; }
-            
+
+            /* ФИКС ГОРИЗОНТАЛИ */
             @media (orientation: landscape) {
-                .left-panel { min-height: auto; }
-                .chess-board { width: 55vh; height: 55vh; }
-                .theater-zone-mini { height: 120px; }
+                .app-container { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+                .left-panel { height: 100vh; }
+                .chess-board { width: 45vh; height: 45vh; }
+                .theater-zone-mini { height: 140px; }
             }
         }
 
-        .right-panel { display: flex; flex-direction: column; padding: 1.5rem; gap: 1rem; background: var(--bg-dark); }
-        .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 1.5rem; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .narrative-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
+        .right-panel { display: flex; flex-direction: column; padding: 1.5rem; gap: 1rem; background: #020617; }
+        .info-card { background: #0f172a; border-radius: 1.5rem; border: 1px solid #334155; padding: 15px; }
+        .square.light { background-color: #d6b08d; }
+        .square.dark { background-color: #8b5e3c; }
+        .piece-img { width: 90%; height: 90%; object-fit: contain; z-index: 10; pointer-events: none; }
     </style>
 </head>
 <body onclick="if(window.resumeAudio) resumeAudio()">
 
-    <audio id="audio-bg" loop src="Music_Background.mp3"></audio>
-
     <div id="main-menu">
-        <h1 class="main-title">CHESS SAGA</h1>
-        <div class="scenario-selector">
-            <div class="scenario-card active" onclick="selectScenario('argus')">
-                <h3 class="text-amber-500 font-bold mb-1"><img src="Visualization/✨.png" class="menu-icon"> Свет Аргуса</h3>
-                <p class="text-[11px] text-slate-400">История о самопожертвовании.</p>
+        <h1 class="text-6xl text-amber-500 font-bold mb-10 font-[Cinzel]">CHESS SAGA</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl px-6">
+            <div class="scenario-card border-2 border-slate-700 p-6 rounded-[2rem] cursor-pointer hover:border-amber-500 transition-all" onclick="selectScenario('argus')">
+                <h3 class="text-amber-500 font-bold text-xl mb-2">✨ Свет Аргуса</h3>
+                <p class="text-sm text-slate-400">Великая жертва ради будущего.</p>
             </div>
-            <div class="scenario-card" onclick="selectScenario('standard')">
-                <h3 class="text-sky-400 font-bold mb-1"><img src="Visualization/🚩.png" class="menu-icon"> Знамя Света</h3>
-                <p class="text-[11px] text-slate-400">Орден против Клана.</p>
             </div>
-            <div class="scenario-card" onclick="selectScenario('traxler')">
-                <h3 class="text-red-500 font-bold mb-1"><img src="Visualization/🌑.png" class="menu-icon"> Судьба Тракслера</h3>
-                <p class="text-[11px] text-slate-400">Безумный гамбит.</p>
-            </div>
-        </div>
-        <button class="mt-12 px-16 py-4 border-2 border-amber-500 text-amber-500 rounded-full font-bold uppercase tracking-widest active:scale-95 transition-all" onclick="startGame()">Начать битву</button>
+        <button class="mt-12 px-16 py-4 bg-amber-500 text-slate-900 rounded-full font-bold uppercase tracking-widest hover:scale-105 transition-all" onclick="startGame()">Начать битву</button>
     </div>
 
     <div class="app-container" id="main-app">
@@ -150,16 +203,16 @@
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
             <div class="vol-game">
-                <img src="Visualization/🔊.png" class="w-4">
+                <img src="Visualization/🔊.png" class="w-5">
                 <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
             </div>
 
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/城堡.png" alt="scene">
+                    <img src="Visualization/城堡.png">
                 </div>
-                <h2 id="scene-title" class="text-amber-500 font-bold uppercase text-xl mt-1"></h2>
-                <p id="scene-desc" class="text-slate-400 italic text-sm px-4"></p>
+                <h2 id="scene-title" class="text-amber-500 font-bold uppercase text-2xl font-[Cinzel] mt-2">Затишье</h2>
+                <p id="scene-desc" class="text-slate-400 italic text-sm mt-1 px-10">Армии замерли в ожидании приказа...</p>
             </div>
 
             <div class="chess-board-outer">
@@ -168,24 +221,20 @@
         </div>
 
         <div class="right-panel">
-            <div class="grid grid-cols-2 gap-4 h-32">
-                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest text-center">Планы компании</h3>
-                    <ul id="goals-list" class="text-[11px] space-y-1 text-slate-300"></ul>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="info-card">
+                    <h3 class="text-sky-400 text-xs font-bold uppercase mb-2">Планы компании</h3>
+                    <ul id="goals-list" class="text-xs space-y-1 text-slate-300"></ul>
                 </div>
-                <div class="bg-slate-900/80 p-4 rounded-2xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest text-center">Задумы соперника</h3>
-                    <ul id="enemy-goals" class="text-[11px] space-y-1 text-slate-400"></ul>
+                <div class="info-card">
+                    <h3 class="text-red-500 text-xs font-bold uppercase mb-2">Задумы соперника</h3>
+                    <ul id="enemy-goals" class="text-xs space-y-1 text-slate-400"></ul>
                 </div>
             </div>
-            <div class="flex justify-between items-center px-2">
-                <span id="move-counter" class="text-[10px] font-mono text-amber-500 font-bold">ХОД: 1</span>
-                <span id="player-turn" class="text-[10px] font-mono text-amber-500 font-bold uppercase">Очередь: Белые</span>
-            </div>
-            <div class="chronicle-card">
-                <div class="bg-slate-800 p-2 text-[10px] font-bold text-center text-slate-400 uppercase tracking-widest">📜 Хроника Событий</div>
-                <div class="narrative-scroll" id="narrative-box">
-                    <div id="chronicle-list" class="space-y-4 text-sm"></div>
+            <div class="flex-1 info-card flex flex-col overflow-hidden">
+                <div class="text-center text-slate-500 text-[10px] uppercase tracking-widest mb-2">Хроника битвы</div>
+                <div id="narrative-box" class="flex-1 overflow-y-auto pr-2">
+                    <div id="chronicle-list" class="space-y-4"></div>
                 </div>
             </div>
         </div>
@@ -194,20 +243,20 @@
     <script src="js/scenarios.js"></script>
     <script src="js/game.js"></script>
     <script>
-        // Глобальный фикс запуска доски
-        const oldStart = window.startGame;
-        window.startGame = function() {
-            if(oldStart) oldStart();
-            setTimeout(() => {
-                if(window.renderBoard) window.renderBoard();
-                window.dispatchEvent(new Event('resize'));
-            }, 200);
-        };
-
         function updateVolume(val) {
-            const bg = document.getElementById('audio-bg');
-            if(bg) bg.volume = val * 0.3;
+            const audio = document.getElementById('audio-bg');
+            if(audio) audio.volume = val;
         }
+        
+        // Гарантируем запуск
+        const originalStart = window.startGame;
+        window.startGame = function() {
+            if(originalStart) originalStart();
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+                if(window.renderBoard) window.renderBoard();
+            }, 250);
+        };
     </script>
 </body>
 </html>
