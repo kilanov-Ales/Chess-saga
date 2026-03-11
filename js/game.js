@@ -1,4 +1,3 @@
-// js/game.js
 const visualizationPath = "Visualization/";
 const figuresPath = "Figures/";
 const audioFolderPath = "audio/"; 
@@ -25,13 +24,16 @@ function updateVolume(val) {
     document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
-// --- МОБІЛЬНА ОПТИМІЗАЦІЯ ---
+// --- МОБИЛЬНАЯ ОПТИМИЗАЦИЯ ---
 function initMobileOptimizations() {
     function checkOrientation() {
-        if (document.getElementById('main-app').classList.contains('app-visible')) {
+        const app = document.getElementById('main-app');
+        if (app.classList.contains('app-visible')) {
             if (window.innerHeight > window.innerWidth) {
                 if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(() => {});
+                    screen.orientation.lock('landscape').catch(() => {
+                        console.log("Нужен полноэкранный режим для блокировки");
+                    });
                 }
             }
         }
@@ -100,27 +102,30 @@ function initBoard() {
 function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    event.currentTarget.classList.add('active');
 }
 
 function startGame() {
     resumeAudio();
+    const mainApp = document.getElementById('main-app');
+    const mainMenu = document.getElementById('main-menu');
+    
+    // Попытка переворота экрана
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+    }
+
+    // Включаем мобильный ландшафтный масштаб
+    if (window.innerWidth <= 932) {
+        mainApp.classList.add('mobile-landscape-mode');
+    }
+
     document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
     
     currentStep = 0; 
     maxReachedStep = 0; 
     isSpeaking = false;
-
-    // Автоматичне перетворення в landscape при старті на мобілках
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(() => {});
-    }
-
-    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
-    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -131,12 +136,12 @@ function startGame() {
 
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
     document.getElementById('scene-title').textContent = "Ваша история начинается";
-    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+    document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
 
-    document.getElementById('main-menu').style.opacity = '0';
+    mainMenu.style.opacity = '0';
     setTimeout(() => {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('main-app').classList.add('app-visible');
+        mainMenu.style.display = 'none';
+        mainApp.classList.add('app-visible');
         initBoard();
         renderBoard();
     }, 800);
@@ -161,7 +166,7 @@ function renderBoard() {
                 sq.onclick = processMove;
             }
             
-            if (boardState[r] && boardState[r][c]) {
+            if (boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
                 img.className = 'piece-img'; 
@@ -238,8 +243,8 @@ function updateVisuals(data, createLog) {
     if (data.capture) {
         document.getElementById('flash').classList.add('flash-active');
         setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
-        document.querySelector('.chess-board-outer').classList.add('shake-anim');
-        setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
+        document.querySelector('.chess-board-outer').style.transform = "scale(1.05)";
+        setTimeout(() => document.querySelector('.chess-board-outer').style.transform = "scale(1)", 100);
     }
     
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
@@ -259,29 +264,24 @@ function updateVisuals(data, createLog) {
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
-            g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
-            g.style.textDecoration = "line-through";
+            g.className = "text-green-500 font-bold line-through"; 
+            g.innerHTML = `✔ ` + g.innerText.replace('• ', '');
         }
     }
     if (data.egoal !== undefined) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
-            eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
-            eg.style.textDecoration = "line-through";
+            eg.className = "text-red-500 font-bold line-through"; 
+            eg.innerHTML = `✔ ` + eg.innerText.replace('• ', '');
         }
     }
 }
 
 function exitToMenu() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    
-    // Повернутися в portrait режим перед меню
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('portrait').catch(() => {});
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
     }
-    
     location.reload(); 
 }
 
