@@ -22,25 +22,21 @@ function resumeAudio() {
 
 function updateVolume(val) {
     bgMusic.volume = val * 0.2; 
-    // Обновляем только существующий ползунок
-    const slider = document.querySelector('.vol-game .volume-slider');
-    if (slider) slider.value = val;
+    const s = document.querySelector('.vol-game .volume-slider');
+    if(s) s.value = val;
 }
 
-// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
-
     const voiceAudio = new Audio(audioPath);
     const originalBgVolume = bgMusic.volume;
 
     voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
     voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
-
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
@@ -48,7 +44,6 @@ function speak(text, turn, stepAtMoment) {
         msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
         window.speechSynthesis.speak(msg);
     };
-
     voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
 }
 
@@ -83,7 +78,6 @@ async function enableMobileLandscape() {
             const doc = document.documentElement;
             if (doc.requestFullscreen) await doc.requestFullscreen();
             if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(() => {});
-            window.scrollTo(0, 1);
         } catch (err) {}
     }
 }
@@ -91,23 +85,13 @@ async function enableMobileLandscape() {
 function startGame() {
     resumeAudio();
     enableMobileLandscape(); 
-
     const sc = scenarios[selectedScenarioKey];
-    currentStep = 0; 
-    maxReachedStep = 0; 
-    isSpeaking = false;
+    currentStep = 0; maxReachedStep = 0; isSpeaking = false;
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    
     document.getElementById('chronicle-list').innerHTML = '';
-    document.getElementById('move-counter').textContent = `ХОД: 1`;
-    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
-
-    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
-    document.getElementById('scene-title').textContent = "Ваша история начинается";
-    document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
-
+    
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
@@ -121,7 +105,6 @@ function renderBoard() {
     const boardEl = document.getElementById('board');
     if (!boardEl) return;
     boardEl.innerHTML = '';
-    
     const sc = scenarios[selectedScenarioKey];
     const next = sc.story[currentStep];
 
@@ -130,13 +113,11 @@ function renderBoard() {
             const sq = document.createElement('div');
             sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
-            
             if (!isSpeaking && currentStep === maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
                 sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
-            
-            if (boardState[r] && boardState[r][c]) {
+            if (boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
                 img.className = 'piece-img'; 
@@ -151,7 +132,6 @@ function processMove() {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
     if (currentStep >= sc.story.length) return;
-    
     const data = sc.story[currentStep];
     const moveClean = data.move.replace(/[!+#]/g, '');
     const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
@@ -162,47 +142,32 @@ function processMove() {
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
     updateVisuals(data, true); 
-
     const stepForAudio = currentStep;
-    currentStep++; 
-    maxReachedStep = currentStep; 
+    currentStep++; maxReachedStep = currentStep; 
     
     renderBoard();
     updateStats(data);
     speak(data.text, data.turn, stepForAudio);
 }
 
-function jumpToStep(stepIndex) {
-    if (isSpeaking) return;
-    const sc = scenarios[selectedScenarioKey];
-    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+function jumpToStep(idx) {
+    if (isSpeaking || idx < 0 || idx > maxReachedStep) return;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    
-    currentStep = stepIndex;
+    currentStep = idx;
     boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-
-    if (currentStep > 0) {
-        const data = sc.story[currentStep - 1];
-        updateVisuals(data, false);
-        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-        document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
-        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
-    } else {
-        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
-        document.getElementById('scene-title').textContent = "Ваша история начинается";
-        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
-    }
+    if (currentStep > 0) updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
     renderBoard();
 }
 
 function updateStats(data) {
-    let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-    document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+    document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
 function updateVisuals(data, createLog) {
     if (data.capture) {
+        document.getElementById('flash').classList.add('flash-active');
+        setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
         document.querySelector('.chess-board-outer').classList.add('shake-anim');
         setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
     }
@@ -212,22 +177,29 @@ function updateVisuals(data, createLog) {
     document.getElementById('scene-desc').textContent = data.text;
 
     if (createLog) {
-        const logIndex = currentStep;
         const log = document.createElement('div');
         log.className = `log-entry text-[10px] border-l-2 pl-2 py-1 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-        log.onclick = () => jumpToStep(logIndex + 1);
+        log.onclick = () => jumpToStep(currentStep);
         log.innerHTML = `<span class="uppercase font-bold text-[8px] block">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
-        const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
+        document.getElementById('narrative-box').scrollTop = document.getElementById('narrative-box').scrollHeight;
     }
 
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
-        if(g) { g.className = "text-green-500 font-bold transition-all"; g.style.textDecoration = "line-through"; }
+        if(g) { 
+            g.className = "text-green-500 font-bold transition-all"; 
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-3 h-3 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.style.textDecoration = "line-through";
+        }
     }
     if (data.egoal !== undefined) {
         const eg = document.getElementById(`eg${data.egoal}`);
-        if(eg) { eg.className = "text-red-500 font-bold transition-all"; eg.style.textDecoration = "line-through"; }
+        if(eg) { 
+            eg.className = "text-red-500 font-bold transition-all"; 
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-3 h-3 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.style.textDecoration = "line-through";
+        }
     }
 }
 
