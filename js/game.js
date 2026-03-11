@@ -26,7 +26,6 @@ function updateVolume(val) {
     if (s) s.value = val;
 }
 
-// --- ОЗВУЧКА ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -72,24 +71,19 @@ function selectScenario(key) {
     if (event) event.currentTarget.classList.add('active');
 }
 
-// ПЕРЕВОРОТ И ПОЛНЫЙ ЭКРАН (ТОЛЬКО ДЛЯ МОБИЛОК)
-async function goFullscreen() {
+async function lockLandscape() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
         try {
-            if (document.documentElement.requestFullscreen) {
-                await document.documentElement.requestFullscreen();
-            }
-            if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape');
-            }
-        } catch (e) { console.log("Orientation lock not supported"); }
+            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+        } catch (e) {}
     }
 }
 
 function startGame() {
     resumeAudio();
-    goFullscreen();
+    lockLandscape();
 
     const sc = scenarios[selectedScenarioKey];
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
@@ -159,7 +153,7 @@ function processMove() {
 }
 
 function updateStats(data) {
-    document.getElementById('move-counter').textContent = `ЭТАП: ${Math.floor((currentStep - 1) / 2) + 1}`;
+    document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
@@ -167,8 +161,6 @@ function updateVisuals(data, createLog) {
     if (data.capture) {
         document.getElementById('flash').classList.add('flash-active');
         setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
-        document.querySelector('.chess-board-outer').classList.add('shake-anim');
-        setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
     }
     
     document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
@@ -177,8 +169,8 @@ function updateVisuals(data, createLog) {
 
     if (createLog) {
         const log = document.createElement('div');
-        log.className = `log-entry text-[11px] border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-        log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
+        log.className = `log-entry text-[11px] border-l-2 pl-3 py-1 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200'}`;
+        log.innerHTML = `<span class="uppercase font-bold text-[9px] block">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Враг'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
         document.getElementById('narrative-box').scrollTop = document.getElementById('narrative-box').scrollHeight;
     }
@@ -187,7 +179,7 @@ function updateVisuals(data, createLog) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
             g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '');
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-3 h-3 mr-1"> ` + g.innerText.replace('• ', '');
             g.style.textDecoration = "line-through";
         }
     }
@@ -195,7 +187,7 @@ function updateVisuals(data, createLog) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
             eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '');
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-3 h-3 mr-1"> ` + eg.innerText.replace('• ', '');
             eg.style.textDecoration = "line-through";
         }
     }
