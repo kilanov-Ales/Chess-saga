@@ -61,7 +61,7 @@ const scenarios = {
             { move: "g5f7", turn: 'white', title: "Прорыв", text: "Рыцарь врывается в башню!", icon: "🍴", capture: true },
             { move: "c5f2", turn: 'black', title: "Взрыв", text: "Черный диверсант подрывает ворота!", icon: "💥", capture: true },
             { move: "e1f2", turn: 'white', title: "Казнь", text: "Монарх лично убивает диверсанта.", icon: "👑", capture: true },
-            { move: "f6e4", turn: 'black', title: "Налет", text: "Черный Рыцарь в тронном зале!", icon: "🌩️", capture: true },
+            { move: "f6e4", turn: 'black', title: "Налет", text: "Черный Рыцарь в тронном зале!", icon: "☁️", capture: true },
             { move: "f2g1", turn: 'white', title: "Тень", text: "Король прячется в углу.", icon: "🏃" },
             { move: "d8h4", turn: 'black', title: "Королева", text: "Черная Владычица обращает камень в пепел.", icon: "👸" },
             { move: "f7h8", turn: 'white', title: "Жадность", text: "Ваш Рыцарь грабит сокровищницу.", icon: "💎", capture: true },
@@ -70,3 +70,4 @@ const scenarios = {
     }
 
 };
+
