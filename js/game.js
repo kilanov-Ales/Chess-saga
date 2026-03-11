@@ -87,8 +87,30 @@ function selectScenario(key) {
     if (event) event.currentTarget.classList.add('active');
 }
 
+// --- ФУНКЦИЯ ДЛЯ ПЕРЕХОДА В ГОРИЗОНТАЛЬНЫЙ ПОЛНОЭКРАННЫЙ РЕЖИМ ---
+async function enableMobileLandscape() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+        try {
+            // Запрос полного экрана
+            const doc = document.documentElement;
+            if (doc.requestFullscreen) await doc.requestFullscreen();
+            else if (doc.webkitRequestFullscreen) await doc.webkitRequestFullscreen();
+
+            // Блокировка ориентации
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (err) {
+            console.log("Orientation lock not supported or blocked");
+        }
+    }
+}
+
 function startGame() {
     resumeAudio();
+    enableMobileLandscape(); // Вызываем авто-поворот
+
     document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
     
@@ -177,7 +199,6 @@ function processMove() {
     speak(data.text, data.turn, stepForAudio);
 }
 
-// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В JUMP TO STEP ---
 function jumpToStep(stepIndex) {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
@@ -193,10 +214,6 @@ function jumpToStep(stepIndex) {
         const data = sc.story[currentStep - 1];
         updateVisuals(data, false);
         
-        // Номер хода увеличивается только после завершения хода черных
-        // Если currentStep = 1 (после хода белых) -> ход 1
-        // Если currentStep = 2 (после хода черных) -> ход 1
-        // Если currentStep = 3 (после хода вторых белых) -> ход 2
         let displayMove = Math.floor((currentStep - 1) / 2) + 1;
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
@@ -215,13 +232,8 @@ function jumpToStep(stepIndex) {
     }
 }
 
-// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В UPDATE STATS ---
 function updateStats(data) {
-    // Если походил белый (data.turn === 'white'), currentStep уже увеличился на 1. 
-    // Значит для белых это переход от 0 к 1. Ход должен остаться 1.
-    // Если походил черный, currentStep стал 2. Ход должен стать 2 только для следующего хода белых.
     let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-    
     document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
