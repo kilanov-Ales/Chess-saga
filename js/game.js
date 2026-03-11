@@ -1,99 +1,68 @@
 // js/game.js
 const visualizationPath = "Visualization/";
 const figuresPath = "Figures/";
-const audioFolderPath = "audio/";
+const audioFolderPath = "audio/"; 
 
 let selectedScenarioKey = 'argus';
 let currentStep = 0;
-let maxReachedStep = 0;
+let maxReachedStep = 0; 
 let boardState = [];
-let historyStates = [];
-let isSpeaking = false;
+let historyStates = []; 
+let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-bgMusic.volume = 0.05;
+if (bgMusic) bgMusic.volume = 0.05; 
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-async function requestFullscreenAndLandscape() {
-    const root = document.documentElement;
-    if (!document.fullscreenElement && root.requestFullscreen) {
-        try { await root.requestFullscreen(); } catch (_) {}
-    }
-
-    if (screen.orientation && screen.orientation.lock) {
-        try { await screen.orientation.lock('landscape'); } catch (_) {}
-    }
-}
-
-function refreshOrientationOverlay() {
-    const overlay = document.getElementById('orientation-lock');
-    const appVisible = document.getElementById('main-app')?.classList.contains('app-visible');
-    if (!overlay) return;
-
-    const isMobileLike = window.matchMedia('(max-width: 900px)').matches;
-    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-    overlay.classList.toggle('visible', Boolean(appVisible) && isMobileLike && isPortrait);
-}
-
-function forceImmersiveMode(e) {
-    if (e && e.stopPropagation) e.stopPropagation();
-    resumeAudio();
-    requestFullscreenAndLandscape();
-}
-
 function resumeAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    if (bgMusic.paused) bgMusic.play().catch(() => {});
+    if (bgMusic && bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
 function updateVolume(val) {
-    bgMusic.volume = val * 0.2;
+    if (bgMusic) bgMusic.volume = val * 0.2; 
     document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
-// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
-    isSpeaking = true;
+    isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
-
     const voiceAudio = new Audio(audioPath);
-    const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => {
-        bgMusic.volume = Math.min(originalBgVolume, 0.02);
-    };
+    voiceAudio.onplay = () => { if(bgMusic) bgMusic.volume = 0.01; };
 
-    voiceAudio.onended = () => {
-        bgMusic.volume = originalBgVolume;
-        isSpeaking = false;
+    const endSpeech = () => {
+        if(bgMusic) bgMusic.volume = 0.05;
+        isSpeaking = false; 
+        renderBoard(); // Перерисовываем, чтобы появились кнопки хода
         finalizeTurnLogic();
     };
 
+    voiceAudio.onended = endSpeech;
     voiceAudio.onerror = () => {
-        bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'ru-RU';
-        msg.onend = () => {
-            isSpeaking = false;
-            finalizeTurnLogic();
-        };
+        msg.onend = endSpeech;
         window.speechSynthesis.speak(msg);
     };
 
     voiceAudio.play().catch(() => {
-        isSpeaking = false;
-        finalizeTurnLogic();
+        // Если аудиофайл не найден, используем синтез речи
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'ru-RU';
+        msg.onend = endSpeech;
+        window.speechSynthesis.speak(msg);
     });
 }
 
 function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
     if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 600);
+        setTimeout(processMove, 600); 
     }
 }
 
@@ -108,43 +77,36 @@ function initBoard() {
     historyStates = [JSON.parse(JSON.stringify(boardState))];
 }
 
-function selectScenario(key) {
+// ИСПРАВЛЕНО: добавлена проверка на наличие event
+function selectScenario(key, event) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    } else {
+        const card = document.querySelector(`[onclick*="${key}"]`);
+        if (card) card.classList.add('active');
+    }
 }
 
 function startGame() {
-    forceImmersiveMode();
+    resumeAudio();
     const menuVol = document.getElementById('menu-vol');
     if (menuVol) menuVol.style.display = 'none';
     
     const sc = scenarios[selectedScenarioKey];
-    currentStep = 0;
-    maxReachedStep = 0;
+    currentStep = 0; 
+    maxReachedStep = 0; 
     isSpeaking = false;
-
-    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
-    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    
     document.getElementById('chronicle-list').innerHTML = '';
-    document.getElementById('move-counter').textContent = `ХОД: 1`;
-    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
-
-    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
-    document.getElementById('scene-title').textContent = "Ваша история начинается";
-    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
-
+    
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('main-app').classList.add('app-visible');
-        refreshOrientationOverlay();
         initBoard();
         renderBoard();
     }, 800);
@@ -164,15 +126,16 @@ function renderBoard() {
             sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
             
-            if (!isSpeaking && currentStep === maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
-                sq.classList.add('active-target');
+            // Клетка подсвечивается только если сейчас ход игрока и никто не говорит
+            if (!isSpeaking && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
+                sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
             
             if (boardState[r] && boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
-                img.className = 'piece-img';
+                img.className = 'piece-img'; 
                 sq.appendChild(img);
             }
             boardEl.appendChild(sq);
@@ -195,48 +158,15 @@ function processMove() {
     boardState[from[0]][from[1]] = '';
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
-    updateVisuals(data, true);
+    updateVisuals(data, true); 
 
     const stepForAudio = currentStep;
-    currentStep++;
-    maxReachedStep = currentStep;
+    currentStep++; 
+    maxReachedStep = currentStep; 
     
     renderBoard();
     updateStats(data);
     speak(data.text, data.turn, stepForAudio);
-}
-
-function jumpToStep(stepIndex) {
-    if (isSpeaking) return;
-    const sc = scenarios[selectedScenarioKey];
-    
-    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
-
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    
-    currentStep = stepIndex;
-    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-
-    if (currentStep > 0) {
-        const data = sc.story[currentStep - 1];
-        updateVisuals(data, false);
-        
-        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-        document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
-        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
-    } else {
-        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
-        document.getElementById('scene-title').textContent = "Ваша история начинается";
-        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
-        document.getElementById('move-counter').textContent = `ХОД: 1`;
-        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
-    }
-    
-    renderBoard();
-
-    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
-        finalizeTurnLogic();
-    }
 }
 
 function updateStats(data) {
@@ -246,63 +176,18 @@ function updateStats(data) {
 }
 
 function updateVisuals(data, createLog) {
-    if (data.capture) {
-        const flash = document.getElementById('flash');
-        if (flash) {
-            flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 400);
-        }
-        const boardOuter = document.querySelector('.chess-board-outer');
-        if (boardOuter) {
-            boardOuter.classList.add('shake-anim');
-            setTimeout(() => boardOuter.classList.remove('shake-anim'), 300);
-        }
-    }
+    const stage = document.getElementById('visual-stage');
+    if (stage) stage.innerHTML = `<img src="${visualizationPath}${data.icon}.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4080/4080933.png'">`;
     
-    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
     document.getElementById('scene-title').textContent = data.title;
     document.getElementById('scene-desc').textContent = data.text;
 
     if (createLog) {
-        const logIndex = currentStep;
         const log = document.createElement('div');
-        log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-        log.onclick = () => jumpToStep(logIndex + 1);
+        log.className = `log-entry text-xs border-l-2 pl-3 py-2 mb-2 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
         log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
-        const box = document.getElementById('narrative-box');
-        box.scrollTop = box.scrollHeight;
-    }
-
-    if (data.goal !== undefined) {
-        const g = document.getElementById(`g${data.goal}`);
-        if(g) {
-            g.className = "text-green-500 font-bold transition-all";
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
-            g.style.textDecoration = "line-through";
-        }
-    }
-    if (data.egoal !== undefined) {
-        const eg = document.getElementById(`eg${data.egoal}`);
-        if(eg) {
-            eg.className = "text-red-500 font-bold transition-all";
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
-            eg.style.textDecoration = "line-through";
-        }
+        const box = document.getElementById('narrative-box'); 
+        if(box) box.scrollTop = box.scrollHeight;
     }
 }
-
-window.addEventListener('keydown', (e) => {
-    if (document.getElementById('main-app').classList.contains('app-visible')) {
-        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
-        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
-    }
-});
-
-window.addEventListener('resize', refreshOrientationOverlay);
-window.addEventListener('orientationchange', refreshOrientationOverlay);
-
-document.addEventListener('click', () => {
-    const mainApp = document.getElementById('main-app');
-    if (mainApp && mainApp.classList.contains('app-visible')) requestFullscreenAndLandscape();
-}, { passive: true });
