@@ -26,6 +26,7 @@ function updateVolume(val) {
     if (s) s.value = val;
 }
 
+// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -50,7 +51,7 @@ function speak(text, turn, stepAtMoment) {
 function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
     if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 800); 
+        setTimeout(processMove, 900); 
     }
 }
 
@@ -68,11 +69,27 @@ function initBoard() {
 function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    if (event) event.currentTarget.classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// АВТОМАТИЧЕСКИЙ ПЕРЕВОРОТ И ПОЛНЫЙ ЭКРАН
+async function requestLockOrientation() {
+    try {
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+        }
+    } catch (err) {
+        console.log("Ориентация не заблокирована, но это ожидаемо на ПК");
+    }
 }
 
 function startGame() {
     resumeAudio();
+    requestLockOrientation(); // Вызов переворота
+
     const sc = scenarios[selectedScenarioKey];
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
 
@@ -150,8 +167,8 @@ function jumpToStep(idx) {
 }
 
 function updateStats(data) {
-    document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`;
-    document.getElementById('player-turn').textContent = data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ';
+    document.getElementById('move-counter').textContent = `ЭТАП: ${Math.floor((currentStep - 1) / 2) + 1}`;
+    document.getElementById('player-turn').textContent = `ХОД: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
 function updateVisuals(data, createLog) {
