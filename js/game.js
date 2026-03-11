@@ -11,51 +11,55 @@ let historyStates = [];
 let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-if (bgMusic) bgMusic.volume = 0.05; 
+bgMusic.volume = 0.05; 
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function resumeAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    if (bgMusic && bgMusic.paused) bgMusic.play().catch(() => {});
+    if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
 function updateVolume(val) {
-    if (bgMusic) bgMusic.volume = val * 0.2; 
+    bgMusic.volume = val * 0.2; 
     document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
 }
 
+// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
+
     const voiceAudio = new Audio(audioPath);
+    const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => { if(bgMusic) bgMusic.volume = 0.01; };
+    voiceAudio.onplay = () => {
+        bgMusic.volume = Math.min(originalBgVolume, 0.02); 
+    };
 
-    const endSpeech = () => {
-        if(bgMusic) bgMusic.volume = 0.05;
+    voiceAudio.onended = () => {
+        bgMusic.volume = originalBgVolume;
         isSpeaking = false; 
-        renderBoard(); // Перерисовываем, чтобы появились кнопки хода
         finalizeTurnLogic();
     };
 
-    voiceAudio.onended = endSpeech;
     voiceAudio.onerror = () => {
+        bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'ru-RU';
-        msg.onend = endSpeech;
+        msg.onend = () => {
+            isSpeaking = false;
+            finalizeTurnLogic();
+        };
         window.speechSynthesis.speak(msg);
     };
 
     voiceAudio.play().catch(() => {
-        // Если аудиофайл не найден, используем синтез речи
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'ru-RU';
-        msg.onend = endSpeech;
-        window.speechSynthesis.speak(msg);
+        isSpeaking = false;
+        finalizeTurnLogic();
     });
 }
 
@@ -77,32 +81,37 @@ function initBoard() {
     historyStates = [JSON.parse(JSON.stringify(boardState))];
 }
 
-// ИСПРАВЛЕНО: добавлена проверка на наличие event
-function selectScenario(key, event) {
+function selectScenario(key) {
     selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    } else {
-        const card = document.querySelector(`[onclick*="${key}"]`);
-        if (card) card.classList.add('active');
-    }
+    if (event) event.currentTarget.classList.add('active');
 }
 
 function startGame() {
     resumeAudio();
-    const menuVol = document.getElementById('menu-vol');
-    if (menuVol) menuVol.style.display = 'none';
-    
+    document.getElementById('menu-vol').style.display = 'none';
     const sc = scenarios[selectedScenarioKey];
+    
     currentStep = 0; 
     maxReachedStep = 0; 
     isSpeaking = false;
 
+    const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
+    const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
+    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
+    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
+
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-    document.getElementById('chronicle-list').innerHTML = '';
     
+    document.getElementById('chronicle-list').innerHTML = '';
+    document.getElementById('move-counter').textContent = `ХОД: 1`;
+    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
+
+    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+    document.getElementById('scene-title').textContent = "Ваша история начинается";
+    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
@@ -126,8 +135,7 @@ function renderBoard() {
             sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
             
-            // Клетка подсвечивается только если сейчас ход игрока и никто не говорит
-            if (!isSpeaking && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
+            if (!isSpeaking && currentStep === maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
                 sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
@@ -169,25 +177,103 @@ function processMove() {
     speak(data.text, data.turn, stepForAudio);
 }
 
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В JUMP TO STEP ---
+function jumpToStep(stepIndex) {
+    if (isSpeaking) return;
+    const sc = scenarios[selectedScenarioKey];
+    
+    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    currentStep = stepIndex;
+    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
+
+    if (currentStep > 0) {
+        const data = sc.story[currentStep - 1];
+        updateVisuals(data, false);
+        
+        // Номер хода увеличивается только после завершения хода черных
+        // Если currentStep = 1 (после хода белых) -> ход 1
+        // Если currentStep = 2 (после хода черных) -> ход 1
+        // Если currentStep = 3 (после хода вторых белых) -> ход 2
+        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+        document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
+    } else {
+        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;">`;
+        document.getElementById('scene-title').textContent = "Ваша история начинается";
+        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
+        document.getElementById('move-counter').textContent = `ХОД: 1`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
+    }
+    
+    renderBoard();
+
+    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
+        finalizeTurnLogic();
+    }
+}
+
+// --- ИСПРАВЛЕННЫЙ ПОДСЧЕТ ХОДОВ В UPDATE STATS ---
 function updateStats(data) {
+    // Если походил белый (data.turn === 'white'), currentStep уже увеличился на 1. 
+    // Значит для белых это переход от 0 к 1. Ход должен остаться 1.
+    // Если походил черный, currentStep стал 2. Ход должен стать 2 только для следующего хода белых.
     let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+    
     document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
 function updateVisuals(data, createLog) {
-    const stage = document.getElementById('visual-stage');
-    if (stage) stage.innerHTML = `<img src="${visualizationPath}${data.icon}.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4080/4080933.png'">`;
+    if (data.capture) {
+        document.getElementById('flash').classList.add('flash-active');
+        setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
+        document.querySelector('.chess-board-outer').classList.add('shake-anim');
+        setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
+    }
     
+    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}${data.icon}.png">`;
     document.getElementById('scene-title').textContent = data.title;
     document.getElementById('scene-desc').textContent = data.text;
 
     if (createLog) {
+        const logIndex = currentStep;
         const log = document.createElement('div');
-        log.className = `log-entry text-xs border-l-2 pl-3 py-2 mb-2 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.onclick = () => jumpToStep(logIndex + 1);
         log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
-        const box = document.getElementById('narrative-box'); 
-        if(box) box.scrollTop = box.scrollHeight;
+        const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
+    }
+
+    if (data.goal !== undefined) {
+        const g = document.getElementById(`g${data.goal}`);
+        if(g) { 
+            g.className = "text-green-500 font-bold transition-all"; 
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.style.textDecoration = "line-through";
+        }
+    }
+    if (data.egoal !== undefined) {
+        const eg = document.getElementById(`eg${data.egoal}`);
+        if(eg) { 
+            eg.className = "text-red-500 font-bold transition-all"; 
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.style.textDecoration = "line-through";
+        }
     }
 }
+
+function exitToMenu() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    location.reload(); 
+}
+
+window.addEventListener('keydown', (e) => {
+    if (document.getElementById('main-app').classList.contains('app-visible')) {
+        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
+        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
+    }
+});
