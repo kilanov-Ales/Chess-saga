@@ -17,12 +17,12 @@
             font-family: 'Philosopher', sans-serif;
             background-color: var(--bg-dark);
             color: #f8fafc;
-            overflow: hidden; /* ИСПРАВЛЕНИЕ: Запрет общего скролла, чтобы не дергалось */
+            overflow-x: hidden;
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
         }
         h1, h2, h3 { font-family: 'Cinzel', serif; }
 
@@ -70,7 +70,7 @@
         /* Интерфейс игры */
         .app-container {
             display: none; 
-            grid-template-columns: 1.1fr 0.9fr; /* ИСПРАВЛЕНИЕ: Фиксированные пропорции */
+            grid-template-columns: 1fr 1fr;
             width: 100vw;
             height: 100vh;
             opacity: 0;
@@ -98,7 +98,7 @@
             padding: 1.5rem;
         }
 
-        .theater-zone-mini { text-align: center; margin-bottom: 1rem; width: 100%; max-width: 400px; }
+        .theater-zone-mini { text-align: center; margin-bottom: 1rem; max-width: 400px; }
         .visual-stage-mini { 
             display: flex;
             justify-content: center;
@@ -119,14 +119,15 @@
             border-radius: 8px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
             transition: transform 0.1s;
+            max-width: 95vw;
         }
         
-        /* ИСПРАВЛЕНИЕ: Жесткие размеры доски для всех устройств */
+        /* ИСПРАВЛЕНИЕ: Жесткие размеры, чтобы ничего не прыгало */
         .chess-board { 
             display: grid; 
             grid-template-columns: repeat(8, 1fr); 
-            width: min(480px, 85vw); 
-            height: min(480px, 85vw); 
+            width: min(480px, 90vw); 
+            height: min(480px, 90vw); 
         }
         .square { 
             width: 100% !important; 
@@ -148,7 +149,6 @@
             50% { box-shadow: inset 0 0 30px var(--gold); background-color: rgba(245, 158, 11, 0.6); }
         }
 
-        /* Громкость */
         .volume-box {
             display: flex;
             flex-direction: column;
@@ -164,7 +164,7 @@
             -webkit-appearance: slider-vertical;
             appearance: slider-vertical;
             width: 20px;
-            height: 100px;
+            height: 120px;
             background: var(--gold-dim);
             cursor: pointer;
             outline: none;
@@ -186,18 +186,13 @@
             }
         }
 
+        /* ИСПРАВЛЕНИЕ: Делаем кнопку "живой" для кликов */
+        button { cursor: pointer; pointer-events: auto; }
+
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
-        
-        .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; height: 100%; }
+        .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; }
         .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex: 1; }
         .narrative-scroll { flex-grow: 1; overflow-y: auto; padding: 1rem; }
-
-        /* Вспышка и тряска */
-        #flash { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 3000; }
-        .flash-active { animation: flash-anim 0.4s; }
-        @keyframes flash-anim { 0% { opacity: 0.5; } 100% { opacity: 0; } }
-        .shake-anim { animation: shake-anim 0.3s; }
-        @keyframes shake-anim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body onclick="resumeAudio()"> 
@@ -205,7 +200,7 @@
         <source src="Music_Background.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="flash"></div>
+    <div id="flash" class="flash-screen"></div>
 
     <div id="menu-vol" class="vol-menu volume-box">
         <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
@@ -242,7 +237,7 @@
 
     <div class="app-container" id="main-app">
         <div class="left-panel">
-            <div class="btn-exit-x" onclick="location.reload()">×</div>
+            <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
             <div class="vol-game volume-box">
                 <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
@@ -251,7 +246,7 @@
 
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/🏰.png" alt="scene">
+                    <img src="Visualization/城堡.png" alt="scene">
                 </div>
                 <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут...</p>
@@ -263,11 +258,11 @@
         <div class="right-panel">
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Планы Компании</h3>
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Задачи</h3>
                     <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Замыслы Соперника</h3>
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Враг</h3>
                     <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
