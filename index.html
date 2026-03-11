@@ -26,7 +26,6 @@
         }
         h1, h2, h3 { font-family: 'Cinzel', serif; }
 
-        /* --- ГЛАВНОЕ МЕНЮ --- */
         #main-menu {
             position: fixed;
             inset: 0;
@@ -35,20 +34,24 @@
             align-items: center;
             justify-content: center;
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            z-index: 2000;
+            z-index: 9999;
             transition: all 0.8s ease;
             padding: 20px;
             overflow-y: auto;
         }
+
         .scenario-selector {
             display: grid;
             grid-template-columns: repeat(3, 280px);
             gap: 1rem;
             margin-top: 2rem;
         }
+
         @media (max-width: 900px) {
             .scenario-selector { grid-template-columns: 1fr; }
+            #main-menu h1 { font-size: 3rem; }
         }
+
         .scenario-card {
             background: rgba(15, 23, 42, 0.8);
             border: 1px solid #334155;
@@ -56,16 +59,18 @@
             border-radius: 1rem;
             cursor: pointer;
             transition: all 0.3s;
+            text-align: left;
         }
+
         .scenario-card:hover {
             border-color: var(--gold);
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(245, 158, 11, 0.1);
         }
+
         .scenario-card.active { border-color: var(--gold); background: rgba(245, 158, 11, 0.05); }
         .menu-icon { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 8px; }
 
-        /* --- ПРИЛОЖЕНИЕ --- */
         .app-container {
             display: none; 
             grid-template-columns: 650px 450px;
@@ -74,7 +79,20 @@
             opacity: 0;
             transition: opacity 1s ease;
         }
-        .app-visible { display: grid !important; opacity: 1 !important; }
+        
+        .app-visible { 
+            display: grid !important; 
+            opacity: 1 !important; 
+        }
+
+        @media (max-width: 1150px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                width: 95vw;
+                height: auto;
+                overflow-y: auto;
+            }
+        }
 
         .left-panel {
             display: flex;
@@ -87,50 +105,51 @@
             padding: 1.5rem;
         }
 
-        .chess-board-outer { padding: 8px; background: #27272a; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .theater-zone-mini { text-align: center; margin-bottom: 1.5rem; max-width: 400px; }
         
-        /* ЖЕСТКАЯ ФИКСАЦИЯ КЛЕТОК */
+        .chess-board-outer { 
+            padding: 8px; 
+            background: #27272a; 
+            border-radius: 8px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
+        }
+        
         .chess-board { 
             display: grid; 
             grid-template-columns: repeat(8, 1fr); 
             width: 560px; 
             height: 560px; 
         }
+
         .square { 
-            width: 70px !important; 
-            height: 70px !important; 
-            min-width: 70px !important;
-            min-height: 70px !important;
+            width: 70px; 
+            height: 70px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             position: relative; 
         }
 
-        @media (max-width: 1200px) {
-            .app-container { grid-template-columns: 1fr 1fr; width: 95vw; }
-            .chess-board { width: 480px; height: 480px; }
-            .square { width: 60px !important; height: 60px !important; min-width: 60px !important; min-height: 60px !important; }
-        }
-
-        @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
-            .chess-board { width: 400px; height: 400px; }
-            .square { width: 50px !important; height: 50px !important; min-width: 50px !important; min-height: 50px !important; }
+        @media (max-width: 600px) {
+            .chess-board { width: 90vw; height: 90vw; }
+            .square { width: calc(90vw / 8); height: calc(90vw / 8); }
         }
 
         .square.light { background-color: #d6b08d; }
         .square.dark { background-color: #8b5e3c; }
         .piece-img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; z-index: 10; }
 
-        .vol-game { position: absolute; top: 100px; left: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.8); padding: 15px 10px; border-radius: 30px; border: 1px solid var(--gold); }
+        .vol-game { 
+            position: absolute; top: 100px; left: 1.5rem; 
+            display: flex; flex-direction: column; align-items: center; gap: 10px; 
+            background: rgba(15, 23, 42, 0.8); padding: 15px 10px; border-radius: 30px; border: 1px solid var(--gold); 
+        }
         .volume-slider { -webkit-appearance: slider-vertical; width: 20px; height: 120px; background: var(--gold-dim); cursor: pointer; }
-        
-        /* КНОПКА ДЛЯ ТЕЛЕФОНА */
+
         .btn-battle {
             cursor: pointer !important;
-            pointer-events: auto !important;
             touch-action: manipulation;
+            z-index: 10000;
         }
 
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
@@ -140,41 +159,61 @@
     </style>
 </head>
 <body onclick="resumeAudio()">
-    <audio id="audio-bg" loop><source src="Music_Background.mp3" type="audio/mpeg"></audio>
+    <audio id="audio-bg" loop>
+        <source src="Music_Background.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="main-menu">
         <h1 class="text-6xl text-amber-500 font-bold mb-4 tracking-tighter text-center">CHESS SAGA</h1>
         <p class="text-slate-400 italic mb-8 text-center">Выберите главу истории</p>
+        
         <div class="scenario-selector">
             <div class="scenario-card active" onclick="selectScenario('argus')">
-                <h3 class="text-amber-500 font-bold mb-2"><img src="Visualization/✨.png" class="menu-icon"> Свет Аргуса</h3>
+                <h3 class="text-amber-500 font-bold mb-2">
+                    <img src="Visualization/✨.png" class="menu-icon"> Свет Аргуса
+                </h3>
                 <p class="text-xs text-slate-400">Поучительная история о самопожертвовании.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('standard')">
-                <h3 class="text-sky-400 font-bold mb-2"><img src="Visualization/🚩.png" class="menu-icon"> Знамя Света</h3>
+                <h3 class="text-sky-400 font-bold mb-2">
+                    <img src="Visualization/🚩.png" class="menu-icon"> Знамя Света
+                </h3>
                 <p class="text-xs text-slate-400">Орден Юстициария против Клана Кровавого Тотема.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('traxler')">
-                <h3 class="text-red-500 font-bold mb-2"><img src="Visualization/🌑.png" class="menu-icon"> Судьба Тракслера</h3>
+                <h3 class="text-red-500 font-bold mb-2">
+                    <img src="Visualization/🌑.png" class="menu-icon"> Судьба Тракслера
+                </h3>
                 <p class="text-xs text-slate-400">Безумный гамбит и падение Белого Солнца.</p>
             </div>
         </div>
-        <button class="btn-battle mt-12 px-12 py-3 border-2 border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="startGame()">НАЧАТЬ БИТВУ</button>
+
+        <button class="btn-battle mt-12 px-12 py-3 border-2 border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all font-bold tracking-widest uppercase" 
+                onclick="startGame()">
+            Начать битву
+        </button>
     </div>
 
     <div class="app-container" id="main-app">
         <div class="left-panel">
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
+            
             <div class="vol-game">
-                <img src="Visualization/🔊.png" style="width:20px">
+                <img src="Visualization/🔊.png" class="w-5" alt="vol">
                 <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
             </div>
-            <div class="theater-zone-mini text-center mb-4">
-                <div id="visual-stage" class="flex justify-center"><img src="Visualization/城堡.png" style="width:70px"></div>
+
+            <div class="theater-zone-mini">
+                <div id="visual-stage" class="flex justify-center mb-2">
+                    <img src="Visualization/城堡.png" class="w-[70px]" alt="castle">
+                </div>
                 <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm">Армии ждут своего часа...</p>
             </div>
-            <div class="chess-board-outer"><div id="board" class="chess-board"></div></div>
+
+            <div class="chess-board-outer">
+                <div id="board" class="chess-board"></div>
+            </div>
         </div>
 
         <div class="right-panel">
@@ -190,11 +229,15 @@
             </div>
             <div class="flex justify-between items-center px-2">
                 <span id="move-counter" class="text-xs font-mono text-amber-500">ХОД: 1</span>
-                <span id="player-turn" class="text-xs font-mono text-amber-500">ОЧЕРЕДЬ: БЕЛЫЕ</span>
+                <span id="player-turn" class="text-xs font-mono text-amber-500 uppercase">Очередь: Белые</span>
             </div>
             <div class="chronicle-card">
-                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника</h2></div>
-                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-4"></div></div>
+                <div class="bg-slate-800 p-3">
+                    <h2 class="text-sm font-bold text-slate-200 uppercase">📜 Хроника</h2>
+                </div>
+                <div class="narrative-scroll" id="narrative-box">
+                    <div id="chronicle-list" class="space-y-4 text-sm"></div>
+                </div>
             </div>
         </div>
     </div>
