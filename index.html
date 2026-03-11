@@ -17,7 +17,7 @@
             font-family: 'Philosopher', sans-serif;
             background-color: var(--bg-dark);
             color: #f8fafc;
-            overflow-x: hidden;
+            overflow: hidden;
             margin: 0;
             display: flex;
             align-items: center;
@@ -78,31 +78,40 @@
         }
         .app-visible { display: grid !important; opacity: 1 !important; }
 
+        /* ПРАВКИ ДЛЯ МОБИЛЬНЫХ (ГОРИЗОНТАЛЬ) */
         @media (max-width: 1024px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-                overflow-y: auto;
-                height: 100vh;
-            }
-        }
+            /* Убираем звук на телефонах совсем */
+            .vol-game, #menu-vol { display: none !important; }
 
-        /* СПЕЦИАЛЬНЫЙ РЕЖИМ ДЛЯ ТЕЛЕФОНА В ГОРИЗОНТАЛИ (КАК НА НОУТБУКЕ) */
-        @media (max-width: 1024px) and (orientation: landscape) {
             .app-container {
-                grid-template-columns: 1fr 1fr !important;
+                grid-template-columns: 0.85fr 1.15fr !important;
                 grid-template-rows: none !important;
-                overflow: hidden !important;
                 height: 100vh !important;
+                overflow: hidden !important;
             }
-            .left-panel { padding: 0.5rem !important; }
-            .right-panel { padding: 1rem !important; gap: 0.5rem !important; }
+            
+            .left-panel { padding: 5px !important; justify-content: space-around !important; }
+            .right-panel { padding: 8px !important; gap: 4px !important; }
+
             .chess-board { 
-                width: min(320px, 75vh) !important; 
-                height: min(320px, 75vh) !important; 
+                width: min(270px, 78vh) !important; 
+                height: min(270px, 78vh) !important; 
             }
-            .theater-zone-mini { margin-bottom: 0.2rem !important; }
-            .visual-stage-mini img { width: 50px !important; height: 50px !important; }
+
+            .theater-zone-mini { margin-bottom: 0 !important; transform: scale(0.9); }
+            .visual-stage-mini { min-height: 50px !important; }
+            .visual-stage-mini img { width: 45px !important; height: 45px !important; }
+            #scene-title { font-size: 0.9rem !important; margin-top: 0 !important; }
+            #scene-desc { font-size: 0.75rem !important; }
+
+            .grid-cols-2 { gap: 4px !important; }
+            .bg-slate-900\/80 { padding: 6px !important; }
+            
+            .btn-exit-x { 
+                top: 8px !important; left: 8px !important; 
+                width: 32px !important; height: 32px !important; 
+                font-size: 1.2rem !important; 
+            }
         }
 
         .left-panel {
@@ -125,11 +134,7 @@
             filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3)); 
             transition: all 0.5s; 
         }
-        .visual-stage-mini img {
-            width: 70px;
-            height: 70px;
-            object-fit: contain;
-        }
+        .visual-stage-mini img { width: 70px; height: 70px; object-fit: contain; }
 
         .chess-board-outer { 
             padding: 8px; 
@@ -137,10 +142,8 @@
             border-radius: 8px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
             transition: transform 0.1s;
-            max-width: 95vw;
         }
         
-        /* ИСПРАВЛЕНИЕ: Жесткие размеры, чтобы ничего не прыгало */
         .chess-board { 
             display: grid; 
             grid-template-columns: repeat(8, 1fr); 
@@ -192,24 +195,9 @@
         .vol-menu { position: absolute; bottom: 40px; right: 40px; }
         .vol-game { position: absolute; top: 100px; left: 1.5rem; }
 
-        @media (max-width: 1024px) {
-            .vol-game { 
-                top: 20px; right: 20px; left: auto; 
-                flex-direction: row; height: auto; width: auto; 
-                padding: 8px 15px; 
-            }
-            .vol-game .volume-slider { 
-                width: 80px; height: 10px; 
-                -webkit-appearance: auto; appearance: auto;
-            }
-        }
-
-        /* ИСПРАВЛЕНИЕ: Делаем кнопку "живой" для кликов */
-        button { cursor: pointer; pointer-events: auto; }
-
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
         .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; }
-        .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex: 1; }
+        .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex: 1; min-height: 0; }
         .narrative-scroll { flex-grow: 1; overflow-y: auto; padding: 1rem; }
     </style>
 </head>
@@ -264,7 +252,7 @@
 
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/城堡.png" alt="scene">
+                    <img src="Visualization/🏰.png" alt="scene">
                 </div>
                 <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут...</p>
@@ -289,8 +277,8 @@
                 <span id="player-turn" class="text-xs font-mono text-amber-500">ОЧЕРЕДЬ: БЕЛЫЕ</span>
             </div>
             <div class="chronicle-card">
-                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника</h2></div>
-                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-4"></div></div>
+                <div class="bg-slate-800 p-2"><h2 class="text-xs font-bold text-slate-200 uppercase">Хроника</h2></div>
+                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-2"></div></div>
             </div>
         </div>
     </div>
