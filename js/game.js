@@ -22,21 +22,24 @@ function resumeAudio() {
 
 function updateVolume(val) {
     bgMusic.volume = val * 0.2; 
-    const s = document.querySelector('.vol-game .volume-slider');
-    if(s) s.value = val;
+    const s = document.querySelector('.volume-slider');
+    if (s) s.value = val;
 }
 
+// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
+
     const voiceAudio = new Audio(audioPath);
     const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.01); };
     voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
+
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
@@ -44,6 +47,7 @@ function speak(text, turn, stepAtMoment) {
         msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
         window.speechSynthesis.speak(msg);
     };
+
     voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
 }
 
@@ -85,13 +89,14 @@ async function enableMobileLandscape() {
 function startGame() {
     resumeAudio();
     enableMobileLandscape(); 
+
     const sc = scenarios[selectedScenarioKey];
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
 
     document.getElementById('goals-list').innerHTML = sc.goals.map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = sc.egoals.map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
     document.getElementById('chronicle-list').innerHTML = '';
-    
+
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
@@ -105,6 +110,7 @@ function renderBoard() {
     const boardEl = document.getElementById('board');
     if (!boardEl) return;
     boardEl.innerHTML = '';
+    
     const sc = scenarios[selectedScenarioKey];
     const next = sc.story[currentStep];
 
@@ -113,10 +119,12 @@ function renderBoard() {
             const sq = document.createElement('div');
             sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
+            
             if (!isSpeaking && currentStep === maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
                 sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
+            
             if (boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
@@ -132,6 +140,7 @@ function processMove() {
     if (isSpeaking) return;
     const sc = scenarios[selectedScenarioKey];
     if (currentStep >= sc.story.length) return;
+    
     const data = sc.story[currentStep];
     const moveClean = data.move.replace(/[!+#]/g, '');
     const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
@@ -142,6 +151,7 @@ function processMove() {
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
     updateVisuals(data, true); 
+
     const stepForAudio = currentStep;
     currentStep++; maxReachedStep = currentStep; 
     
@@ -155,7 +165,10 @@ function jumpToStep(idx) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     currentStep = idx;
     boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-    if (currentStep > 0) updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
+    
+    if (currentStep > 0) {
+        updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
+    }
     renderBoard();
 }
 
@@ -178,18 +191,18 @@ function updateVisuals(data, createLog) {
 
     if (createLog) {
         const log = document.createElement('div');
-        log.className = `log-entry text-[10px] border-l-2 pl-2 py-1 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.className = `log-entry text-[11px] border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
         log.onclick = () => jumpToStep(currentStep);
-        log.innerHTML = `<span class="uppercase font-bold text-[8px] block">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
+        log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
-        document.getElementById('narrative-box').scrollTop = document.getElementById('narrative-box').scrollHeight;
+        const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
     }
 
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
             g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-3 h-3 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
             g.style.textDecoration = "line-through";
         }
     }
@@ -197,7 +210,7 @@ function updateVisuals(data, createLog) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
             eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-3 h-3 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
             eg.style.textDecoration = "line-through";
         }
     }
