@@ -22,7 +22,9 @@ function resumeAudio() {
 
 function updateVolume(val) {
     bgMusic.volume = val * 0.2; 
-    document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
+    // Обновляем только существующий ползунок
+    const slider = document.querySelector('.vol-game .volume-slider');
+    if (slider) slider.value = val;
 }
 
 // --- СИСТЕМА ОЗВУЧКИ ---
@@ -36,31 +38,18 @@ function speak(text, turn, stepAtMoment) {
     const voiceAudio = new Audio(audioPath);
     const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => {
-        bgMusic.volume = Math.min(originalBgVolume, 0.02); 
-    };
-
-    voiceAudio.onended = () => {
-        bgMusic.volume = originalBgVolume;
-        isSpeaking = false; 
-        finalizeTurnLogic();
-    };
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
+    voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
 
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'ru-RU';
-        msg.onend = () => {
-            isSpeaking = false;
-            finalizeTurnLogic();
-        };
+        msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
         window.speechSynthesis.speak(msg);
     };
 
-    voiceAudio.play().catch(() => {
-        isSpeaking = false;
-        finalizeTurnLogic();
-    });
+    voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
 }
 
 function finalizeTurnLogic() {
@@ -87,22 +76,15 @@ function selectScenario(key) {
     if (event) event.currentTarget.classList.add('active');
 }
 
-// УЛУЧШЕННЫЙ ПОВОРОТ ЭКРАНА
 async function enableMobileLandscape() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
         try {
             const doc = document.documentElement;
             if (doc.requestFullscreen) await doc.requestFullscreen();
-            else if (doc.webkitRequestFullscreen) await doc.webkitRequestFullscreen();
-
-            if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape').catch(() => {});
-            }
+            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(() => {});
             window.scrollTo(0, 1);
-        } catch (err) {
-            console.log("Mobile UI layout applied");
-        }
+        } catch (err) {}
     }
 }
 
@@ -232,26 +214,20 @@ function updateVisuals(data, createLog) {
     if (createLog) {
         const logIndex = currentStep;
         const log = document.createElement('div');
-        log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+        log.className = `log-entry text-[10px] border-l-2 pl-2 py-1 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
         log.onclick = () => jumpToStep(logIndex + 1);
-        log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
+        log.innerHTML = `<span class="uppercase font-bold text-[8px] block">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
         const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
     }
 
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
-        if(g) { 
-            g.className = "text-green-500 font-bold transition-all"; 
-            g.style.textDecoration = "line-through";
-        }
+        if(g) { g.className = "text-green-500 font-bold transition-all"; g.style.textDecoration = "line-through"; }
     }
     if (data.egoal !== undefined) {
         const eg = document.getElementById(`eg${data.egoal}`);
-        if(eg) { 
-            eg.className = "text-red-500 font-bold transition-all"; 
-            eg.style.textDecoration = "line-through";
-        }
+        if(eg) { eg.className = "text-red-500 font-bold transition-all"; eg.style.textDecoration = "line-through"; }
     }
 }
 
