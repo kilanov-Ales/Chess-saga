@@ -26,42 +26,40 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            min-height: 100dvh; /* dynamic viewport height */
+            min-height: 100dvh;
         }
         h1, h2, h3 { font-family: 'Cinzel', serif; }
 
-        /* Мобільна адаптація CSS */
-        @media (max-width: 768px) {
-            #scene-desc {
+        /* --- МОБИЛЬНАЯ АДАПТАЦИЯ (МАСШТАБ И ПОВОРОТ) --- */
+        @media (max-width: 932px) {
+            .mobile-landscape-mode {
+                display: grid !important;
+                /* Заставляем колонки стоять в ряд, как на ноутбуке */
+                grid-template-columns: 1.2fr 1fr !important; 
+                grid-template-rows: none !important;
+                /* Уменьшаем масштаб всего интерфейса */
+                transform: scale(0.75);
+                transform-origin: center center;
+                width: 133.33vw !important; 
+                height: 133.33vh !important;
+                position: absolute;
+                overflow: hidden;
+            }
+
+            /* Доска в мобильном режиме должна быть больше относительно текста */
+            .mobile-landscape-mode .chess-board {
+                width: min(450px, 85vh) !important;
+                height: min(450px, 85vh) !important;
+            }
+
+            .mobile-landscape-mode #scene-desc {
                 display: none !important;
             }
-            .vol-game {
+            .mobile-landscape-mode .vol-game {
                 display: none !important;
             }
-        }
-
-        /* Landscape режим */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .left-panel {
-                justify-content: flex-start;
-                padding: 0.5rem;
-            }
-            .theater-zone-mini {
-                margin-bottom: 0.25rem;
-            }
-            .chess-board {
-                width: min(300px, 80vw) !important;
-                height: min(300px, 80vw) !important;
-            }
-        }
-
-        /* Portrait режим на мобільних */
-        @media (max-height: 800px) and (orientation: portrait) {
-            .right-panel {
-                padding: 1rem;
-            }
-            .chronicle-card {
-                max-height: 150px;
+            .mobile-landscape-mode .right-panel {
+                padding: 1rem !important;
             }
         }
 
@@ -118,11 +116,10 @@
         .app-visible { display: grid !important; opacity: 1 !important; }
 
         @media (max-width: 1024px) {
-            .app-container {
+            .app-container:not(.mobile-landscape-mode) {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
                 overflow-y: auto;
-                height: 100vh;
             }
         }
 
@@ -158,7 +155,6 @@
             border-radius: 8px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
             transition: transform 0.1s;
-            max-width: 95vw;
         }
         
         .chess-board { 
@@ -168,8 +164,8 @@
             height: min(480px, 90vw); 
         }
         .square { 
-            width: 100% !important; 
-            height: 100% !important; 
+            width: 100%; 
+            height: 100%; 
             aspect-ratio: 1 / 1;
             display: flex; 
             align-items: center; 
@@ -212,24 +208,27 @@
         .vol-menu { position: absolute; bottom: 40px; right: 40px; }
         .vol-game { position: absolute; top: 100px; left: 1.5rem; }
 
-        @media (max-width: 1024px) {
-            .vol-game { 
-                top: 20px; right: 20px; left: auto; 
-                flex-direction: row; height: auto; width: auto; 
-                padding: 8px 15px; 
-            }
-            .vol-game .volume-slider { 
-                width: 80px; height: 10px; 
-                -webkit-appearance: auto; appearance: auto;
-            }
-        }
-
-        button { cursor: pointer; pointer-events: auto; }
-
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
+        
         .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; }
         .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex: 1; }
         .narrative-scroll { flex-grow: 1; overflow-y: auto; padding: 1rem; }
+
+        #flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3000;
+        }
+        .flash-active {
+            animation: flash-anim 0.4s ease-out;
+        }
+        @keyframes flash-anim {
+            0% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body onclick="resumeAudio()"> 
@@ -237,7 +236,7 @@
         <source src="Music_Background.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="flash" class="flash-screen"></div>
+    <div id="flash"></div>
 
     <div id="menu-vol" class="vol-menu volume-box">
         <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
@@ -283,7 +282,7 @@
 
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/城堡.png" alt="scene">
+                    <img src="Visualization/🏰.png" alt="scene">
                 </div>
                 <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут...</p>
@@ -295,11 +294,11 @@
         <div class="right-panel">
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Задачи</h3>
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">ПЛАНЫ КОМПАНИИ</h3>
                     <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Враг</h3>
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">ЗАДУМЫ СОПЕРНИКА</h3>
                     <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
