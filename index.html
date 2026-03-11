@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chess Saga: Chronicles</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -69,22 +69,21 @@
 
         /* Интерфейс игры */
         .app-container {
-            display: grid;
+            display: none; 
             grid-template-columns: 1fr 1fr;
             width: 100vw;
             height: 100vh;
-            display: none; 
             opacity: 0;
             transition: opacity 1s ease;
         }
-        .app-visible { display: grid; opacity: 1; }
+        .app-visible { display: grid !important; opacity: 1 !important; }
 
         @media (max-width: 1024px) {
             .app-container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
                 overflow-y: auto;
-                height: auto;
+                height: 100vh;
             }
         }
 
@@ -122,17 +121,24 @@
             transition: transform 0.1s;
             max-width: 95vw;
         }
+        
+        /* ИСПРАВЛЕНИЕ: Жесткие размеры, чтобы ничего не прыгало */
         .chess-board { 
             display: grid; 
             grid-template-columns: repeat(8, 1fr); 
-            width: 480px; 
-            height: 480px; 
+            width: min(480px, 90vw); 
+            height: min(480px, 90vw); 
         }
-        @media (max-width: 520px) {
-            .chess-board { width: 90vw; height: 90vw; }
-            .square { width: 100% !important; height: 100% !important; }
+        .square { 
+            width: 100% !important; 
+            height: 100% !important; 
+            aspect-ratio: 1 / 1;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
         }
-        .square { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; position: relative; }
+
         .square.light { background-color: #d6b08d; }
         .square.dark { background-color: #8b5e3c; }
         .piece-img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; z-index: 10; }
@@ -141,14 +147,6 @@
         @keyframes target-pulse {
             0%, 100% { box-shadow: inset 0 0 0px var(--gold); background-color: rgba(245, 158, 11, 0.3); }
             50% { box-shadow: inset 0 0 30px var(--gold); background-color: rgba(245, 158, 11, 0.6); }
-        }
-
-        .shake-anim { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
         .volume-box {
@@ -171,16 +169,6 @@
             cursor: pointer;
             outline: none;
         }
-        .volume-slider::-webkit-slider-runnable-track { background: var(--gold-dim); border-radius: 5px; }
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: var(--gold);
-            margin-top: -6px;
-            border: 2px solid white;
-        }
 
         .vol-icon-img { width: 22px; height: 22px; object-fit: contain; }
         .vol-menu { position: absolute; bottom: 40px; right: 40px; }
@@ -198,20 +186,13 @@
             }
         }
 
+        /* ИСПРАВЛЕНИЕ: Делаем кнопку "живой" для кликов */
+        button { cursor: pointer; pointer-events: auto; }
+
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 100; font-size: 1.5rem; }
-
         .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; }
-        @media (max-width: 1024px) { .right-panel { height: 500px; } }
-
         .chronicle-card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; flex: 1; }
         .narrative-scroll { flex-grow: 1; overflow-y: auto; padding: 1rem; }
-        
-        .log-entry { cursor: pointer; transition: background 0.2s; border-radius: 4px; padding: 8px; margin-bottom: 8px; }
-        .log-entry:hover { background: rgba(245, 158, 11, 0.1); }
-
-        .flash-screen { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 3000; }
-        .flash-active { animation: flash-anim 0.4s ease-out; }
-        @keyframes flash-anim { 0%, 100% { opacity: 0; } 50% { opacity: 0.6; } }
     </style>
 </head>
 <body onclick="resumeAudio()"> 
