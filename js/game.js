@@ -26,20 +26,17 @@ function updateVolume(val) {
     if (s) s.value = val;
 }
 
-// --- СИСТЕМА ОЗВУЧКИ ---
 function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
-
     const voiceAudio = new Audio(audioPath);
     const originalBgVolume = bgMusic.volume;
 
     voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.01); };
     voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
-
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
@@ -47,14 +44,13 @@ function speak(text, turn, stepAtMoment) {
         msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
         window.speechSynthesis.speak(msg);
     };
-
     voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
 }
 
 function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
     if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 600); 
+        setTimeout(processMove, 800); 
     }
 }
 
@@ -75,21 +71,8 @@ function selectScenario(key) {
     if (event) event.currentTarget.classList.add('active');
 }
 
-async function enableMobileLandscape() {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-        try {
-            const doc = document.documentElement;
-            if (doc.requestFullscreen) await doc.requestFullscreen();
-            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(() => {});
-        } catch (err) {}
-    }
-}
-
 function startGame() {
     resumeAudio();
-    enableMobileLandscape(); 
-
     const sc = scenarios[selectedScenarioKey];
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
 
@@ -110,7 +93,6 @@ function renderBoard() {
     const boardEl = document.getElementById('board');
     if (!boardEl) return;
     boardEl.innerHTML = '';
-    
     const sc = scenarios[selectedScenarioKey];
     const next = sc.story[currentStep];
 
@@ -124,7 +106,6 @@ function renderBoard() {
                 sq.classList.add('active-target'); 
                 sq.onclick = processMove;
             }
-            
             if (boardState[r][c]) {
                 const img = document.createElement('img');
                 img.src = `${figuresPath}${boardState[r][c]}.png`;
@@ -151,7 +132,6 @@ function processMove() {
     historyStates.push(JSON.parse(JSON.stringify(boardState)));
 
     updateVisuals(data, true); 
-
     const stepForAudio = currentStep;
     currentStep++; maxReachedStep = currentStep; 
     
@@ -165,16 +145,13 @@ function jumpToStep(idx) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     currentStep = idx;
     boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-    
-    if (currentStep > 0) {
-        updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
-    }
+    if (currentStep > 0) updateVisuals(scenarios[selectedScenarioKey].story[currentStep - 1], false);
     renderBoard();
 }
 
 function updateStats(data) {
     document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`;
-    document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
+    document.getElementById('player-turn').textContent = data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ';
 }
 
 function updateVisuals(data, createLog) {
@@ -195,14 +172,14 @@ function updateVisuals(data, createLog) {
         log.onclick = () => jumpToStep(currentStep);
         log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
-        const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
+        document.getElementById('narrative-box').scrollTop = document.getElementById('narrative-box').scrollHeight;
     }
 
     if (data.goal !== undefined) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
             g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1"> ` + g.innerText.replace('• ', '');
             g.style.textDecoration = "line-through";
         }
     }
@@ -210,7 +187,7 @@ function updateVisuals(data, createLog) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
             eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1"> ` + eg.innerText.replace('• ', '');
             eg.style.textDecoration = "line-through";
         }
     }
