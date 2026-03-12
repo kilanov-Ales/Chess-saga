@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chess Saga: Chronicles</title>
+    <title>Chess Saga 2.0</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://eugeneblogs.github.io/M.CODE/files/AntiMate/antimate.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --bg-dark: #020617;
@@ -28,10 +30,11 @@
         }
         h1, h2, h3 { font-family: 'Cinzel', serif; }
 
-        #main-menu, #editor-modal {
+        .modal-bg {
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
         }
 
+        /* Меню выбора */
         #main-menu {
             position: fixed;
             inset: 0;
@@ -62,6 +65,7 @@
             cursor: pointer;
             transition: all 0.3s;
             text-align: left;
+            position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -71,9 +75,19 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(245, 158, 11, 0.1);
         }
-        .scenario-card.active { border-color: var(--gold); background: rgba(245, 158, 11, 0.05); }
-        .menu-icon { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .scenario-card.active {
+            border-color: var(--gold);
+            background: rgba(245, 158, 11, 0.05);
+        }
+        .menu-icon {
+            width: 24px; height: 24px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
 
+        /* Интерфейс игры */
         .app-container {
             display: none; 
             grid-template-columns: 1fr 1fr;
@@ -113,14 +127,18 @@
             filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3)); 
             transition: all 0.5s; 
         }
-        .visual-stage-mini img { width: 70px; height: 70px; object-fit: contain; }
+        .visual-stage-mini img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
 
         .chess-board-outer { 
             padding: 8px; 
             background: #27272a; 
             border-radius: 8px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
-            transition: transform 0.1s;
+            transition: transform 0.5s ease;
             max-width: 95vw;
         }
         
@@ -142,8 +160,19 @@
 
         .square.light { background-color: #d6b08d; }
         .square.dark { background-color: #8b5e3c; }
-        .piece-img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; z-index: 10; }
         
+        .piece-img { 
+            width: 85%; height: 85%; 
+            object-fit: contain; 
+            pointer-events: none; 
+            z-index: 10; 
+            transition: transform 0.5s ease;
+        }
+        
+        /* КЛАСС ДЛЯ ПЕРЕВОРОТА ДОСКИ ЗА ЧЕРНЫХ */
+        .board-flipped { transform: rotate(180deg); }
+        .board-flipped .piece-img { transform: rotate(180deg); }
+
         .square.active-target { animation: target-pulse 1.5s infinite; z-index: 20; cursor: pointer; }
         @keyframes target-pulse {
             0%, 100% { box-shadow: inset 0 0 0px var(--gold); background-color: rgba(245, 158, 11, 0.3); }
@@ -152,38 +181,23 @@
         .editor-target { background-color: rgba(56, 189, 248, 0.5) !important; box-shadow: inset 0 0 10px #38bdf8; }
         
         .valid-move-marker {
-            width: 30%; height: 30%; background-color: rgba(245, 158, 11, 0.7);
-            border-radius: 50%; position: absolute; z-index: 15; pointer-events: none;
+            width: 30%; height: 30%;
+            background-color: rgba(245, 158, 11, 0.7);
+            border-radius: 50%;
+            position: absolute; z-index: 15; pointer-events: none;
             box-shadow: 0 0 5px rgba(245, 158, 11, 0.9);
         }
 
-        .volume-box {
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            background: rgba(15, 23, 42, 0.8); padding: 15px 10px; border-radius: 30px;
-            border: 1px solid var(--gold); z-index: 100;
-        }
-        .volume-slider {
-            -webkit-appearance: slider-vertical; appearance: slider-vertical;
-            width: 20px; height: 120px; background: var(--gold-dim); cursor: pointer; outline: none;
-        }
-
-        .vol-icon-img { width: 22px; height: 22px; object-fit: contain; }
-        .vol-menu { position: absolute; bottom: 40px; right: 40px; }
-        .vol-game { position: absolute; top: 100px; left: 1.5rem; }
-
-        @media (max-width: 1024px) {
-            .vol-game { 
-                top: 20px; right: 20px; left: auto; 
-                flex-direction: row; height: auto; width: auto; 
-                padding: 8px 15px; 
-            }
-            .vol-game .volume-slider { 
-                width: 80px; height: 10px; -webkit-appearance: auto; appearance: auto;
-            }
-        }
-
         button { cursor: pointer; pointer-events: auto; }
-        .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 5001; font-size: 1.5rem; background: rgba(2, 6, 23, 0.6); }
+        .btn-exit-x { 
+            position: absolute; top: 1.5rem; left: 1.5rem; 
+            width: 40px; height: 40px; 
+            border: 1px solid rgba(245, 158, 11, 0.2); 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--gold); cursor: pointer; z-index: 5001; font-size: 1.5rem; 
+            background: rgba(2, 6, 23, 0.6); 
+        }
         .btn-exit-x:hover { background: var(--gold); color: #000; }
         
         .right-panel { display: flex; flex-direction: column; padding: 2rem; gap: 1rem; background: var(--bg-dark); overflow: hidden; }
@@ -193,76 +207,152 @@
         .flash-screen { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 9999; }
         .flash-active { animation: fl 0.4s ease-out; }
         @keyframes fl { 0% { opacity: 0.8; } 100% { opacity: 0; } }
-        .shake-anim { animation: sh 0.3s ease-in-out; }
-        @keyframes sh { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-
-        .hidden { display: none !important; }
-        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
+        .hidden { display: none !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #020617; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+        
+        /* Стиль для тегов в Галерее */
+        .tag-badge { 
+            background: rgba(56, 189, 248, 0.1); 
+            border: 1px solid rgba(56, 189, 248, 0.3); 
+            color: #38bdf8; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-size: 9px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
     </style>
 </head>
 <body onclick="resumeAudio()"> 
     
     <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm tracking-widest z-[9999] transition-all duration-500 opacity-0 pointer-events-none flex items-center gap-2 shadow-[0_0_30px_rgba(0,0,0,0.8)] -translate-y-10">
-        <span id="toast-icon" class="text-xl">📜</span>
+        <span id="toast-icon" class="w-6 h-6 flex items-center justify-center"></span>
         <span id="toast-text" class="drop-shadow-md">Сообщение</span>
     </div>
 
     <audio id="audio-bg" loop>
-        <source src="Music_Background.mp3" type="audio/mpeg">
+        <source src="audio/Music_Background.mp3" type="audio/mpeg">
     </audio>
 
     <div id="flash" class="flash-screen"></div>
 
-    <div id="menu-vol" class="vol-menu volume-box">
-        <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
-        <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
+    <div id="settings-modal" class="fixed inset-0 bg-black/95 z-[6000] hidden items-center justify-center">
+        <div class="bg-slate-900 border border-amber-500 p-8 rounded-2xl max-w-sm w-full relative shadow-[0_0_50px_rgba(245,158,11,0.2)]">
+            <button onclick="toggleSettings()" class="absolute top-4 right-4 text-slate-400 hover:text-amber-500 text-2xl leading-none">&times;</button>
+            <h2 class="text-2xl text-amber-500 font-bold mb-6 text-center" data-i18n="settings_title">Опции Мироздания</h2>
+            
+            <div class="mb-6">
+                <label class="block text-sky-400 text-xs font-bold mb-2 uppercase tracking-widest" data-i18n="set_lang">Язык Империи</label>
+                <div class="flex gap-2">
+                    <button onclick="changeLang('ru')" id="btn-lang-ru" class="flex-1 py-2 border border-amber-500 bg-amber-500/20 text-amber-500 rounded font-bold transition-all">🇷🇺 RU</button>
+                    <button onclick="changeLang('en')" id="btn-lang-en" class="flex-1 py-2 border border-slate-700 bg-slate-800 text-slate-400 rounded font-bold transition-all">🇬🇧 EN</button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sky-400 text-xs font-bold mb-2 uppercase tracking-widest" data-i18n="set_music">Громкость Бардов</label>
+                <input type="range" class="w-full accent-amber-500" min="0" max="1" step="0.01" value="0.15" oninput="updateMusicVol(this.value)">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sky-400 text-xs font-bold mb-2 uppercase tracking-widest" data-i18n="set_voice">Громкость Рассказчика</label>
+                <input type="range" class="w-full accent-amber-500" min="0" max="1" step="0.01" value="1" oninput="updateVoiceVol(this.value)">
+            </div>
+        </div>
     </div>
 
-    <div id="main-menu">
+    <div id="main-menu" class="modal-bg">
+        <button onclick="toggleSettings()" class="absolute top-6 right-6 text-3xl hover:scale-110 transition-transform" title="Настройки">⚙️</button>
+        
+        <button onclick="openChat()" class="absolute top-6 left-6 text-3xl hover:scale-110 transition-transform flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700 shadow-lg">
+            <img src="Visualization/🐦‍⬛.png" class="w-6 h-6 object-contain" onerror="this.src=''; this.alt='🐦‍⬛';">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-widest" data-i18n="chat_btn">Воронья Почта</span>
+        </button>
+
         <h1 class="text-6xl text-amber-500 font-bold mb-4 tracking-tighter text-center">CHESS SAGA</h1>
-        <p class="text-slate-400 italic mb-4 text-center">Выберите главу истории</p>
+        <p class="text-slate-400 italic mb-4 text-center" data-i18n="menu_subtitle">Выберите главу истории</p>
         
         <div class="scenario-selector">
             <div class="scenario-card active" onclick="selectScenario('argus')">
                 <h3 class="text-amber-500 font-bold mb-2">
-                    <img src="Visualization/✨.png" class="menu-icon" onerror="this.style.display='none'"> Свет Аргуса
+                    <img src="Visualization/✨.png" class="menu-icon" onerror="this.style.display='none'"> 
+                    <span data-i18n="sc_argus">Свет Аргуса</span>
                 </h3>
-                <p class="text-xs text-slate-400">Поучительная история о самопожертвовании.</p>
+                <p class="text-xs text-slate-400" data-i18n="sc_argus_d">Поучительная история о самопожертвовании.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('standard')">
                 <h3 class="text-sky-400 font-bold mb-2">
-                    <img src="Visualization/🚩.png" class="menu-icon" onerror="this.style.display='none'"> Знамя Света
+                    <img src="Visualization/🚩.png" class="menu-icon" onerror="this.style.display='none'"> 
+                    <span data-i18n="sc_std">Знамя Света</span>
                 </h3>
-                <p class="text-xs text-slate-400">Орден Юстициария против Клана Кровавого Тотема.</p>
+                <p class="text-xs text-slate-400" data-i18n="sc_std_d">Орден Юстициария против Клана Кровавого Тотема.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('traxler')">
                 <h3 class="text-red-500 font-bold mb-2">
-                    <img src="Visualization/🌑.png" class="menu-icon" onerror="this.style.display='none'"> Судьба Тракслера
+                    <img src="Visualization/🌑.png" class="menu-icon" onerror="this.style.display='none'"> 
+                    <span data-i18n="sc_trax">Судьба Тракслера</span>
                 </h3>
-                <p class="text-xs text-slate-400">Безумный гамбит и падение Белого Солнца.</p>
+                <p class="text-xs text-slate-400" data-i18n="sc_trax_d">Безумный гамбит и падение Белого Солнца.</p>
             </div>
         </div>
 
         <div class="flex flex-wrap justify-center gap-4 mt-8">
-            <button class="px-8 py-3 border-2 border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="startGame()">НАЧАТЬ БИТВУ</button>
-            <button class="px-8 py-3 border-2 border-sky-500 text-sky-500 rounded-full hover:bg-sky-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openEditor()">КУЗНИЦА</button>
-            <button class="px-8 py-3 border-2 border-purple-500 text-purple-500 rounded-full hover:bg-purple-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openCommunityModal()">ИСТОРИИ КОРОЛЕВСТВ</button>
+            <button class="px-8 py-3 border-2 border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="startGame()" data-i18n="btn_start">НАЧАТЬ БИТВУ</button>
+            <button class="px-8 py-3 border-2 border-sky-500 text-sky-500 rounded-full hover:bg-sky-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openColorSelect()" data-i18n="btn_forge">ТАЙНАЯ КУЗНИЦА СУДЕБ</button>
+            <button class="px-8 py-3 border-2 border-purple-500 text-purple-500 rounded-full hover:bg-purple-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openCommunityModal()" data-i18n="btn_gallery">АРХИВЫ ДРЕВНИХ</button>
         </div>
     </div>
 
-    <div id="community-modal" class="fixed inset-0 bg-black/95 z-[5000] hidden overflow-y-auto p-4 md:p-8">
+    <div id="color-select-modal" class="fixed inset-0 bg-black/90 z-[4000] hidden items-center justify-center">
+        <div class="text-center">
+            <h2 class="text-3xl text-amber-500 font-bold mb-8 uppercase tracking-widest drop-shadow-lg" data-i18n="choose_side">Чью судьбу вы направите?</h2>
+            <div class="flex justify-center gap-8">
+                <button onclick="startForge('white')" class="w-32 h-32 bg-slate-800 border-2 border-amber-500 rounded-2xl hover:bg-amber-500/20 hover:scale-110 transition-all flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                    <span class="text-6xl mb-2 text-white">♔</span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-amber-500" data-i18n="side_w">Свет</span>
+                </button>
+                <button onclick="startForge('black')" class="w-32 h-32 bg-slate-900 border-2 border-red-500 rounded-2xl hover:bg-red-500/20 hover:scale-110 transition-all flex flex-col items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                    <span class="text-6xl mb-2 text-slate-400">♚</span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-red-500" data-i18n="side_b">Тьма</span>
+                </button>
+            </div>
+            <button onclick="closeColorSelect()" class="mt-8 text-slate-500 hover:text-white uppercase text-xs tracking-widest font-bold border-b border-transparent hover:border-white transition-all" data-i18n="btn_cancel">Отмена</button>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="fixed inset-y-0 left-0 w-full md:w-96 bg-slate-900 border-r border-slate-700 shadow-[20px_0_50px_rgba(0,0,0,0.8)] z-[5500] transform -translate-x-full transition-transform duration-500 flex flex-col">
+        <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+            <h2 class="text-lg font-bold text-amber-500 uppercase flex items-center gap-2">
+                <img src="Visualization/🐦‍⬛.png" class="w-6 h-6" onerror="this.style.display='none'">
+                <span data-i18n="chat_title">Воронья Почта</span>
+            </h2>
+            <button onclick="closeChat()" class="text-slate-500 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+        <div class="p-4 border-t border-slate-800 bg-slate-950">
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-amber-500" placeholder="Написать послание..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button onclick="sendChat()" class="bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold rounded-lg px-4 py-2 transition-colors">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="community-modal" class="fixed inset-0 bg-black/95 z-[5000] hidden overflow-y-auto p-4 md:p-8 modal-bg">
         <div class="max-w-7xl mx-auto relative">
             <div class="btn-exit-x" onclick="closeCommunityModal()" style="top: -10px; left: -10px;">×</div>
-            <div class="flex justify-center items-center mb-8 mt-4">
-                <h2 class="text-3xl font-bold text-purple-500 uppercase">Истории других королевств</h2>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 mt-4 gap-4">
+                <h2 class="text-3xl font-bold text-purple-500 uppercase" data-i18n="gallery_title">Архивы Древних</h2>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="text" id="gallery-search" class="w-full md:w-64 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-white outline-none focus:border-purple-500" placeholder="Искать лорда или манускрипт..." oninput="filterGallery()">
+                </div>
             </div>
-            <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-12">
-            </div>
+            
+            <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12"></div>
         </div>
     </div>
 
@@ -270,11 +360,6 @@
         <div class="left-panel">
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
-            <div class="vol-game volume-box">
-                <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
-                <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
-            </div>
-
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
                     <img src="Visualization/🏰.png" alt="scene">
@@ -283,17 +368,19 @@
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2">Армии ждут...</p>
             </div>
 
-            <div class="chess-board-outer"><div id="board" class="chess-board"></div></div>
+            <div class="chess-board-outer" id="board-wrap">
+                <div id="board" class="chess-board"></div>
+            </div>
         </div>
 
         <div class="right-panel">
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Задачи</h3>
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest" data-i18n="ui_goals">Задачи</h3>
                     <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Враг</h3>
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest" data-i18n="ui_egoals">Враг</h3>
                     <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
@@ -302,370 +389,442 @@
                 <span id="player-turn" class="text-xs font-mono text-amber-500">ОЧЕРЕДЬ: БЕЛЫЕ</span>
             </div>
             <div class="chronicle-card">
-                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника</h2></div>
-                <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-4"></div></div>
+                <div class="bg-slate-800 p-3">
+                    <h2 class="text-sm font-bold text-slate-200 uppercase" data-i18n="ui_chronicle">Хроника</h2>
+                </div>
+                <div class="narrative-scroll" id="narrative-box">
+                    <div id="chronicle-list" class="space-y-4"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="editor-modal" class="fixed inset-0 z-[5000] hidden overflow-y-auto p-4 md:p-8">
+    <div id="editor-modal" class="fixed inset-0 z-[5000] hidden overflow-y-auto p-4 md:p-8 modal-bg">
         <div class="btn-exit-x" onclick="closeEditor()" style="position: fixed; top: 1.5rem; left: 1.5rem;">×</div>
-
+        
         <div class="max-w-[1400px] mx-auto pt-10">
             <div class="grid grid-cols-1 lg:grid-cols-[250px_auto_350px] gap-6 items-start">
                 
                 <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 shadow-xl overflow-hidden h-[85vh]">
-                    <h3 class="text-amber-500 font-bold mb-2 uppercase text-[10px] tracking-widest">Летописец (Ваш Ник)</h3>
-                    <input id="edit-author-name" type="text" placeholder="Неизвестный Лорд" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-amber-500 text-sm focus:border-amber-500 outline-none transition-colors mb-4 font-bold" oninput="saveAuthorName()">
+                    <h3 class="text-amber-500 font-bold mb-2 uppercase text-[10px] tracking-widest" data-i18n="ed_author">Летописец (Ваш Ник)</h3>
+                    <input id="edit-author-name" type="text" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-amber-500 text-sm focus:border-amber-500 outline-none transition-colors mb-4 font-bold" oninput="saveAuthorName()">
+                    
+                    <h3 class="text-purple-400 font-bold mb-2 uppercase text-[10px] tracking-widest" data-i18n="ed_tags">Метки манускрипта (Теги)</h3>
+                    <input id="edit-tags" type="text" placeholder="#Эпик #Ловушка" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-purple-400 text-xs focus:border-purple-500 outline-none transition-colors mb-4">
 
-                    <h3 class="text-sky-400 font-bold mb-2 uppercase text-[10px] tracking-widest">Цели Игрока</h3>
-                    <p class="text-[9px] text-slate-500 mb-1 leading-tight">Каждая цель с новой строки. Выбирайте их при редактировании ходов.</p>
-                    <textarea id="edit-goals" placeholder="1. Захватить центр&#10;2. Спасти Короля" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs h-32 resize-none focus:border-sky-500 outline-none transition-colors mb-4" oninput="updateGoalSelects()"></textarea>
+                    <h3 class="text-sky-400 font-bold mb-2 uppercase text-[10px] tracking-widest" data-i18n="ed_goals">Цели Игрока</h3>
+                    <textarea id="edit-goals" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs h-24 resize-none focus:border-sky-500 outline-none mb-4" oninput="updateGoalSelects()"></textarea>
 
-                    <h3 class="text-red-500 font-bold mb-2 uppercase text-[10px] tracking-widest">Задумки Врага</h3>
-                    <textarea id="edit-egoals" placeholder="1. Внезапный удар&#10;2. Окружение" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs flex-1 min-h-[100px] resize-none focus:border-red-500 outline-none transition-colors" oninput="updateGoalSelects()"></textarea>
+                    <h3 class="text-red-500 font-bold mb-2 uppercase text-[10px] tracking-widest" data-i18n="ed_egoals">Задумки Врага</h3>
+                    <textarea id="edit-egoals" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs flex-1 min-h-[80px] resize-none focus:border-red-500 outline-none" oninput="updateGoalSelects()"></textarea>
                 </div>
 
                 <div class="flex flex-col items-center">
-                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-4 tracking-widest text-center drop-shadow-lg">Кузница</h2>
-                    <div class="chess-board-outer">
+                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-4 tracking-widest text-center drop-shadow-lg" data-i18n="ed_title">Тайная Кузница Судеб</h2>
+                    <div class="chess-board-outer" id="editor-board-wrap">
                         <div id="editor-board" class="chess-board shadow-2xl shadow-sky-500/20"></div>
                     </div>
-                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest animate-pulse">Делайте ходы на доске</div>
+                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest animate-pulse" data-i18n="ed_hint">Делайте ходы на доске</div>
                 </div>
 
                 <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 h-[85vh] shadow-xl overflow-hidden">
-                    
                     <div class="shrink-0 mb-4">
-                        <input id="edit-scenario-name" type="text" placeholder="Название всей партии" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none transition-colors">
+                        <input id="edit-scenario-name" type="text" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none">
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg">В Свитки</button>
-                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg">Скачать</button>
+                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg" data-i18n="btn_pub">Скрепить печатью</button>
+                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg" data-i18n="btn_dl">Сохранить</button>
                         </div>
                     </div>
-
                     <hr class="border-slate-700 mb-4 shrink-0">
 
                     <div id="editor-step-form" class="hidden flex-col gap-2 p-3 border border-sky-900 bg-slate-800 rounded-lg shrink-0 shadow-inner mb-4">
                         <h3 class="text-sky-400 font-bold text-xs uppercase" id="editing-step-label">Редактирование хода</h3>
                         
-                        <input id="edit-title" type="text" placeholder="Название текущего хода (напр. Прорыв)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
-                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg h-12 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
+                        <input id="edit-title" type="text" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none" oninput="updateCurrentStepData()">
+                        <textarea id="edit-text" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg h-12 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none" oninput="updateCurrentStepData()"></textarea>
                         
                         <div class="flex gap-2">
-                            <select id="edit-step-goal" class="w-1/2 bg-slate-900 border border-slate-700 text-sky-400 text-[10px] p-1.5 rounded outline-none focus:border-sky-500" onchange="updateCurrentStepData()">
-                                <option value="">- Нет задачи игрока -</option>
-                            </select>
-                            <select id="edit-step-egoal" class="w-1/2 bg-slate-900 border border-slate-700 text-red-400 text-[10px] p-1.5 rounded outline-none focus:border-red-500" onchange="updateCurrentStepData()">
-                                <option value="">- Нет задачи врага -</option>
-                            </select>
+                            <select id="edit-step-goal" class="w-1/2 bg-slate-900 border border-slate-700 text-sky-400 text-[10px] p-1.5 rounded outline-none" onchange="updateCurrentStepData()"><option value="">-</option></select>
+                            <select id="edit-step-egoal" class="w-1/2 bg-slate-900 border border-slate-700 text-red-400 text-[10px] p-1.5 rounded outline-none" onchange="updateCurrentStepData()"><option value="">-</option></select>
                         </div>
-
-                        <input id="edit-icon-input" type="hidden" value="⚔️">
                         
+                        <input id="edit-icon-input" type="hidden" value="⚔️">
                         <div class="flex flex-col items-center w-full mt-2" id="icon-selector-container">
                             <div class="grid grid-cols-7 gap-1 w-full" id="icon-selector"></div>
-                            <div class="flex w-full mt-2 gap-2" id="icon-pagination"></div>
                         </div>
                     </div>
                     
-                    <div id="editor-steps-list" class="flex flex-col gap-2 flex-1 overflow-y-auto pr-2 mb-4">
-                        <p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>
-                    </div>
+                    <div id="editor-steps-list" class="flex flex-col gap-2 flex-1 overflow-y-auto pr-2 mb-4"></div>
 
                     <div class="pt-3 border-t border-slate-700 shrink-0">
                         <button onclick="undoEditorStep()" class="w-full bg-red-900/80 hover:bg-red-700 p-3 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest flex justify-center items-center gap-2">
-                            <span>Удалить ход</span> <span class="text-lg leading-none">↩</span>
+                            <span data-i18n="btn_undo">Переписать историю</span> <span class="text-lg leading-none">↩</span>
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let myAuthorId = localStorage.getItem('chess_saga_author_id');
-        if (!myAuthorId) {
-            myAuthorId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('chess_saga_author_id', myAuthorId);
-        }
-
+        // --- БАЗОВАЯ ИНИЦИАЛИЗАЦИЯ И I18N ---
         const API_URL = 'https://chess-api.kilanov.workers.dev/';
         const visualizationPath = "Visualization/";
         const figuresPath = "Figures/";
         const audioFolderPath = "audio/"; 
 
+        let myAuthorId = localStorage.getItem('chess_saga_author_id') || ('user_' + Math.random().toString(36).substr(2, 9));
+        localStorage.setItem('chess_saga_author_id', myAuthorId);
+
+        let globalVoiceVol = parseFloat(localStorage.getItem('chess_saga_vvol') || '1');
+        
+        const i18n = {
+            ru: {
+                settings_title: "Опции Мироздания", set_lang: "Язык Империи", set_music: "Громкость Бардов", set_voice: "Громкость Рассказчика",
+                chat_btn: "Воронья Почта", menu_subtitle: "Выберите главу истории",
+                sc_argus: "Свет Аргуса", sc_argus_d: "Поучительная история о самопожертвовании.",
+                sc_std: "Знамя Света", sc_std_d: "Орден Юстициария против Клана Кровавого Тотема.",
+                sc_trax: "Судьба Тракслера", sc_trax_d: "Безумный гамбит и падение Белого Солнца.",
+                btn_start: "НАЧАТЬ БИТВУ", btn_forge: "ТАЙНАЯ КУЗНИЦА СУДЕБ", btn_gallery: "АРХИВЫ ДРЕВНИХ",
+                choose_side: "Чью судьбу вы направите?", side_w: "Свет (Белые)", side_b: "Тьма (Черные)", btn_cancel: "Отмена",
+                chat_title: "Воронья Почта", gallery_title: "Архивы Древних", 
+                ui_goals: "Задачи", ui_egoals: "Враг", ui_chronicle: "Хроника",
+                ed_author: "Летописец (Ник)", ed_tags: "Метки (Теги, через пробел)", ed_goals: "Цели Игрока", ed_egoals: "Задумки Врага",
+                ed_title: "Тайная Кузница Судеб", ed_hint: "Делайте ходы на доске",
+                btn_pub: "Скрепить печатью", btn_dl: "Сохранить", btn_undo: "Переписать историю"
+            },
+            en: {
+                settings_title: "Realm Settings", set_lang: "Empire Language", set_music: "Bard Volume", set_voice: "Narrator Volume",
+                chat_btn: "Raven's Mail", menu_subtitle: "Choose a chapter of history",
+                sc_argus: "Light of Argus", sc_argus_d: "A cautionary tale of sacrifice.",
+                sc_std: "Banner of Light", sc_std_d: "Order of Justiciars vs Blood Totem Clan.",
+                sc_trax: "Traxler's Fate", sc_trax_d: "A mad gambit and the fall of the White Sun.",
+                btn_start: "START BATTLE", btn_forge: "FORGE OF DESTINIES", btn_gallery: "ANCIENT ARCHIVES",
+                choose_side: "Whose fate will you guide?", side_w: "Light (White)", side_b: "Darkness (Black)", btn_cancel: "Cancel",
+                chat_title: "Raven's Mail", gallery_title: "Archives of the Ancients", 
+                ui_goals: "Objectives", ui_egoals: "Enemy", ui_chronicle: "Chronicle",
+                ed_author: "Chronicler (Name)", ed_tags: "Marks (Tags, space-separated)", ed_goals: "Player Objectives", ed_egoals: "Enemy Plans",
+                ed_title: "Forge of Destinies", ed_hint: "Make your moves on the board",
+                btn_pub: "Seal the Fate", btn_dl: "Save Manuscript", btn_undo: "Rewrite History"
+            }
+        };
+
+        let currentLang = localStorage.getItem('chess_saga_lang') || 'ru';
+        
+        function changeLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('chess_saga_lang', lang);
+            
+            // Перевод всех элементов с атрибутом data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(i18n[lang][key]) el.textContent = i18n[lang][key];
+            });
+            
+            // Обновление стиля кнопок языка
+            document.getElementById('btn-lang-ru').className = lang === 'ru' ? 'flex-1 py-2 border border-amber-500 bg-amber-500/20 text-amber-500 rounded font-bold transition-all' : 'flex-1 py-2 border border-slate-700 bg-slate-800 text-slate-400 rounded font-bold transition-all';
+            document.getElementById('btn-lang-en').className = lang === 'en' ? 'flex-1 py-2 border border-amber-500 bg-amber-500/20 text-amber-500 rounded font-bold transition-all' : 'flex-1 py-2 border border-slate-700 bg-slate-800 text-slate-400 rounded font-bold transition-all';
+        }
+        
+        // --- АНТИМАТ ---
         window.SafeAntiMate = { 
             check: (text) => { 
                 if (!text) return false;
-                const safeText = text.replace(/\b(шах|мат|матом|маты|взятие|пешка|ладья|ферзь|король|конь|слон)\b/gi, '***');
-                if (typeof window.AntiMate !== 'undefined') {
-                    if (typeof window.AntiMate === 'function') return window.AntiMate(safeText);
-                    if (typeof window.AntiMate.check === 'function') return window.AntiMate.check(safeText);
-                    if (typeof window.AntiMate.isBadWord === 'function') return window.AntiMate.isBadWord(safeText);
+                const safeText = text.replace(/\b(шах|мат|матом|маты|взятие|пешка|ладья|ферзь|король|конь|слон|mate|check|pawn|rook|knight|bishop|queen|king)\b/gi, '***');
+                if (typeof window.AntiMate !== 'undefined' && typeof window.AntiMate.check === 'function') {
+                    return window.AntiMate.check(safeText);
                 }
                 return false; 
             }
         };
 
+        // --- УВЕДОМЛЕНИЯ С АВТОРСКИМИ КАРТИНКАМИ ---
         function showNotification(text, type = 'success') {
             const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
+            const iconWrap = document.getElementById('toast-icon');
             document.getElementById('toast-text').textContent = text;
             toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
 
-            if (type === 'success') { toast.classList.add('bg-amber-500', 'text-slate-900'); icon.textContent = '✨'; } 
-            else if (type === 'error') { toast.classList.add('bg-red-600', 'text-white'); icon.textContent = '‼️'; } 
-            else { toast.classList.add('bg-sky-600', 'text-white'); icon.textContent = '🕊️'; }
+            let imgName = '✨.png';
+            if (type === 'success') { 
+                toast.classList.add('bg-amber-500', 'text-slate-900'); 
+                imgName = '✨.png'; 
+            } else if (type === 'error') { 
+                toast.classList.add('bg-red-600', 'text-white'); 
+                imgName = '‼️.png'; 
+            } else { 
+                toast.classList.add('bg-sky-600', 'text-white'); 
+                imgName = '🕊️.png'; 
+            }
+            
+            iconWrap.innerHTML = `<img src="${visualizationPath}${imgName}" class="w-full h-full object-contain" onerror="this.src=''; this.alt='!';">`;
 
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('-translate-y-10', 'opacity-0');
+            setTimeout(() => { 
+                toast.classList.remove('translate-y-0', 'opacity-100'); 
+                toast.classList.add('-translate-y-10', 'opacity-0'); 
             }, 3500);
         }
 
-        const scenarios = {
-            argus: {
-                goals: ["Освящение центра", "Взгляд на f7", "ПОБЕДА ЭКЗОДАРА"],
-                egoals: ["Осквернение e5", "Теневая связка", "Падение Пророка"],
-                story: [
-                    { move: "e2e4", turn: 'white', title: "Свет Аргуса", text: "Воздаятель делает первый шаг.", icon: "✨", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Ответ Изгнанника", text: "Темные дренеи выставляют заслон.", icon: "🟣", egoal: 0 },
-                    { move: "g1f3", turn: 'white', title: "Копыта Праведности", text: "Элезар устремляется вперед.", icon: "🐐" },
-                    { move: "d7d6", turn: 'black', title: "Щит Тенебра", text: "Отступники укрепляют ряды.", icon: "🛡️" },
-                    { move: "f1c4", turn: 'white', title: "Око Пророка", text: "Мудрец направляет посох.", icon: "👁️", goal: 1 },
-                    { move: "c8g4", turn: 'black', title: "Шепот Бездны", text: "Жнец накладывает проклятие.", icon: "⛓️", egoal: 1 },
-                    { move: "b1c3", turn: 'white', title: "Братство Света", text: "Второй всадник выходит из теней.", icon: "🤺" },
-                    { move: "b8c6", turn: 'black', title: "Тень подкрадывается", text: "Армия Бездны призывает всадников.", icon: "🌀" },
-                    { move: "h2h3", turn: 'white', title: "Слово Очищения", text: "Воздаятель направляет искру.", icon: "☀️" },
-                    { move: "g4h5", turn: 'black', title: "Упрямство Падших", text: "Жнец отступает на шаг.", icon: "🌑" },
-                    { move: "f3e5", turn: 'white', title: "Жертва Наару", text: "Элезар разрывает цепи!", icon: "⚡", capture: true },
-                    { move: "h5d1", turn: 'black', title: "Триумф Хаоса", text: "Тьма ликует.", icon: "💀", egoal: 2, capture: true },
-                    { move: "c4f7", turn: 'white', title: "Удар Искупления", text: "Луч энергии в чело Короля!", icon: "🔱", capture: true },
-                    { move: "e8e7", turn: 'black', title: "Позорное бегство", text: "Тиран вынужден бежать.", icon: "😰" },
-                    { move: "c3d5", turn: 'white', title: "ПРИГОВОР СВЕТА", text: "Всадник настигает тирана.", icon: "👑", goal: 2 }
-                ]
-            },
-            standard: {
-                goals: ["Освящение рубежа", "Сокрушение преграды", "ПОБЕДА ОРДЕНА"],
-                egoals: ["Ответная ярость", "Кровавая жатва", "Самопожертвование рабов"],
-                story: [
-                    { move: "e2e4", turn: 'white', title: "Знамя Света", text: "Рыцарь вонзает штандарт.", icon: "🚩", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Рог Войны", text: "Вождь принимает вызов.", icon: "🪓", egoal: 0 },
-                    { move: "g1f3", turn: 'white', title: "Клятва Всадника", text: "Выпад в горло врагу.", icon: "🐎" },
-                    { move: "d7d6", turn: 'black', title: "Каменная Черепаха", text: "Кочевники смыкают щиты.", icon: "🐢" },
-                    { move: "f1c4", turn: 'white', title: "Око Юстициария", text: "Воевода выискивает щель.", icon: "👁️" },
-                    { move: "h7h6", turn: 'black', title: "Тень Сомнения", text: "Щиты подняты выше.", icon: "☁️" },
-                    { move: "d2d4", turn: 'white', title: "Удар Молота", text: "Силы ордена идут на таран.", icon: "🔨", goal: 1 },
-                    { move: "e5d4", turn: 'black', title: "Кровавая Жатва", text: "Ловушка захлопывается.", icon: "🩸", egoal: 1, capture: true },
-                    { move: "c2c3", turn: 'white', title: "Дар Мученика", text: "Паладины бросают щиты.", icon: "🕊️" },
-                    { move: "d4c3", turn: 'black', title: "Пир Стервятника", text: "Кочевники вгрызаются в брешь.", icon: "🦅", capture: true },
-                    { move: "c4f7", turn: 'white', title: "Гнев Юстициария", text: "Клинок разрубает трон!", icon: "⚔️", capture: true },
-                    { move: "e8f7", turn: 'black', title: "Ответная Ярость", text: "Вождь сносит голову воеводе.", icon: "👺", capture: true },
-                    { move: "f3e5", turn: 'white', title: "Приговор Небес", text: "Всадник влетает в гущу битвы.", icon: "⚡" },
-                    { move: "f7e8", turn: 'black', title: "Путь Труса", text: "Воитель бежит к шатрам.", icon: "🏃" },
-                    { move: "d1h5", turn: 'white', title: "Зов Искупительницы", text: "Свет испепеляет стражу.", icon: "🔱" },
-                    { move: "g7g6", turn: 'black', title: "Последний Заслон", text: "Телохратели бросаются в пламя.", icon: "🔥", egoal: 2 },
-                    { move: "h5g6", turn: 'white', title: "Сияние", text: "Свет проходит сквозь плоть.", icon: "🔆", capture: true },
-                    { move: "e8e7", turn: 'black', title: "Тень Агонии", text: "Вождь загнан к обрыву.", icon: "🌫️" },
-                    { move: "g6f7", turn: 'white', title: "ВЕЧНЫЙ ПОКОЙ", text: "Последний удар нанесен.", icon: "🏆", goal: 2 }
-                ]
-            },
-            traxler: {
-                goals: ["Захватить центр", "Штурм форпоста f7", "Свергнуть Монарха"],
-                egoals: ["Сдержать натиск", "Ловушка Тракслера", "Казнь Короля"],
-                story: [
-                    { move: "e2e4", turn: 'white', title: "Вторжение", text: "Белое Солнце выдвигает авангард.", icon: "⚔️", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Ответ Луны", text: "Легион блокирует продвижение.", icon: "🛡️", egoal: 0 },
-                    { move: "g1f3", turn: 'white', title: "Конница", text: "Сир Фредерик выходит на фланг.", icon: "🐎" },
-                    { move: "b8c6", turn: 'black', title: "Перехват", text: "Всадники выходят навстречу.", icon: "♞" },
-                    { move: "f1c4", turn: 'white', title: "Высоты", text: "Инквизитор видит слабую стену.", icon: "⛪" },
-                    { move: "g8f6", turn: 'black', title: "Ловушка", text: "Враг выпускает рыцаря.", icon: "🌑" },
-                    { move: "f3g5", turn: 'white', title: "Штурм", text: "Копья направлены на f7.", icon: "🔥", goal: 1 },
-                    { move: "f8c5", turn: 'black', title: "Тракслер", text: "Гамбит безумия активирован!", icon: "⚠️", egoal: 1 },
-                    { move: "g5f7", turn: 'white', title: "Прорыв", text: "Рыцарь врывается в башню!", icon: "🍴", capture: true },
-                    { move: "c5f2", turn: 'black', title: "Взрыв", text: "Диверсант подрывает ворота!", icon: "💥", capture: true },
-                    { move: "e1f2", turn: 'white', title: "Казнь", text: "Монарх убивает диверсанта.", icon: "👑", capture: true },
-                    { move: "f6e4", turn: 'black', title: "Налет", text: "Черный Рыцарь в тронном зале!", icon: "☁️", capture: true },
-                    { move: "f2g1", turn: 'white', title: "Тень", text: "Король прячется в углу.", icon: "🏃" },
-                    { move: "d8h4", turn: 'black', title: "Королева", text: "Владычица обращает камень в пепел.", icon: "👸" },
-                    { move: "f7h8", turn: 'white', title: "Жадность", text: "Рыцарь грабит сокровищницу.", icon: "💎", capture: true },
-                    { move: "h4f2", turn: 'black', title: "Крах", text: "История Империи окончена.", icon: "💀", goal: 2, egoal: 2 }
-                ]
-            }
-        };
-
-        function openCommunityModal() {
-            document.getElementById('community-modal').classList.remove('hidden');
-            renderGallery();
-        }
-        function closeCommunityModal() {
-            document.getElementById('community-modal').classList.add('hidden');
-        }
-
-        async function renderGallery() {
-            const gallery = document.getElementById('community-gallery');
-            gallery.innerHTML = '<p class="col-span-full text-center text-amber-500 italic animate-pulse">Ищем свитки в облачных архивах...</p>';
-            
-            let localParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
-            let dbParties = [];
-
-            try {
-                const response = await fetch(API_URL, { mode: 'cors' });
-                if (response.ok) {
-                    const data = await response.json();
-                    let rows = Array.isArray(data) ? data : (data.data || data.result || []);
-                    dbParties = rows.map(row => {
-                        let pd = typeof row.data === 'string' ? JSON.parse(row.data) : (row.data || row);
-                        pd.db_id = row.id || pd.id; 
-                        return pd;
-                    });
-                }
-            } catch (e) { console.log("Ошибка загрузки с облака:", e); }
-
-            let allParties = [...dbParties];
-            localParties.forEach(lp => {
-                if (!allParties.some(p => p.title === lp.title)) {
-                    allParties.push(lp);
-                }
-            });
-
-            if (allParties.length === 0) {
-                gallery.innerHTML = '<p class="col-span-full text-center text-slate-600 italic">Здесь пока пусто... Создайте первую историю в Кузнице!</p>';
-                return;
-            }
-
-            gallery.innerHTML = allParties.map((p, index) => {
-                if(!p || !p.story) return '';
-                scenarios['custom_' + index] = p; 
-                
-                const canDelete = p.author_id === myAuthorId;
-
-                return `
-                <div class="scenario-card border-purple-900 bg-slate-900/80 p-4 rounded-xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
-                    <div class="mb-4 pr-6">
-                        <h3 class="text-purple-400 font-bold truncate text-lg" title="${p.title}">${p.title}</h3>
-                        <p class="text-[10px] text-amber-500 mt-1 uppercase">Автор: ${p.author_name || 'Неизвестный Лорд'}</p>
-                        <p class="text-[10px] text-slate-500 mt-1 uppercase">Ходов: ${p.story.length}</p>
-                    </div>
-                    
-                    ${canDelete ? `<button onclick="deleteFromGallery(${index})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 transition-colors" title="Удалить партию">🗑️</button>` : ''}
-
-                    <div class="flex gap-2 mt-2">
-                        <button onclick="playCustomScenario(${index})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white flex items-center justify-center gap-1">
-                            <img src="${visualizationPath}👁️.png" class="w-4 h-4" onerror="this.style.display='none'"> Смотреть
-                        </button>
-                        <button onclick="downloadFromGallery(${index})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm transition-colors text-white" title="Скачать">💾</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        async function deleteFromGallery(index) {
-            const p = scenarios['custom_' + index];
-            if(!confirm(`Вы точно хотите удалить партию "${p.title}" из Свитков?`)) return;
-
-            let customParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
-            customParties = customParties.filter(cp => cp.title !== p.title);
-            localStorage.setItem('chess_saga_custom', JSON.stringify(customParties));
-
-            if (p.db_id) {
-                showNotification("Сжигаем свиток в архиве...", "info");
-                try {
-                    const endpoint = API_URL.endsWith('/') ? `${API_URL}${p.db_id}` : `${API_URL}/${p.db_id}`;
-                    const response = await fetch(endpoint, { 
-                        method: 'DELETE', 
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    
-                    if (response.ok) {
-                        showNotification("Партия успешно удалена из всех баз!", "success");
-                    } else {
-                        showNotification("Сервер отказал в удалении.", "error");
-                    }
-                } catch (error) { 
-                    showNotification("Ошибка сети при удалении.", "error"); 
-                }
-            } else {
-                showNotification("Локальная партия удалена!", "success");
-            }
-            renderGallery();
-        }
-
-        function playCustomScenario(index) {
-            selectedScenarioKey = 'custom_' + index;
-            closeCommunityModal();
-            startGame();
-        }
-
-        function downloadFromGallery(index) {
-            const p = scenarios['custom_' + index];
-            if(!p) return;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(p));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", p.title + ".json");
-            document.body.appendChild(dl); dl.click(); dl.remove();
-        }
-
-        let selectedScenarioKey = 'argus';
-        let currentStep = 0;
-        let maxReachedStep = 0; 
-        let boardState = [];
-        let historyStates = []; 
-        let isSpeaking = false; 
-
+        // --- НАСТРОЙКИ И АУДИО ---
         const bgMusic = document.getElementById('audio-bg');
-        bgMusic.volume = 0.05; 
+        bgMusic.volume = parseFloat(localStorage.getItem('chess_saga_mvol') || '0.15') * 0.2;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function resumeAudio() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (bgMusic.paused) bgMusic.play().catch(() => {});
+        function toggleSettings() { 
+            document.getElementById('settings-modal').classList.toggle('hidden'); 
+            document.getElementById('settings-modal').classList.toggle('flex');
         }
-
-        function updateVolume(val) {
+        
+        function resumeAudio() { 
+            if (audioCtx.state === 'suspended') audioCtx.resume(); 
+            if (bgMusic.paused) bgMusic.play().catch(()=>{}); 
+        }
+        
+        function updateMusicVol(val) { 
             bgMusic.volume = val * 0.2; 
-            document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
+            localStorage.setItem('chess_saga_mvol', val); 
+        }
+        
+        function updateVoiceVol(val) { 
+            globalVoiceVol = parseFloat(val); 
+            localStorage.setItem('chess_saga_vvol', val); 
         }
 
         function speak(text, turn, stepAtMoment) {
             isSpeaking = true; 
             if (window.speechSynthesis) window.speechSynthesis.cancel();
-
-            const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
-            const audioPath = `${audioFolderPath}${fileName}`;
-
-            const voiceAudio = new Audio(audioPath);
+            
+            const prefix = currentLang === 'en' ? 'E_' : '';
+            const fileName = `${prefix}${selectedScenarioKey}_${stepAtMoment}.mp3`;
+            const voiceAudio = new Audio(`${audioFolderPath}${fileName}`);
+            voiceAudio.volume = globalVoiceVol;
             const originalBgVolume = bgMusic.volume;
 
             voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.02); };
             voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
+            
             voiceAudio.onerror = () => {
                 bgMusic.volume = originalBgVolume;
-                const msg = new SpeechSynthesisUtterance(text);
-                msg.lang = 'ru-RU';
-                msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
-                window.speechSynthesis.speak(msg);
+                if(globalVoiceVol > 0) {
+                    const msg = new SpeechSynthesisUtterance(text);
+                    msg.lang = currentLang === 'en' ? 'en-US' : 'ru-RU';
+                    msg.volume = globalVoiceVol;
+                    msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
+                    window.speechSynthesis.speak(msg);
+                } else { 
+                    isSpeaking = false; finalizeTurnLogic(); 
+                }
             };
-
-            voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
-        }
-
-        function finalizeTurnLogic() {
-            const sc = scenarios[selectedScenarioKey];
-            if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-                setTimeout(processMove, 600); 
+            
+            if(globalVoiceVol > 0) {
+                voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
+            } else { 
+                isSpeaking = false; finalizeTurnLogic(); 
             }
         }
+
+        // --- ВОРОНЬЯ ПОЧТА (ЧАТ) ---
+        let chatInterval;
+        function openChat() { 
+            document.getElementById('chat-modal').classList.remove('-translate-x-full'); 
+            loadChat();
+            chatInterval = setInterval(loadChat, 5000);
+        }
+        function closeChat() { 
+            document.getElementById('chat-modal').classList.add('-translate-x-full'); 
+            clearInterval(chatInterval);
+        }
+        
+        async function loadChat() {
+            try {
+                const res = await fetch(API_URL + 'chat', { mode:'cors' });
+                if(res.ok) {
+                    const msgs = await res.json();
+                    document.getElementById('chat-messages').innerHTML = msgs.map(m => `
+                        <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+                            <span class="text-xs font-bold text-amber-500">${m.author_name || 'Лорд'}:</span>
+                            <p class="text-sm text-slate-300 mt-1">${m.text}</p>
+                        </div>
+                    `).join('');
+                    const box = document.getElementById('chat-messages');
+                    box.scrollTop = box.scrollHeight;
+                }
+            } catch(e){}
+        }
+        
+        async function sendChat() {
+            const inp = document.getElementById('chat-input');
+            const text = inp.value.trim();
+            if(!text) return;
+            
+            if(SafeAntiMate.check(text)) {
+                return showNotification(currentLang==='en' ? "Dark magic detected!" : "Обнаружена темная магия!", "error");
+            }
+            
+            inp.value = '';
+            
+            try {
+                const res = await fetch(API_URL + 'chat', {
+                    method:'POST', mode:'cors', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ 
+                        author_id: myAuthorId, 
+                        author_name: localStorage.getItem('chess_saga_author_name') || 'Лорд', 
+                        text: text 
+                    })
+                });
+                
+                if(res.status === 429) {
+                    showNotification(currentLang==='en' ? "Not so fast!" : "Не так быстро, Ворон устал!", "error");
+                } else {
+                    loadChat();
+                }
+            } catch(e){}
+        }
+
+        // --- ГАЛЕРЕЯ, ЛАЙКИ И ПОИСК ---
+        let allGalleryParties = [];
+        
+        function openCommunityModal() { 
+            document.getElementById('community-modal').classList.remove('hidden'); 
+            renderGallery(); 
+        }
+        
+        function closeCommunityModal() { 
+            document.getElementById('community-modal').classList.add('hidden'); 
+        }
+
+        async function renderGallery() {
+            const gallery = document.getElementById('community-gallery');
+            gallery.innerHTML = `<p class="col-span-full text-center text-amber-500 italic animate-pulse">${currentLang==='en' ? "Searching ancient archives..." : "Ищем свитки в архивах..."}</p>`;
+            
+            try {
+                const response = await fetch(API_URL, { mode: 'cors' });
+                if (response.ok) {
+                    const data = await response.json();
+                    let rows = Array.isArray(data) ? data : (data.data || data.result || []);
+                    allGalleryParties = rows.map(row => {
+                        let pd = typeof row.data === 'string' ? JSON.parse(row.data) : (row.data || row);
+                        pd.db_id = row.id || pd.id; 
+                        return pd;
+                    });
+                }
+            } catch (e) { 
+                console.log(e); 
+            }
+            displayGalleryCards(allGalleryParties);
+        }
+
+        function filterGallery() {
+            const q = document.getElementById('gallery-search').value.toLowerCase();
+            const filtered = allGalleryParties.filter(p => 
+                (p.title || '').toLowerCase().includes(q) || 
+                (p.author_name || '').toLowerCase().includes(q) ||
+                (p.tags || []).join(' ').toLowerCase().includes(q)
+            );
+            displayGalleryCards(filtered);
+        }
+
+        function displayGalleryCards(parties) {
+            const gallery = document.getElementById('community-gallery');
+            if (parties.length === 0) { 
+                gallery.innerHTML = '<p class="col-span-full text-center text-slate-600 italic">Пусто / Empty</p>'; 
+                return; 
+            }
+
+            gallery.innerHTML = parties.map((p, index) => {
+                if(!p || !p.story) return '';
+                scenarios['custom_' + p.db_id] = p; 
+                const canDelete = p.author_id === myAuthorId;
+                const likes = p.likes ? p.likes.length : 0;
+                const dislikes = p.dislikes ? p.dislikes.length : 0;
+                const tagsHtml = (p.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join(' ');
+
+                return `
+                <div class="scenario-card border-purple-900 flex flex-col justify-between h-full">
+                    <div class="mb-4 pr-6">
+                        <h3 class="text-purple-400 font-bold truncate text-lg">${p.title}</h3>
+                        <p class="text-[10px] text-amber-500 mt-1 uppercase">${p.author_name || 'Лорд'}</p>
+                        <div class="flex flex-wrap gap-1 mt-2">${tagsHtml}</div>
+                    </div>
+                    
+                    ${canDelete ? `<button onclick="deleteFromGallery('${p.db_id}')" class="absolute top-4 right-4 text-slate-500 hover:text-red-500">🗑️</button>` : ''}
+                    
+                    <div class="flex justify-between items-center mb-3 px-1 border-t border-slate-700/50 pt-3">
+                        <div class="flex gap-3">
+                            <button onclick="rateScenario('${p.db_id}', 'like')" class="text-xs hover:scale-110 transition-transform flex items-center gap-1">
+                                <span class="text-red-500 text-lg">♥️</span> <span class="text-slate-400" id="l_${p.db_id}">${likes}</span>
+                            </button>
+                            <button onclick="rateScenario('${p.db_id}', 'dislike')" class="text-xs hover:scale-110 transition-transform flex items-center gap-1">
+                                <span class="text-slate-600 text-lg">💔</span> <span class="text-slate-400" id="d_${p.db_id}">${dislikes}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="playCustomScenario('${p.db_id}')" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white">▶ ИГРАТЬ</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function rateScenario(id, action) {
+            try {
+                const res = await fetch(API_URL + 'rate', {
+                    method:'POST', mode:'cors', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ id: id, author_id: myAuthorId, action: action })
+                });
+                if(res.ok) {
+                    const r = await res.json();
+                    document.getElementById(`l_${id}`).innerText = r.likes;
+                    document.getElementById(`d_${id}`).innerText = r.dislikes;
+                }
+            } catch(e){}
+        }
+
+        async function deleteFromGallery(id) {
+            if(!confirm(currentLang==='en' ? "Are you sure?" : "Точно удалить?")) return;
+            
+            showNotification(currentLang==='en' ? "Burning manuscript..." : "Сжигаем свиток...", "info");
+            
+            try {
+                const endpoint = API_URL.endsWith('/') ? `${API_URL}${id}` : `${API_URL}/${id}`;
+                const response = await fetch(endpoint, { method: 'DELETE', mode: 'cors' });
+                
+                if (response.ok) { 
+                    showNotification("Успешно / Success", "success"); 
+                    renderGallery(); 
+                } else {
+                    showNotification("Ошибка / Error", "error");
+                }
+            } catch (error) { 
+                showNotification("Network Error", "error"); 
+            }
+        }
+
+        function playCustomScenario(id) { 
+            selectedScenarioKey = 'custom_' + id; 
+            closeCommunityModal(); 
+            startGame(); 
+        }
+
+        // --- ИГРОВОЙ ДВИЖОК И ОТОБРАЖЕНИЕ ---
+        let selectedScenarioKey = 'argus'; 
+        let currentStep = 0; 
+        let maxReachedStep = 0; 
+        let boardState = []; 
+        let historyStates = []; 
+        let isSpeaking = false; 
+        let editorEngine = new Chess();
+        let forgeSide = 'white';
 
         function initBoard() {
             boardState = [
                 ['b_rook', 'b_knight', 'b_bishop', 'b_queen', 'b_king', 'b_bishop', 'b_knight', 'b_rook'],
                 ['b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn'],
-                ['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
                 ['w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn'],
                 ['w_rook', 'w_knight', 'w_bishop', 'w_queen', 'w_king', 'w_bishop', 'w_knight', 'w_rook']
             ];
@@ -679,47 +838,52 @@
         }
 
         function startGame() {
-            resumeAudio();
-            document.getElementById('menu-vol').style.display = 'none';
+            resumeAudio(); 
             const sc = scenarios[selectedScenarioKey];
-            
-            currentStep = 0; maxReachedStep = 0; isSpeaking = false;
-
-            const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
-            const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-            if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-            if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
+            currentStep = 0; 
+            maxReachedStep = 0; 
+            isSpeaking = false;
 
             document.getElementById('goals-list').innerHTML = (sc.goals || []).map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
             document.getElementById('enemy-goals').innerHTML = (sc.egoals || []).map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
-            
             document.getElementById('chronicle-list').innerHTML = '';
-            document.getElementById('move-counter').textContent = `ХОД: 1`;
+            document.getElementById('move-counter').textContent = `ХОД: 1`; 
             document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
-
-            document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;" onerror="this.style.display='none'">`;
-            document.getElementById('scene-title').textContent = sc.title || "Ваша история начинается";
-            document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+            
+            // Если в пользовательском сценарии указана стартовая сторона black - переворачиваем доску
+            if(sc.startSide === 'black') {
+                document.getElementById('board-wrap').classList.add('board-flipped');
+            } else {
+                document.getElementById('board-wrap').classList.remove('board-flipped');
+            }
 
             document.getElementById('main-menu').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('main-menu').style.display = 'none';
-                document.getElementById('main-app').classList.add('app-visible');
-                initBoard(); renderBoard();
+            setTimeout(() => { 
+                document.getElementById('main-menu').style.display = 'none'; 
+                document.getElementById('main-app').classList.add('app-visible'); 
+                initBoard(); 
+                renderBoard(); 
             }, 800);
+        }
+
+        function finalizeTurnLogic() {
+            const sc = scenarios[selectedScenarioKey];
+            if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) { 
+                setTimeout(processMove, 600); 
+            }
         }
 
         function renderBoard() {
             const boardEl = document.getElementById('board');
-            if (!boardEl) return;
+            if (!boardEl) return; 
             boardEl.innerHTML = '';
             
-            const sc = scenarios[selectedScenarioKey];
+            const sc = scenarios[selectedScenarioKey]; 
             const next = sc.story[currentStep];
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    const sq = document.createElement('div');
+                    const sq = document.createElement('div'); 
                     sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
                     const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
                     
@@ -729,10 +893,10 @@
                     }
                     
                     if (boardState[r] && boardState[r][c]) {
-                        const img = document.createElement('img');
+                        const img = document.createElement('img'); 
                         img.src = `${figuresPath}${boardState[r][c]}.png`;
                         img.className = 'piece-img'; 
-                        img.onerror = function() { this.style.display='none'; };
+                        img.onerror = function() { this.style.display='none'; }; 
                         sq.appendChild(img);
                     }
                     boardEl.appendChild(sq);
@@ -750,235 +914,219 @@
             const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
             const to = [8 - parseInt(moveClean[3]), moveClean.charCodeAt(2) - 97];
             
-            boardState[to[0]][to[1]] = boardState[from[0]][from[1]];
+            boardState[to[0]][to[1]] = boardState[from[0]][from[1]]; 
             boardState[from[0]][from[1]] = '';
+            
             historyStates.push(JSON.parse(JSON.stringify(boardState)));
-
             updateVisuals(data, true); 
 
-            const stepForAudio = currentStep;
-            currentStep++; maxReachedStep = currentStep; 
+            const stepForAudio = currentStep; 
+            currentStep++; 
+            maxReachedStep = currentStep; 
             
-            renderBoard(); updateStats(data); speak(data.text, data.turn, stepForAudio);
+            renderBoard(); 
+            updateStats(data); 
+            speak(data.text, data.turn, stepForAudio);
         }
 
         function jumpToStep(stepIndex) {
-            if (isSpeaking) return;
+            if (isSpeaking) return; 
             const sc = scenarios[selectedScenarioKey];
+            
             if (stepIndex < 0 || stepIndex > maxReachedStep) return;
-
+            
             if (window.speechSynthesis) window.speechSynthesis.cancel();
             
-            currentStep = stepIndex;
+            currentStep = stepIndex; 
             boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
-
+            
             if (currentStep > 0) {
-                const data = sc.story[currentStep - 1];
-                updateVisuals(data, false);
-                let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-                document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
+                updateVisuals(sc.story[currentStep - 1], false);
+                document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`;
                 document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
             } else {
-                document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;" onerror="this.style.display='none'">`;
-                document.getElementById('scene-title').textContent = "Ваша история начинается";
-                document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
-                document.getElementById('move-counter').textContent = `ХОД: 1`;
+                document.getElementById('move-counter').textContent = `ХОД: 1`; 
                 document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
             }
             
             renderBoard();
+            
             if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
                 finalizeTurnLogic();
             }
         }
 
-        function updateStats(data) {
-            let displayMove = Math.floor((currentStep - 1) / 2) + 1;
-            document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
-            document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
+        function updateStats(data) { 
+            document.getElementById('move-counter').textContent = `ХОД: ${Math.floor((currentStep - 1) / 2) + 1}`; 
+            document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`; 
         }
 
         function updateVisuals(data, createLog) {
             if (data.capture) {
-                document.getElementById('flash').classList.add('flash-active');
+                document.getElementById('flash').classList.add('flash-active'); 
                 setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
-                document.querySelector('.chess-board-outer').classList.add('shake-anim');
-                setTimeout(() => document.querySelector('.chess-board-outer').classList.remove('shake-anim'), 300);
+            }
+            const stage = document.getElementById('visual-stage');
+            
+            const chessChars = ['♔','♕','♖','♗','♘','♙','♚','♛','♜','♝','♞','♟'];
+            if(chessChars.includes(data.icon)) {
+                stage.innerHTML = `<span class="text-6xl text-slate-200 drop-shadow-md">${data.icon}</span>`;
+            } else {
+                let iconSrc = data.icon.includes('.png') ? data.icon : `${data.icon}.png`;
+                stage.innerHTML = `<img src="${visualizationPath}${iconSrc}" onerror="this.style.display='none'">`;
+            }
+
+            document.getElementById('scene-title').textContent = data.title; 
+            document.getElementById('scene-desc').textContent = data.text;
+            
+            if (createLog) {
+                const log = document.createElement('div'); 
+                log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
+                log.onclick = () => jumpToStep(currentStep); 
+                log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪' : '⚫'}</span>${data.text}`;
+                document.getElementById('chronicle-list').appendChild(log); 
+                
+                const box = document.getElementById('narrative-box'); 
+                box.scrollTop = box.scrollHeight;
             }
             
-            const stage = document.getElementById('visual-stage');
-            let iconSrc = data.icon.includes('.png') ? data.icon : `${data.icon}.png`;
-            stage.innerHTML = `<img src="${visualizationPath}${iconSrc}" onerror="this.style.display='none'">`;
-
-            document.getElementById('scene-title').textContent = data.title;
-            document.getElementById('scene-desc').textContent = data.text;
-
-            if (createLog) {
-                const logIndex = currentStep;
-                const log = document.createElement('div');
-                log.className = `log-entry text-xs border-l-2 pl-3 py-2 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-                log.onclick = () => jumpToStep(logIndex + 1);
-                log.innerHTML = `<span class="uppercase font-bold text-[9px] block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
-                document.getElementById('chronicle-list').appendChild(log);
-                const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
+            if (data.goal !== undefined && data.goal !== null) { 
+                const g = document.getElementById(`g${data.goal}`); 
+                if(g) { g.className = "text-green-500 font-bold line-through transition-all"; } 
             }
-
-            if (data.goal !== undefined && data.goal !== null) {
-                const g = document.getElementById(`g${data.goal}`);
-                if(g) { 
-                    g.className = "text-green-500 font-bold transition-all"; 
-                    g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.style.display='none'"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
-                    g.style.textDecoration = "line-through";
-                }
-            }
-            if (data.egoal !== undefined && data.egoal !== null) {
-                const eg = document.getElementById(`eg${data.egoal}`);
-                if(eg) { 
-                    eg.className = "text-red-500 font-bold transition-all"; 
-                    eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.style.display='none'"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
-                    eg.style.textDecoration = "line-through";
-                }
+            
+            if (data.egoal !== undefined && data.egoal !== null) { 
+                const eg = document.getElementById(`eg${data.egoal}`); 
+                if(eg) { eg.className = "text-red-500 font-bold line-through transition-all"; } 
             }
         }
 
-        function exitToMenu() {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        function exitToMenu() { 
+            if (window.speechSynthesis) window.speechSynthesis.cancel(); 
             location.reload(); 
         }
-
-        window.addEventListener('keydown', (e) => {
-            if (document.getElementById('main-app').classList.contains('app-visible')) {
-                if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
-                if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
-            }
+        
+        window.addEventListener('keydown', (e) => { 
+            if (document.getElementById('main-app').classList.contains('app-visible')) { 
+                if (e.key === "ArrowLeft") jumpToStep(currentStep - 1); 
+                if (e.key === "ArrowRight") jumpToStep(currentStep + 1); 
+            } 
         });
 
-        // --- ЛОГИКА КУЗНИЦЫ (РЕДАКТОРА) ---
-        let editorEngine = new Chess();
-        let editorSteps = [];
-        let selectedSquare = null;
-        let validMovesForSelected = [];
+        // --- КУЗНИЦА СУДЕБ 2.0 ---
+        let editorSteps = []; 
+        let selectedSquare = null; 
+        let validMovesForSelected = []; 
         let selectedEditorStepIndex = null;
 
-        const availableIcons = [
-            "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
-            "☀️","⚡","🔱","😰","🪓","🐎","🐢","☁️","🔨","🩸","🕊️","🦅","👺","🏃",
-            "🔆","🌫️","🏆","♞","⛪","⚠️","🍴","💥","👸","💎","‼️","😵","😈","💔",
-            "🗿","🧐","👽","🎀","👓","👟","🎓","🥇","🧩","♟️","♥️","🥁","⛏️","🔧",
-            "🪨","🪵","⚙️","🪚","💣","🔫","🔪","🔍","💡","🕯","💰","💸","✏️","✒️",
-            "⏱️","✂️","⌛","🌍","🏳️","💘","❓","❗","☣️"
-        ];
-        const ICONS_PER_PAGE = 21; 
-        let currentIconPage = 0;
+        const chessIcons = ["♔","♕","♖","♗","♘","♙","♚","♛","♜","♝","♞","♟", "✨","🔥","💀","🛡️","⚔️","👑","💥","💎","💔"];
 
-        function saveAuthorName() {
-            localStorage.setItem('chess_saga_author_name', document.getElementById('edit-author-name').value);
+        function openColorSelect() { 
+            document.getElementById('color-select-modal').classList.remove('hidden'); 
+            document.getElementById('color-select-modal').classList.add('flex'); 
+        }
+        
+        function closeColorSelect() { 
+            document.getElementById('color-select-modal').classList.add('hidden'); 
+            document.getElementById('color-select-modal').classList.remove('flex'); 
         }
 
-        function updateGoalSelects() {
-            const goalSelect = document.getElementById('edit-step-goal');
-            const egoalSelect = document.getElementById('edit-step-egoal');
-            const gVal = goalSelect.value;
-            const egVal = egoalSelect.value;
+        function startForge(side) {
+            forgeSide = side;
+            closeColorSelect();
+            document.getElementById('editor-modal').classList.remove('hidden');
+            
+            // Если черные - переворачиваем визуально доску
+            if(forgeSide === 'black') {
+                document.getElementById('editor-board-wrap').classList.add('board-flipped');
+            } else {
+                document.getElementById('editor-board-wrap').classList.remove('board-flipped');
+            }
 
+            editorEngine = new Chess(); 
+            editorSteps = []; 
+            selectedSquare = null; 
+            validMovesForSelected = []; 
+            selectedEditorStepIndex = null;
+            
+            document.getElementById('edit-author-name').value = localStorage.getItem('chess_saga_author_name') || '';
+            document.getElementById('edit-tags').value = ''; 
+            document.getElementById('edit-goals').value = ''; 
+            document.getElementById('edit-egoals').value = '';
+            
+            updateGoalSelects(); 
+            initIcons(); 
+            renderEditorBoard(); 
+            renderEditorStepsList();
+        }
+        
+        function closeEditor() { 
+            document.getElementById('editor-modal').classList.add('hidden'); 
+        }
+
+        function saveAuthorName() { 
+            localStorage.setItem('chess_saga_author_name', document.getElementById('edit-author-name').value); 
+        }
+        
+        function updateGoalSelects() {
+            const gs = document.getElementById('edit-step-goal'); 
+            const egs = document.getElementById('edit-step-egoal');
+            const gVal = gs.value; 
+            const egVal = egs.value;
+            
             const goals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
             const egoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
-
-            goalSelect.innerHTML = '<option value="">- Нет задачи игрока -</option>' + goals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}...</option>`).join('');
-            egoalSelect.innerHTML = '<option value="">- Нет задачи врага -</option>' + egoals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}...</option>`).join('');
-
-            goalSelect.value = gVal;
-            egoalSelect.value = egVal;
+            
+            gs.innerHTML = '<option value="">-</option>' + goals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}</option>`).join('');
+            egs.innerHTML = '<option value="">-</option>' + egoals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}</option>`).join('');
+            
+            gs.value = gVal; 
+            egs.value = egVal;
         }
 
         function initIcons() {
-            const container = document.getElementById('icon-selector');
-            const pagination = document.getElementById('icon-pagination');
-            
-            const start = currentIconPage * ICONS_PER_PAGE;
-            const end = start + ICONS_PER_PAGE;
-            const pageIcons = availableIcons.slice(start, end);
-
-            container.innerHTML = pageIcons.map(icon => 
-                `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center w-full h-8">
-                    <img src="${visualizationPath}${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.style.display='none'">
-                </button>`
+            document.getElementById('icon-selector').innerHTML = chessIcons.map(icon => 
+                `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 transition-transform hover:scale-110 flex items-center justify-center w-full h-8 text-xl text-slate-300 drop-shadow-md">${icon}</button>`
             ).join('');
-
-            let paginationHtml = '';
-            if (currentIconPage > 0) {
-                paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬆️ Вверх</button>`;
-            } else {
-                paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️ Вверх</button>`;
-            }
-            if (end < availableIcons.length) {
-                paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬇️ Вниз</button>`;
-            } else {
-                paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️ Вниз</button>`;
-            }
-            pagination.innerHTML = paginationHtml;
         }
-
-        function changeIconPage(direction) {
-            currentIconPage += direction;
-            initIcons();
-        }
-
-        function openEditor() {
-            document.getElementById('editor-modal').classList.remove('hidden');
-            editorEngine = new Chess(); editorSteps = []; selectedSquare = null; validMovesForSelected = [];
-            selectedEditorStepIndex = null; currentIconPage = 0;
-            
-            // Загружаем ник
-            document.getElementById('edit-author-name').value = localStorage.getItem('chess_saga_author_name') || '';
-            document.getElementById('edit-goals').value = '';
-            document.getElementById('edit-egoals').value = '';
-            updateGoalSelects();
-
-            document.getElementById('editor-steps-list').innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>';
-            document.getElementById('editor-step-form').classList.add('hidden');
-            initIcons(); renderEditorBoard();
-        }
-
-        function closeEditor() { document.getElementById('editor-modal').classList.add('hidden'); }
-
-        function setEditIcon(val) {
-            document.getElementById('edit-icon-input').value = val;
-            updateCurrentStepData();
+        
+        function setEditIcon(val) { 
+            document.getElementById('edit-icon-input').value = val; 
+            updateCurrentStepData(); 
         }
 
         const pieceMap = { 'p': 'pawn', 'n': 'knight', 'b': 'bishop', 'r': 'rook', 'q': 'queen', 'k': 'king' };
-
+        
         function renderEditorBoard() {
-            const boardEl = document.getElementById('editor-board');
-            boardEl.innerHTML = '';
+            const boardEl = document.getElementById('editor-board'); 
+            boardEl.innerHTML = ''; 
             const board = editorEngine.board();
             const highlightTargets = validMovesForSelected.map(m => m.to);
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    const squareEl = document.createElement('div');
+                    const squareEl = document.createElement('div'); 
                     squareEl.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
-                    const coord = String.fromCharCode(97 + c) + (8 - r);
+                    const coord = String.fromCharCode(97 + c) + (8 - r); 
                     squareEl.dataset.coord = coord;
 
                     if (selectedSquare === coord) squareEl.classList.add('editor-target');
-                    if (highlightTargets.includes(coord)) {
-                        const marker = document.createElement('div');
-                        marker.className = 'valid-move-marker';
-                        squareEl.appendChild(marker);
+                    if (highlightTargets.includes(coord)) { 
+                        const mk = document.createElement('div'); 
+                        mk.className = 'valid-move-marker'; 
+                        squareEl.appendChild(mk); 
                     }
                     
                     if (board[r][c]) {
-                        const cell = board[r][c];
-                        const img = document.createElement('img');
+                        const cell = board[r][c]; 
+                        const img = document.createElement('img'); 
                         img.src = `${figuresPath}${cell.color}_${pieceMap[cell.type]}.png`;
-                        img.className = 'piece-img';
-                        img.onerror = function() { this.style.display='none'; };
+                        img.className = 'piece-img'; 
+                        img.onerror = function() { this.style.display='none'; }; 
                         squareEl.appendChild(img);
                     }
                     
-                    squareEl.onclick = () => handleEditorClick(coord);
+                    squareEl.onclick = () => handleEditorClick(coord); 
                     boardEl.appendChild(squareEl);
                 }
             }
@@ -987,11 +1135,15 @@
         function handleEditorClick(coord) {
             if (!selectedSquare || (editorEngine.get(coord) && editorEngine.get(coord).color === editorEngine.turn())) {
                 const piece = editorEngine.get(coord);
-                if (piece && piece.color === editorEngine.turn()) {
-                    selectedSquare = coord; validMovesForSelected = editorEngine.moves({ square: coord, verbose: true });
-                    renderEditorBoard();
-                } else if(selectedSquare) {
-                    selectedSquare = null; validMovesForSelected = []; renderEditorBoard();
+                if (piece && piece.color === editorEngine.turn()) { 
+                    selectedSquare = coord; 
+                    validMovesForSelected = editorEngine.moves({ square: coord, verbose: true }); 
+                    renderEditorBoard(); 
+                } 
+                else if(selectedSquare) { 
+                    selectedSquare = null; 
+                    validMovesForSelected = []; 
+                    renderEditorBoard(); 
                 }
             } else {
                 const moveObj = validMovesForSelected.find(m => m.to === coord);
@@ -1001,170 +1153,161 @@
                     }
                     const move = editorEngine.move({ from: selectedSquare, to: coord, promotion: 'q' });
                     if (move) {
-                        editorSteps.push({
-                            move: move.from + move.to, turn: move.color === 'w' ? 'white' : 'black',
-                            san: move.san, title: "", text: "", icon: "⚔️", capture: move.captured ? true : false
+                        editorSteps.push({ 
+                            move: move.from + move.to, 
+                            turn: move.color === 'w' ? 'white' : 'black', 
+                            san: move.san, 
+                            title: "", 
+                            text: "", 
+                            icon: "⚔️", 
+                            capture: !!move.captured 
                         });
                         selectEditorStep(editorSteps.length - 1);
-                        setTimeout(() => { const listEl = document.getElementById('editor-steps-list'); listEl.scrollTop = listEl.scrollHeight; }, 50);
+                        setTimeout(() => { 
+                            const listEl = document.getElementById('editor-steps-list'); 
+                            listEl.scrollTop = listEl.scrollHeight; 
+                        }, 50);
                     }
                 }
-                selectedSquare = null; validMovesForSelected = []; renderEditorBoard();
+                selectedSquare = null; 
+                validMovesForSelected = []; 
+                renderEditorBoard();
             }
         }
 
         function undoEditorStep() {
-            if (editorSteps.length === 0) return showNotification("Нет ходов для отмены!", "error");
-            editorSteps.pop();
+            if (editorSteps.length === 0) return; 
+            editorSteps.pop(); 
             editorEngine = new Chess();
-            for(let step of editorSteps) { editorEngine.move({from: step.move.substring(0,2), to: step.move.substring(2,4), promotion: 'q'}); }
-            selectedSquare = null; validMovesForSelected = [];
             
-            if(editorSteps.length > 0) { selectEditorStep(editorSteps.length - 1); } 
-            else { selectedEditorStepIndex = null; document.getElementById('editor-step-form').classList.add('hidden'); renderEditorBoard(); renderEditorStepsList(); }
+            for(let step of editorSteps) { 
+                editorEngine.move({from: step.move.substring(0,2), to: step.move.substring(2,4), promotion: 'q'}); 
+            }
+            
+            selectedSquare = null; 
+            validMovesForSelected = [];
+            
+            if(editorSteps.length > 0) {
+                selectEditorStep(editorSteps.length - 1); 
+            } else { 
+                selectedEditorStepIndex = null; 
+                document.getElementById('editor-step-form').classList.add('hidden'); 
+                renderEditorBoard(); 
+                renderEditorStepsList(); 
+            }
         }
 
         function renderEditorStepsList() {
             const list = document.getElementById('editor-steps-list');
-            if(editorSteps.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>';
-                document.getElementById('editor-step-form').classList.add('hidden');
-                return;
+            if(editorSteps.length === 0) { 
+                list.innerHTML = ''; 
+                document.getElementById('editor-step-form').classList.add('hidden'); 
+                return; 
             }
+            
             list.innerHTML = editorSteps.map((s, i) => {
-                const moveNum = Math.floor(i / 2) + 1;
-                const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
-                const isActive = selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800 shadow-md' : 'border-slate-700 bg-slate-800';
-                
-                return `
-                <div onclick="selectEditorStep(${i})" class="p-2 border rounded-lg cursor-pointer hover:border-amber-500 transition-colors ${isActive} flex justify-between items-center text-slate-300 shrink-0">
-                    <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b> (${turnName})</span>
-                    <span class="text-[10px] truncate ml-3 flex-1 text-right italic text-slate-400">${s.title || 'Без названия'}</span>
-                    <span class="ml-2 flex-shrink-0"><img src="${visualizationPath}${s.icon}.png" class="w-5 h-5 object-contain" onerror="this.style.display='none'"></span>
+                const isActive = selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800' : 'border-slate-700 bg-slate-900';
+                return `<div onclick="selectEditorStep(${i})" class="p-2 border rounded-lg cursor-pointer ${isActive} flex justify-between items-center text-slate-300 shrink-0 mb-2">
+                    <span class="text-xs text-amber-500">${i+1}. ${s.san}</span>
+                    <span class="text-[10px] truncate mx-2 flex-1 text-slate-400">${s.title || ''}</span>
+                    <span class="text-lg leading-none">${s.icon}</span>
                 </div>`;
             }).join(''); 
         }
 
         function selectEditorStep(index) {
-            selectedEditorStepIndex = index;
-            const step = editorSteps[index];
+            selectedEditorStepIndex = index; 
+            const step = editorSteps[index]; 
             editorEngine = new Chess();
-            for (let i = 0; i <= index; i++) { editorEngine.move({ from: editorSteps[i].move.substring(0, 2), to: editorSteps[i].move.substring(2, 4), promotion: 'q' }); }
-            selectedSquare = null; validMovesForSelected = []; renderEditorBoard();
+            
+            for (let i = 0; i <= index; i++) { 
+                editorEngine.move({ from: editorSteps[i].move.substring(0, 2), to: editorSteps[i].move.substring(2, 4), promotion: 'q' }); 
+            }
+            
+            selectedSquare = null; 
+            validMovesForSelected = []; 
+            renderEditorBoard();
 
             document.getElementById('editor-step-form').classList.remove('hidden');
-            document.getElementById('edit-title').value = step.title;
-            document.getElementById('edit-text').value = step.text;
+            document.getElementById('edit-title').value = step.title; 
+            document.getElementById('edit-text').value = step.text; 
             document.getElementById('edit-icon-input').value = step.icon;
-            
-            // Восстанавливаем выбранные задачи
-            document.getElementById('edit-step-goal').value = step.goal !== undefined ? step.goal : "";
+            document.getElementById('edit-step-goal').value = step.goal !== undefined ? step.goal : ""; 
             document.getElementById('edit-step-egoal').value = step.egoal !== undefined ? step.egoal : "";
             
-            const moveNum = Math.floor(index / 2) + 1;
-            const turnName = step.turn === 'white' ? 'Белые' : 'Черные';
-            document.getElementById('editing-step-label').textContent = `Редактирование: ${moveNum}. ${step.san} (${turnName})`;
-
             renderEditorStepsList(); 
         }
 
         function updateCurrentStepData() {
             if (selectedEditorStepIndex === null) return;
-            const title = document.getElementById('edit-title').value;
-            const text = document.getElementById('edit-text').value;
-            const icon = document.getElementById('edit-icon-input').value;
-            const goalVal = document.getElementById('edit-step-goal').value;
-            const egoalVal = document.getElementById('edit-step-egoal').value;
-
-            if (window.SafeAntiMate.check(text) || window.SafeAntiMate.check(title)) {
-                showNotification("Обнаружена темная магия (нецензурная лексика)!", "error");
-                return;
-            }
-
-            editorSteps[selectedEditorStepIndex].title = title;
-            editorSteps[selectedEditorStepIndex].text = text;
-            editorSteps[selectedEditorStepIndex].icon = icon;
+            const t = document.getElementById('edit-title').value; 
+            const txt = document.getElementById('edit-text').value;
             
-            // Сохраняем индексы задач в ход
-            if (goalVal !== "") editorSteps[selectedEditorStepIndex].goal = parseInt(goalVal);
-            else delete editorSteps[selectedEditorStepIndex].goal;
-
-            if (egoalVal !== "") editorSteps[selectedEditorStepIndex].egoal = parseInt(egoalVal);
-            else delete editorSteps[selectedEditorStepIndex].egoal;
-
+            if (SafeAntiMate.check(txt) || SafeAntiMate.check(t)) {
+                return showNotification(currentLang==='en' ? "Dark magic detected!" : "Обнаружена темная магия!", "error");
+            }
+            
+            const stp = editorSteps[selectedEditorStepIndex];
+            stp.title = t; 
+            stp.text = txt; 
+            stp.icon = document.getElementById('edit-icon-input').value;
+            
+            const g = document.getElementById('edit-step-goal').value; 
+            const eg = document.getElementById('edit-step-egoal').value;
+            if (g !== "") stp.goal = parseInt(g); else delete stp.goal;
+            if (eg !== "") stp.egoal = parseInt(eg); else delete stp.egoal;
+            
             renderEditorStepsList();
         }
 
         async function publishStory() {
             const scenarioName = document.getElementById('edit-scenario-name').value;
-            if (!scenarioName) return showNotification("Дайте название вашей Главе!", "error");
-            if (editorSteps.length < 1) return showNotification("Сделайте хотя бы один ход!", "error");
-
-            if (window.SafeAntiMate.check(scenarioName)) {
-                return showNotification("Нецензурная лексика в названии!", "error");
+            const tagsInput = document.getElementById('edit-tags').value;
+            
+            if (!scenarioName) return showNotification(currentLang==='en' ? "Enter a title!" : "Укажите название!", "error");
+            if (editorSteps.length < 1) return showNotification(currentLang==='en' ? "Make a move!" : "Сделайте ход!", "error");
+            if (SafeAntiMate.check(scenarioName) || SafeAntiMate.check(tagsInput)) {
+                return showNotification(currentLang==='en' ? "Dark magic detected!" : "Нецензурная лексика!", "error");
             }
 
-            const authorName = document.getElementById('edit-author-name').value || "Неизвестный Лорд";
             const finalGoals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
             const finalEgoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
-            
+            const tags = tagsInput.split(' ').map(t=>t.trim()).filter(t=>t.startsWith('#') && t.length > 1);
+
             const newScenario = {
-                title: scenarioName,
-                author_id: myAuthorId,
-                author_name: authorName,
-                goals: finalGoals.length ? finalGoals : ["Завершить партию", "Войти в историю"],
-                egoals: finalEgoals.length ? finalEgoals : ["Не проиграть"],
+                title: scenarioName, 
+                author_id: myAuthorId, 
+                author_name: document.getElementById('edit-author-name').value || "Лорд",
+                tags: tags, 
+                startSide: forgeSide, 
+                goals: finalGoals, 
+                egoals: finalEgoals, 
                 story: editorSteps
             };
 
-            let community = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
-            community = community.filter(c => c.title !== newScenario.title);
-            community.push(newScenario);
-            localStorage.setItem('chess_saga_custom', JSON.stringify(community));
-
-            showNotification("Отправка ворона с партией...", "info");
-
+            showNotification(currentLang==='en' ? "Sending Raven..." : "Отправка ворона...", "info");
+            
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: newScenario })
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    mode: 'cors', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ data: newScenario }) 
                 });
-
-                if (response.ok) showNotification("Партия выложена в общие Свитки!", "success");
-                else showNotification("Ошибка сервера. Сохранено локально.", "error");
-            } catch (e) { showNotification("Нет сети. Сохранено локально.", "error"); }
-            
-            setTimeout(() => {
-                closeEditor();
-                if(!document.getElementById('community-modal').classList.contains('hidden')) { renderGallery(); }
-            }, 1000);
+                
+                if (res.ok) { 
+                    showNotification(currentLang==='en' ? "Success!" : "Успешно!", "success"); 
+                    setTimeout(() => closeEditor(), 1000); 
+                } else {
+                    showNotification(currentLang==='en' ? "Server Error" : "Ошибка сервера", "error");
+                }
+            } catch (e) { 
+                showNotification(currentLang==='en' ? "Network Error" : "Ошибка сети", "error"); 
+            }
         }
 
-        function downloadCurrentEditorStory() {
-            const scenarioName = document.getElementById('edit-scenario-name').value || "My_Chess_Saga";
-            if (editorSteps.length === 0) return showNotification("Сначала создайте ходы в Кузнице!", "error");
-
-            const finalGoals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
-            const finalEgoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
-
-            const data = { 
-                title: scenarioName, 
-                goals: finalGoals.length ? finalGoals : ["Победить врага"], 
-                egoals: finalEgoals.length ? finalEgoals : ["Разрушить ваши планы"], 
-                story: editorSteps 
-            };
-            
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", scenarioName + ".json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-            showNotification("Скачивание началось!", "success");
-        }
+        // Инициализация при загрузке
+        changeLang(currentLang);
     </script>
 </body>
 </html>
