@@ -28,7 +28,10 @@
         }
         h1, h2, h3 { font-family: 'Cinzel', serif; }
 
-        /* Меню выбора */
+        #main-menu, #editor-modal {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        }
+
         #main-menu {
             position: fixed;
             inset: 0;
@@ -36,7 +39,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
             z-index: 2000;
             transition: all 0.8s ease;
             padding: 20px;
@@ -72,7 +74,6 @@
         .scenario-card.active { border-color: var(--gold); background: rgba(245, 158, 11, 0.05); }
         .menu-icon { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 8px; }
 
-        /* Интерфейс игры */
         .app-container {
             display: none; 
             grid-template-columns: 1fr 1fr;
@@ -112,11 +113,7 @@
             filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3)); 
             transition: all 0.5s; 
         }
-        .visual-stage-mini img {
-            width: 70px;
-            height: 70px;
-            object-fit: contain;
-        }
+        .visual-stage-mini img { width: 70px; height: 70px; object-fit: contain; }
 
         .chess-board-outer { 
             padding: 8px; 
@@ -155,35 +152,19 @@
         .editor-target { background-color: rgba(56, 189, 248, 0.5) !important; box-shadow: inset 0 0 10px #38bdf8; }
         
         .valid-move-marker {
-            width: 30%;
-            height: 30%;
-            background-color: rgba(245, 158, 11, 0.7);
-            border-radius: 50%;
-            position: absolute;
-            z-index: 15;
-            pointer-events: none;
+            width: 30%; height: 30%; background-color: rgba(245, 158, 11, 0.7);
+            border-radius: 50%; position: absolute; z-index: 15; pointer-events: none;
             box-shadow: 0 0 5px rgba(245, 158, 11, 0.9);
         }
 
         .volume-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            background: rgba(15, 23, 42, 0.8);
-            padding: 15px 10px;
-            border-radius: 30px;
-            border: 1px solid var(--gold);
-            z-index: 100;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            background: rgba(15, 23, 42, 0.8); padding: 15px 10px; border-radius: 30px;
+            border: 1px solid var(--gold); z-index: 100;
         }
         .volume-slider {
-            -webkit-appearance: slider-vertical;
-            appearance: slider-vertical;
-            width: 20px;
-            height: 120px;
-            background: var(--gold-dim);
-            cursor: pointer;
-            outline: none;
+            -webkit-appearance: slider-vertical; appearance: slider-vertical;
+            width: 20px; height: 120px; background: var(--gold-dim); cursor: pointer; outline: none;
         }
 
         .vol-icon-img { width: 22px; height: 22px; object-fit: contain; }
@@ -197,13 +178,11 @@
                 padding: 8px 15px; 
             }
             .vol-game .volume-slider { 
-                width: 80px; height: 10px; 
-                -webkit-appearance: auto; appearance: auto;
+                width: 80px; height: 10px; -webkit-appearance: auto; appearance: auto;
             }
         }
 
         button { cursor: pointer; pointer-events: auto; }
-
         .btn-exit-x { position: absolute; top: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 5001; font-size: 1.5rem; background: rgba(2, 6, 23, 0.6); }
         .btn-exit-x:hover { background: var(--gold); color: #000; }
         
@@ -283,7 +262,7 @@
                 <h2 class="text-3xl font-bold text-purple-500 uppercase">Истории других королевств</h2>
             </div>
             <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-12">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -329,27 +308,39 @@
         </div>
     </div>
 
-    <div id="editor-modal" class="fixed inset-0 bg-black/95 z-[5000] hidden overflow-y-auto p-4 md:p-8">
+    <div id="editor-modal" class="fixed inset-0 z-[5000] hidden overflow-y-auto p-4 md:p-8">
         <div class="btn-exit-x" onclick="closeEditor()" style="position: fixed; top: 1.5rem; left: 1.5rem;">×</div>
 
-        <div class="max-w-6xl mx-auto pt-4 md:pt-8">
-            <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8">
+        <div class="max-w-[1400px] mx-auto pt-10">
+            <div class="grid grid-cols-1 lg:grid-cols-[250px_auto_350px] gap-6 items-start">
                 
+                <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 shadow-xl overflow-hidden h-[85vh]">
+                    <h3 class="text-amber-500 font-bold mb-2 uppercase text-[10px] tracking-widest">Летописец (Ваш Ник)</h3>
+                    <input id="edit-author-name" type="text" placeholder="Неизвестный Лорд" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-amber-500 text-sm focus:border-amber-500 outline-none transition-colors mb-4 font-bold" oninput="saveAuthorName()">
+
+                    <h3 class="text-sky-400 font-bold mb-2 uppercase text-[10px] tracking-widest">Цели Игрока</h3>
+                    <p class="text-[9px] text-slate-500 mb-1 leading-tight">Каждая цель с новой строки. Выбирайте их при редактировании ходов.</p>
+                    <textarea id="edit-goals" placeholder="1. Захватить центр&#10;2. Спасти Короля" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs h-32 resize-none focus:border-sky-500 outline-none transition-colors mb-4" oninput="updateGoalSelects()"></textarea>
+
+                    <h3 class="text-red-500 font-bold mb-2 uppercase text-[10px] tracking-widest">Задумки Врага</h3>
+                    <textarea id="edit-egoals" placeholder="1. Внезапный удар&#10;2. Окружение" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs flex-1 min-h-[100px] resize-none focus:border-red-500 outline-none transition-colors" oninput="updateGoalSelects()"></textarea>
+                </div>
+
                 <div class="flex flex-col items-center">
-                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-6 tracking-widest text-center">Кузница Сценариев</h2>
+                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-4 tracking-widest text-center drop-shadow-lg">Кузница</h2>
                     <div class="chess-board-outer">
                         <div id="editor-board" class="chess-board shadow-2xl shadow-sky-500/20"></div>
                     </div>
-                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest">Делайте ходы на доске</div>
+                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest animate-pulse">Делайте ходы на доске</div>
                 </div>
 
-                <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 h-[85vh] shadow-xl shadow-black overflow-hidden">
+                <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 h-[85vh] shadow-xl overflow-hidden">
                     
                     <div class="shrink-0 mb-4">
-                        <input id="edit-scenario-name" type="text" placeholder="Название вашей главы (всей партии)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none transition-colors">
+                        <input id="edit-scenario-name" type="text" placeholder="Название всей партии" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none transition-colors">
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg">Опубликовать</button>
-                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg">Скачать партию</button>
+                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg">В Свитки</button>
+                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg">Скачать</button>
                         </div>
                     </div>
 
@@ -359,8 +350,17 @@
                         <h3 class="text-sky-400 font-bold text-xs uppercase" id="editing-step-label">Редактирование хода</h3>
                         
                         <input id="edit-title" type="text" placeholder="Название текущего хода (напр. Прорыв)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
-                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg h-16 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
+                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg h-12 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
                         
+                        <div class="flex gap-2">
+                            <select id="edit-step-goal" class="w-1/2 bg-slate-900 border border-slate-700 text-sky-400 text-[10px] p-1.5 rounded outline-none focus:border-sky-500" onchange="updateCurrentStepData()">
+                                <option value="">- Нет задачи игрока -</option>
+                            </select>
+                            <select id="edit-step-egoal" class="w-1/2 bg-slate-900 border border-slate-700 text-red-400 text-[10px] p-1.5 rounded outline-none focus:border-red-500" onchange="updateCurrentStepData()">
+                                <option value="">- Нет задачи врага -</option>
+                            </select>
+                        </div>
+
                         <input id="edit-icon-input" type="hidden" value="⚔️">
                         
                         <div class="flex flex-col items-center w-full mt-2" id="icon-selector-container">
@@ -396,17 +396,11 @@
         const figuresPath = "Figures/";
         const audioFolderPath = "audio/"; 
 
-        // ИНТЕГРАЦИЯ ANTIMATE С ИСКЛЮЧЕНИЯМИ ШАХМАТ
         window.SafeAntiMate = { 
             check: (text) => { 
                 if (!text) return false;
-                
-                // Вырезаем безобидные шахматные термины перед проверкой. \b гарантирует, что мы вырезаем слово целиком
                 const safeText = text.replace(/\b(шах|мат|матом|маты|взятие|пешка|ладья|ферзь|король|конь|слон)\b/gi, '***');
-                
-                // Проверяем, загрузилась ли библиотека
                 if (typeof window.AntiMate !== 'undefined') {
-                    // Пытаемся вызвать методы, которые обычно бывают в подобных библиотеках
                     if (typeof window.AntiMate === 'function') return window.AntiMate(safeText);
                     if (typeof window.AntiMate.check === 'function') return window.AntiMate.check(safeText);
                     if (typeof window.AntiMate.isBadWord === 'function') return window.AntiMate.isBadWord(safeText);
@@ -436,44 +430,44 @@
                 goals: ["Освящение центра", "Взгляд на f7", "ПОБЕДА ЭКЗОДАРА"],
                 egoals: ["Осквернение e5", "Теневая связка", "Падение Пророка"],
                 story: [
-                    { move: "e2e4", turn: 'white', title: "Свет Аргуса", text: "Воздаятель делает первый шаг, призывая энергию кристаллов.", icon: "✨", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Ответ Изгнанника", text: "Темные дренеи выставляют свой заслон.", icon: "🟣", egoal: 0 },
-                    { move: "g1f3", turn: 'white', title: "Копыта Праведности", text: "Элезар устремляется вперед на своем Талбуке.", icon: "🐐" },
-                    { move: "d7d6", turn: 'black', title: "Щит Тенебра", text: "Отступники укрепляют свои ряды молитвой стойкости.", icon: "🛡️" },
-                    { move: "f1c4", turn: 'white', title: "Око Пророка", text: "Верховный Мудрец направляет посох в уязвимое место.", icon: "👁️", goal: 1 },
-                    { move: "c8g4", turn: 'black', title: "Шепот Бездны", text: "Темный Жнец накладывает проклятие страха.", icon: "⛓️", egoal: 1 },
-                    { move: "b1c3", turn: 'white', title: "Братство Света", text: "Второй всадник выходит из теней Экзодара.", icon: "🤺" },
-                    { move: "b8c6", turn: 'black', title: "Тень подкрадывается", text: "Армия Бездны призывает своих всадников.", icon: "🌀" },
-                    { move: "h2h3", turn: 'white', title: "Слово Очищения", text: "Воздаятель направляет искру Света.", icon: "☀️" },
-                    { move: "g4h5", turn: 'black', title: "Упрямство Падших", text: "Жнец отступает лишь на шаг.", icon: "🌑" },
-                    { move: "f3e5", turn: 'white', title: "Жертва Наару", text: "Элезар разрывает цепи и бросается в атаку!", icon: "⚡", capture: true },
-                    { move: "h5d1", turn: 'black', title: "Триумф Хаоса", text: "Жнец повергает лидера Света. Тьма ликует.", icon: "💀", egoal: 2, capture: true },
-                    { move: "c4f7", turn: 'white', title: "Удар Искупления", text: "Луч энергии в чело Темного Короля!", icon: "🔱", capture: true },
-                    { move: "e8e7", turn: 'black', title: "Позорное бегство", text: "Поверженный лидер Тьмы вынужден бежать.", icon: "😰" },
-                    { move: "c3d5", turn: 'white', title: "ПРИГОВОР СВЕТА", text: "Второй всадник настигает тирана.", icon: "👑", goal: 2 }
+                    { move: "e2e4", turn: 'white', title: "Свет Аргуса", text: "Воздаятель делает первый шаг.", icon: "✨", goal: 0 },
+                    { move: "e7e5", turn: 'black', title: "Ответ Изгнанника", text: "Темные дренеи выставляют заслон.", icon: "🟣", egoal: 0 },
+                    { move: "g1f3", turn: 'white', title: "Копыта Праведности", text: "Элезар устремляется вперед.", icon: "🐐" },
+                    { move: "d7d6", turn: 'black', title: "Щит Тенебра", text: "Отступники укрепляют ряды.", icon: "🛡️" },
+                    { move: "f1c4", turn: 'white', title: "Око Пророка", text: "Мудрец направляет посох.", icon: "👁️", goal: 1 },
+                    { move: "c8g4", turn: 'black', title: "Шепот Бездны", text: "Жнец накладывает проклятие.", icon: "⛓️", egoal: 1 },
+                    { move: "b1c3", turn: 'white', title: "Братство Света", text: "Второй всадник выходит из теней.", icon: "🤺" },
+                    { move: "b8c6", turn: 'black', title: "Тень подкрадывается", text: "Армия Бездны призывает всадников.", icon: "🌀" },
+                    { move: "h2h3", turn: 'white', title: "Слово Очищения", text: "Воздаятель направляет искру.", icon: "☀️" },
+                    { move: "g4h5", turn: 'black', title: "Упрямство Падших", text: "Жнец отступает на шаг.", icon: "🌑" },
+                    { move: "f3e5", turn: 'white', title: "Жертва Наару", text: "Элезар разрывает цепи!", icon: "⚡", capture: true },
+                    { move: "h5d1", turn: 'black', title: "Триумф Хаоса", text: "Тьма ликует.", icon: "💀", egoal: 2, capture: true },
+                    { move: "c4f7", turn: 'white', title: "Удар Искупления", text: "Луч энергии в чело Короля!", icon: "🔱", capture: true },
+                    { move: "e8e7", turn: 'black', title: "Позорное бегство", text: "Тиран вынужден бежать.", icon: "😰" },
+                    { move: "c3d5", turn: 'white', title: "ПРИГОВОР СВЕТА", text: "Всадник настигает тирана.", icon: "👑", goal: 2 }
                 ]
             },
             standard: {
                 goals: ["Освящение рубежа", "Сокрушение преграды", "ПОБЕДА ОРДЕНА"],
                 egoals: ["Ответная ярость", "Кровавая жатва", "Самопожертвование рабов"],
                 story: [
-                    { move: "e2e4", turn: 'white', title: "Знамя Света", text: "Юный рыцарь вонзает штандарт в сухую землю.", icon: "🚩", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Рог Войны", text: "Вождь кочевников принимает вызов.", icon: "🪓", egoal: 0 },
-                    { move: "g1f3", turn: 'white', title: "Клятва Всадника", text: "Рыцарь делает выпад в горло врагу.", icon: "🐎" },
+                    { move: "e2e4", turn: 'white', title: "Знамя Света", text: "Рыцарь вонзает штандарт.", icon: "🚩", goal: 0 },
+                    { move: "e7e5", turn: 'black', title: "Рог Войны", text: "Вождь принимает вызов.", icon: "🪓", egoal: 0 },
+                    { move: "g1f3", turn: 'white', title: "Клятва Всадника", text: "Выпад в горло врагу.", icon: "🐎" },
                     { move: "d7d6", turn: 'black', title: "Каменная Черепаха", text: "Кочевники смыкают щиты.", icon: "🐢" },
-                    { move: "f1c4", turn: 'white', title: "Око Юстициария", text: "Старый воевода выискивает щель в шлеме вождя.", icon: "👁️" },
-                    { move: "h7h6", turn: 'black', title: "Тень Сомнения", text: "Вождь приказывает поднять щиты выше.", icon: "☁️" },
-                    { move: "d2d4", turn: 'white', title: "Удар Молота", text: "Основные силы ордена идут на таран.", icon: "🔨", goal: 1 },
-                    { move: "e5d4", turn: 'black', title: "Кровавая Жатва", text: "Кочевники расступаются, заманивая в ловушку.", icon: "🩸", egoal: 1, capture: true },
-                    { move: "c2c3", turn: 'white', title: "Дар Мученика", text: "Паладины бросают щиты, чтобы быть быстрее.", icon: "🕊️" },
+                    { move: "f1c4", turn: 'white', title: "Око Юстициария", text: "Воевода выискивает щель.", icon: "👁️" },
+                    { move: "h7h6", turn: 'black', title: "Тень Сомнения", text: "Щиты подняты выше.", icon: "☁️" },
+                    { move: "d2d4", turn: 'white', title: "Удар Молота", text: "Силы ордена идут на таран.", icon: "🔨", goal: 1 },
+                    { move: "e5d4", turn: 'black', title: "Кровавая Жатва", text: "Ловушка захлопывается.", icon: "🩸", egoal: 1, capture: true },
+                    { move: "c2c3", turn: 'white', title: "Дар Мученика", text: "Паладины бросают щиты.", icon: "🕊️" },
                     { move: "d4c3", turn: 'black', title: "Пир Стервятника", text: "Кочевники вгрызаются в брешь.", icon: "🦅", capture: true },
-                    { move: "c4f7", turn: 'white', title: "Гнев Юстициария", text: "Клинок воеводы разрубает трон вождя!", icon: "⚔️", capture: true },
+                    { move: "c4f7", turn: 'white', title: "Гнев Юстициария", text: "Клинок разрубает трон!", icon: "⚔️", capture: true },
                     { move: "e8f7", turn: 'black', title: "Ответная Ярость", text: "Вождь сносит голову воеводе.", icon: "👺", capture: true },
-                    { move: "f3e5", turn: 'white', title: "Приговор Небес", text: "Всадник влетает в самую гущу битвы.", icon: "⚡" },
-                    { move: "f7e8", turn: 'black', title: "Путь Труса", text: "Воитель бежит к своим шатрам.", icon: "🏃" },
-                    { move: "d1h5", turn: 'white', title: "Зов Искупительницы", text: "Свет испепеляет стражу вождя.", icon: "🔱" },
+                    { move: "f3e5", turn: 'white', title: "Приговор Небес", text: "Всадник влетает в гущу битвы.", icon: "⚡" },
+                    { move: "f7e8", turn: 'black', title: "Путь Труса", text: "Воитель бежит к шатрам.", icon: "🏃" },
+                    { move: "d1h5", turn: 'white', title: "Зов Искупительницы", text: "Свет испепеляет стражу.", icon: "🔱" },
                     { move: "g7g6", turn: 'black', title: "Последний Заслон", text: "Телохратели бросаются в пламя.", icon: "🔥", egoal: 2 },
-                    { move: "h5g6", turn: 'white', title: "Сияние", text: "Свет проходит сквозь плоть и кости.", icon: "🔆", capture: true },
+                    { move: "h5g6", turn: 'white', title: "Сияние", text: "Свет проходит сквозь плоть.", icon: "🔆", capture: true },
                     { move: "e8e7", turn: 'black', title: "Тень Агонии", text: "Вождь загнан к обрыву.", icon: "🌫️" },
                     { move: "g6f7", turn: 'white', title: "ВЕЧНЫЙ ПОКОЙ", text: "Последний удар нанесен.", icon: "🏆", goal: 2 }
                 ]
@@ -483,20 +477,20 @@
                 egoals: ["Сдержать натиск", "Ловушка Тракслера", "Казнь Короля"],
                 story: [
                     { move: "e2e4", turn: 'white', title: "Вторжение", text: "Белое Солнце выдвигает авангард.", icon: "⚔️", goal: 0 },
-                    { move: "e7e5", turn: 'black', title: "Ответ Луны", text: "Черный легион блокирует продвижение.", icon: "🛡️", egoal: 0 },
+                    { move: "e7e5", turn: 'black', title: "Ответ Луны", text: "Легион блокирует продвижение.", icon: "🛡️", egoal: 0 },
                     { move: "g1f3", turn: 'white', title: "Конница", text: "Сир Фредерик выходит на фланг.", icon: "🐎" },
-                    { move: "b8c6", turn: 'black', title: "Перехват", text: "Черные всадники выходят навстречу.", icon: "♞" },
+                    { move: "b8c6", turn: 'black', title: "Перехват", text: "Всадники выходят навстречу.", icon: "♞" },
                     { move: "f1c4", turn: 'white', title: "Высоты", text: "Инквизитор видит слабую стену.", icon: "⛪" },
                     { move: "g8f6", turn: 'black', title: "Ловушка", text: "Враг выпускает рыцаря.", icon: "🌑" },
                     { move: "f3g5", turn: 'white', title: "Штурм", text: "Копья направлены на f7.", icon: "🔥", goal: 1 },
                     { move: "f8c5", turn: 'black', title: "Тракслер", text: "Гамбит безумия активирован!", icon: "⚠️", egoal: 1 },
                     { move: "g5f7", turn: 'white', title: "Прорыв", text: "Рыцарь врывается в башню!", icon: "🍴", capture: true },
-                    { move: "c5f2", turn: 'black', title: "Взрыв", text: "Черный диверсант подрывает ворота!", icon: "💥", capture: true },
-                    { move: "e1f2", turn: 'white', title: "Казнь", text: "Монарх лично убивает диверсанта.", icon: "👑", capture: true },
+                    { move: "c5f2", turn: 'black', title: "Взрыв", text: "Диверсант подрывает ворота!", icon: "💥", capture: true },
+                    { move: "e1f2", turn: 'white', title: "Казнь", text: "Монарх убивает диверсанта.", icon: "👑", capture: true },
                     { move: "f6e4", turn: 'black', title: "Налет", text: "Черный Рыцарь в тронном зале!", icon: "☁️", capture: true },
                     { move: "f2g1", turn: 'white', title: "Тень", text: "Король прячется в углу.", icon: "🏃" },
-                    { move: "d8h4", turn: 'black', title: "Королева", text: "Черная Владычица обращает камень в пепел.", icon: "👸" },
-                    { move: "f7h8", turn: 'white', title: "Жадность", text: "Ваш Рыцарь грабит сокровищницу.", icon: "💎", capture: true },
+                    { move: "d8h4", turn: 'black', title: "Королева", text: "Владычица обращает камень в пепел.", icon: "👸" },
+                    { move: "f7h8", turn: 'white', title: "Жадность", text: "Рыцарь грабит сокровищницу.", icon: "💎", capture: true },
                     { move: "h4f2", turn: 'black', title: "Крах", text: "История Империи окончена.", icon: "💀", goal: 2, egoal: 2 }
                 ]
             }
@@ -552,12 +546,13 @@
                 <div class="scenario-card border-purple-900 bg-slate-900/80 p-4 rounded-xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
                     <div class="mb-4 pr-6">
                         <h3 class="text-purple-400 font-bold truncate text-lg" title="${p.title}">${p.title}</h3>
-                        <p class="text-[10px] text-slate-400 mt-1 uppercase">Ходов: ${p.story.length}</p>
+                        <p class="text-[10px] text-amber-500 mt-1 uppercase">Автор: ${p.author_name || 'Неизвестный Лорд'}</p>
+                        <p class="text-[10px] text-slate-500 mt-1 uppercase">Ходов: ${p.story.length}</p>
                     </div>
                     
                     ${canDelete ? `<button onclick="deleteFromGallery(${index})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 transition-colors" title="Удалить партию">🗑️</button>` : ''}
 
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 mt-2">
                         <button onclick="playCustomScenario(${index})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white flex items-center justify-center gap-1">
                             <img src="${visualizationPath}👁️.png" class="w-4 h-4" onerror="this.style.display='none'"> Смотреть
                         </button>
@@ -579,7 +574,6 @@
                 showNotification("Сжигаем свиток в архиве...", "info");
                 try {
                     const endpoint = API_URL.endsWith('/') ? `${API_URL}${p.db_id}` : `${API_URL}/${p.db_id}`;
-                    // Добавлено headers, чтобы запросы DELETE проходили увереннее
                     const response = await fetch(endpoint, { 
                         method: 'DELETE', 
                         mode: 'cors',
@@ -589,10 +583,10 @@
                     if (response.ok) {
                         showNotification("Партия успешно удалена из всех баз!", "success");
                     } else {
-                        showNotification("Сервер отказал в удалении. Проверьте Cloudflare Worker", "error");
+                        showNotification("Сервер отказал в удалении.", "error");
                     }
                 } catch (error) { 
-                    showNotification("Ошибка сети при удалении. Нужна настройка Cloudflare Worker", "error"); 
+                    showNotification("Ошибка сети при удалении.", "error"); 
                 }
             } else {
                 showNotification("Локальная партия удалена!", "success");
@@ -829,7 +823,7 @@
                 const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
             }
 
-            if (data.goal !== undefined) {
+            if (data.goal !== undefined && data.goal !== null) {
                 const g = document.getElementById(`g${data.goal}`);
                 if(g) { 
                     g.className = "text-green-500 font-bold transition-all"; 
@@ -837,7 +831,7 @@
                     g.style.textDecoration = "line-through";
                 }
             }
-            if (data.egoal !== undefined) {
+            if (data.egoal !== undefined && data.egoal !== null) {
                 const eg = document.getElementById(`eg${data.egoal}`);
                 if(eg) { 
                     eg.className = "text-red-500 font-bold transition-all"; 
@@ -859,6 +853,7 @@
             }
         });
 
+        // --- ЛОГИКА КУЗНИЦЫ (РЕДАКТОРА) ---
         let editorEngine = new Chess();
         let editorSteps = [];
         let selectedSquare = null;
@@ -876,6 +871,26 @@
         const ICONS_PER_PAGE = 21; 
         let currentIconPage = 0;
 
+        function saveAuthorName() {
+            localStorage.setItem('chess_saga_author_name', document.getElementById('edit-author-name').value);
+        }
+
+        function updateGoalSelects() {
+            const goalSelect = document.getElementById('edit-step-goal');
+            const egoalSelect = document.getElementById('edit-step-egoal');
+            const gVal = goalSelect.value;
+            const egVal = egoalSelect.value;
+
+            const goals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
+            const egoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
+
+            goalSelect.innerHTML = '<option value="">- Нет задачи игрока -</option>' + goals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}...</option>`).join('');
+            egoalSelect.innerHTML = '<option value="">- Нет задачи врага -</option>' + egoals.map((g, i) => `<option value="${i}">${i+1}. ${g.substring(0,15)}...</option>`).join('');
+
+            goalSelect.value = gVal;
+            egoalSelect.value = egVal;
+        }
+
         function initIcons() {
             const container = document.getElementById('icon-selector');
             const pagination = document.getElementById('icon-pagination');
@@ -884,7 +899,6 @@
             const end = start + ICONS_PER_PAGE;
             const pageIcons = availableIcons.slice(start, end);
 
-            // Теперь в Кузнице отображаются картинки (изображения), а не текст
             container.innerHTML = pageIcons.map(icon => 
                 `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center w-full h-8">
                     <img src="${visualizationPath}${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.style.display='none'">
@@ -914,6 +928,13 @@
             document.getElementById('editor-modal').classList.remove('hidden');
             editorEngine = new Chess(); editorSteps = []; selectedSquare = null; validMovesForSelected = [];
             selectedEditorStepIndex = null; currentIconPage = 0;
+            
+            // Загружаем ник
+            document.getElementById('edit-author-name').value = localStorage.getItem('chess_saga_author_name') || '';
+            document.getElementById('edit-goals').value = '';
+            document.getElementById('edit-egoals').value = '';
+            updateGoalSelects();
+
             document.getElementById('editor-steps-list').innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>';
             document.getElementById('editor-step-form').classList.add('hidden');
             initIcons(); renderEditorBoard();
@@ -1036,6 +1057,10 @@
             document.getElementById('edit-text').value = step.text;
             document.getElementById('edit-icon-input').value = step.icon;
             
+            // Восстанавливаем выбранные задачи
+            document.getElementById('edit-step-goal').value = step.goal !== undefined ? step.goal : "";
+            document.getElementById('edit-step-egoal').value = step.egoal !== undefined ? step.egoal : "";
+            
             const moveNum = Math.floor(index / 2) + 1;
             const turnName = step.turn === 'white' ? 'Белые' : 'Черные';
             document.getElementById('editing-step-label').textContent = `Редактирование: ${moveNum}. ${step.san} (${turnName})`;
@@ -1048,8 +1073,9 @@
             const title = document.getElementById('edit-title').value;
             const text = document.getElementById('edit-text').value;
             const icon = document.getElementById('edit-icon-input').value;
+            const goalVal = document.getElementById('edit-step-goal').value;
+            const egoalVal = document.getElementById('edit-step-egoal').value;
 
-            // Проверка на плохие слова с помощью библиотеки, обернутой в нашу безопасную проверку
             if (window.SafeAntiMate.check(text) || window.SafeAntiMate.check(title)) {
                 showNotification("Обнаружена темная магия (нецензурная лексика)!", "error");
                 return;
@@ -1058,6 +1084,14 @@
             editorSteps[selectedEditorStepIndex].title = title;
             editorSteps[selectedEditorStepIndex].text = text;
             editorSteps[selectedEditorStepIndex].icon = icon;
+            
+            // Сохраняем индексы задач в ход
+            if (goalVal !== "") editorSteps[selectedEditorStepIndex].goal = parseInt(goalVal);
+            else delete editorSteps[selectedEditorStepIndex].goal;
+
+            if (egoalVal !== "") editorSteps[selectedEditorStepIndex].egoal = parseInt(egoalVal);
+            else delete editorSteps[selectedEditorStepIndex].egoal;
+
             renderEditorStepsList();
         }
 
@@ -1069,12 +1103,17 @@
             if (window.SafeAntiMate.check(scenarioName)) {
                 return showNotification("Нецензурная лексика в названии!", "error");
             }
+
+            const authorName = document.getElementById('edit-author-name').value || "Неизвестный Лорд";
+            const finalGoals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
+            const finalEgoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
             
             const newScenario = {
                 title: scenarioName,
                 author_id: myAuthorId,
-                goals: ["Завершить партию", "Войти в историю"],
-                egoals: ["Не проиграть"],
+                author_name: authorName,
+                goals: finalGoals.length ? finalGoals : ["Завершить партию", "Войти в историю"],
+                egoals: finalEgoals.length ? finalEgoals : ["Не проиграть"],
                 story: editorSteps
             };
 
@@ -1107,7 +1146,16 @@
             const scenarioName = document.getElementById('edit-scenario-name').value || "My_Chess_Saga";
             if (editorSteps.length === 0) return showNotification("Сначала создайте ходы в Кузнице!", "error");
 
-            const data = { title: scenarioName, goals: ["Победить врага"], egoals: ["Разрушить ваши планы"], story: editorSteps };
+            const finalGoals = document.getElementById('edit-goals').value.split('\n').filter(g => g.trim() !== '');
+            const finalEgoals = document.getElementById('edit-egoals').value.split('\n').filter(g => g.trim() !== '');
+
+            const data = { 
+                title: scenarioName, 
+                goals: finalGoals.length ? finalGoals : ["Победить врага"], 
+                egoals: finalEgoals.length ? finalEgoals : ["Разрушить ваши планы"], 
+                story: editorSteps 
+            };
+            
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
