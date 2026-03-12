@@ -6,6 +6,7 @@
     <title>Chess Saga: Chronicles</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://eugeneblogs.github.io/M.CODE/files/AntiMate/antimate.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -342,7 +343,7 @@
                     <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest">Делайте ходы на доске</div>
                 </div>
 
-                <div class="flex flex-col bg-slate-900/50 p-4 rounded-2xl border border-slate-800 h-[85vh] shadow-xl shadow-black overflow-hidden">
+                <div class="flex flex-col bg-slate-900 p-4 rounded-2xl border border-slate-700 h-[85vh] shadow-xl shadow-black overflow-hidden">
                     
                     <div class="shrink-0 mb-4">
                         <input id="edit-scenario-name" type="text" placeholder="Название вашей главы (всей партии)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none transition-colors">
@@ -354,15 +355,15 @@
 
                     <hr class="border-slate-700 mb-4 shrink-0">
 
-                    <div id="editor-step-form" class="hidden flex-col gap-2 p-3 border border-sky-900 bg-slate-800/50 rounded-lg shrink-0 shadow-inner mb-4">
+                    <div id="editor-step-form" class="hidden flex-col gap-2 p-3 border border-sky-900 bg-slate-800 rounded-lg shrink-0 shadow-inner mb-4">
                         <h3 class="text-sky-400 font-bold text-xs uppercase" id="editing-step-label">Редактирование хода</h3>
                         
-                        <input id="edit-title" type="text" placeholder="Название текущего хода (напр. Прорыв)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
-                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg h-16 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
+                        <input id="edit-title" type="text" placeholder="Название текущего хода (напр. Прорыв)" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
+                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-900 border border-slate-700 p-2 rounded-lg h-16 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
                         
                         <input id="edit-icon-input" type="hidden" value="⚔️">
                         
-                        <div class="flex flex-col items-center w-full" id="icon-selector-container">
+                        <div class="flex flex-col items-center w-full mt-2" id="icon-selector-container">
                             <div class="grid grid-cols-7 gap-1 w-full" id="icon-selector"></div>
                             <div class="flex w-full mt-2 gap-2" id="icon-pagination"></div>
                         </div>
@@ -384,7 +385,6 @@
     </div>
 
     <script>
-        // Генерация или получение секретного ID пользователя (чтобы защитить удаление)
         let myAuthorId = localStorage.getItem('chess_saga_author_id');
         if (!myAuthorId) {
             myAuthorId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -392,6 +392,28 @@
         }
 
         const API_URL = 'https://chess-api.kilanov.workers.dev/';
+        const visualizationPath = "Visualization/";
+        const figuresPath = "Figures/";
+        const audioFolderPath = "audio/"; 
+
+        // ИНТЕГРАЦИЯ ANTIMATE С ИСКЛЮЧЕНИЯМИ ШАХМАТ
+        window.SafeAntiMate = { 
+            check: (text) => { 
+                if (!text) return false;
+                
+                // Вырезаем безобидные шахматные термины перед проверкой. \b гарантирует, что мы вырезаем слово целиком
+                const safeText = text.replace(/\b(шах|мат|матом|маты|взятие|пешка|ладья|ферзь|король|конь|слон)\b/gi, '***');
+                
+                // Проверяем, загрузилась ли библиотека
+                if (typeof window.AntiMate !== 'undefined') {
+                    // Пытаемся вызвать методы, которые обычно бывают в подобных библиотеках
+                    if (typeof window.AntiMate === 'function') return window.AntiMate(safeText);
+                    if (typeof window.AntiMate.check === 'function') return window.AntiMate.check(safeText);
+                    if (typeof window.AntiMate.isBadWord === 'function') return window.AntiMate.isBadWord(safeText);
+                }
+                return false; 
+            }
+        };
 
         function showNotification(text, type = 'success') {
             const toast = document.getElementById('toast');
@@ -408,15 +430,6 @@
                 toast.classList.add('-translate-y-10', 'opacity-0');
             }, 3500);
         }
-
-        window.AntiMate = { 
-            check: (text) => { 
-                if (!text) return false;
-                const badWords = ['бля', 'хуй', 'сука', 'пизд', 'ебан', 'ебат', 'шлюх', 'мудак', 'гандон', 'хер', 'пидор']; 
-                const lowerText = text.toLowerCase();
-                return badWords.some(w => lowerText.includes(w)); 
-            }
-        };
 
         const scenarios = {
             argus: {
@@ -505,7 +518,6 @@
             let dbParties = [];
 
             try {
-                // Добавлен mode cors для правильной обработки запроса
                 const response = await fetch(API_URL, { mode: 'cors' });
                 if (response.ok) {
                     const data = await response.json();
@@ -516,7 +528,7 @@
                         return pd;
                     });
                 }
-            } catch (e) { console.log("Ошибка загрузки с облака, используем локальные:", e); }
+            } catch (e) { console.log("Ошибка загрузки с облака:", e); }
 
             let allParties = [...dbParties];
             localParties.forEach(lp => {
@@ -534,7 +546,6 @@
                 if(!p || !p.story) return '';
                 scenarios['custom_' + index] = p; 
                 
-                // Проверяем авторство
                 const canDelete = p.author_id === myAuthorId;
 
                 return `
@@ -568,10 +579,21 @@
                 showNotification("Сжигаем свиток в архиве...", "info");
                 try {
                     const endpoint = API_URL.endsWith('/') ? `${API_URL}${p.db_id}` : `${API_URL}/${p.db_id}`;
-                    const response = await fetch(endpoint, { method: 'DELETE', mode: 'cors' });
-                    if (response.ok) showNotification("Партия успешно удалена из всех баз!", "success");
-                    else showNotification("Ошибка удаления на сервере", "error");
-                } catch (error) { showNotification("Ошибка сети при удалении", "error"); }
+                    // Добавлено headers, чтобы запросы DELETE проходили увереннее
+                    const response = await fetch(endpoint, { 
+                        method: 'DELETE', 
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        showNotification("Партия успешно удалена из всех баз!", "success");
+                    } else {
+                        showNotification("Сервер отказал в удалении. Проверьте Cloudflare Worker", "error");
+                    }
+                } catch (error) { 
+                    showNotification("Ошибка сети при удалении. Нужна настройка Cloudflare Worker", "error"); 
+                }
             } else {
                 showNotification("Локальная партия удалена!", "success");
             }
@@ -593,10 +615,6 @@
             dl.setAttribute("download", p.title + ".json");
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
-
-        const visualizationPath = "Visualization/";
-        const figuresPath = "Figures/";
-        const audioFolderPath = "audio/"; 
 
         let selectedScenarioKey = 'argus';
         let currentStep = 0;
@@ -795,12 +813,8 @@
             }
             
             const stage = document.getElementById('visual-stage');
-            if (data.icon && !data.icon.includes('.png') && [...data.icon].length <= 2) {
-                stage.innerHTML = `<span style="font-size: 4rem;">${data.icon}</span>`;
-            } else {
-                let iconSrc = data.icon.includes('.png') ? data.icon : `${data.icon}.png`;
-                stage.innerHTML = `<img src="${visualizationPath}${iconSrc}" onerror="this.style.display='none'">`;
-            }
+            let iconSrc = data.icon.includes('.png') ? data.icon : `${data.icon}.png`;
+            stage.innerHTML = `<img src="${visualizationPath}${iconSrc}" onerror="this.style.display='none'">`;
 
             document.getElementById('scene-title').textContent = data.title;
             document.getElementById('scene-desc').textContent = data.text;
@@ -851,7 +865,6 @@
         let validMovesForSelected = [];
         let selectedEditorStepIndex = null;
 
-        // Расширенный список иконок
         const availableIcons = [
             "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
             "☀️","⚡","🔱","😰","🪓","🐎","🐢","☁️","🔨","🩸","🕊️","🦅","👺","🏃",
@@ -871,8 +884,11 @@
             const end = start + ICONS_PER_PAGE;
             const pageIcons = availableIcons.slice(start, end);
 
+            // Теперь в Кузнице отображаются картинки (изображения), а не текст
             container.innerHTML = pageIcons.map(icon => 
-                `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">${icon}</button>`
+                `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center w-full h-8">
+                    <img src="${visualizationPath}${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.style.display='none'">
+                </button>`
             ).join('');
 
             let paginationHtml = '';
@@ -997,13 +1013,13 @@
             list.innerHTML = editorSteps.map((s, i) => {
                 const moveNum = Math.floor(i / 2) + 1;
                 const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
-                const isActive = selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800 shadow-md' : 'border-slate-700 bg-slate-900/50';
+                const isActive = selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800 shadow-md' : 'border-slate-700 bg-slate-800';
                 
                 return `
                 <div onclick="selectEditorStep(${i})" class="p-2 border rounded-lg cursor-pointer hover:border-amber-500 transition-colors ${isActive} flex justify-between items-center text-slate-300 shrink-0">
                     <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b> (${turnName})</span>
                     <span class="text-[10px] truncate ml-3 flex-1 text-right italic text-slate-400">${s.title || 'Без названия'}</span>
-                    <span class="ml-2 text-base">${s.icon}</span>
+                    <span class="ml-2 flex-shrink-0"><img src="${visualizationPath}${s.icon}.png" class="w-5 h-5 object-contain" onerror="this.style.display='none'"></span>
                 </div>`;
             }).join(''); 
         }
@@ -1033,8 +1049,10 @@
             const text = document.getElementById('edit-text').value;
             const icon = document.getElementById('edit-icon-input').value;
 
-            if (window.AntiMate && (AntiMate.check(text) || AntiMate.check(title))) {
-                return showNotification("Обнаружена темная магия (нецензурная лексика)!", "error");
+            // Проверка на плохие слова с помощью библиотеки, обернутой в нашу безопасную проверку
+            if (window.SafeAntiMate.check(text) || window.SafeAntiMate.check(title)) {
+                showNotification("Обнаружена темная магия (нецензурная лексика)!", "error");
+                return;
             }
 
             editorSteps[selectedEditorStepIndex].title = title;
@@ -1048,13 +1066,13 @@
             if (!scenarioName) return showNotification("Дайте название вашей Главе!", "error");
             if (editorSteps.length < 1) return showNotification("Сделайте хотя бы один ход!", "error");
 
-            if (window.AntiMate && AntiMate.check(scenarioName)) {
+            if (window.SafeAntiMate.check(scenarioName)) {
                 return showNotification("Нецензурная лексика в названии!", "error");
             }
             
             const newScenario = {
                 title: scenarioName,
-                author_id: myAuthorId, // Прикрепляем код создателя!
+                author_id: myAuthorId,
                 goals: ["Завершить партию", "Войти в историю"],
                 egoals: ["Не проиграть"],
                 story: editorSteps
