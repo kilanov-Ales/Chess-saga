@@ -31,6 +31,12 @@ h1, h2, h3 { font-family: 'Cinzel', serif; }
     padding: 20px;
     overflow-y: auto;
 }
+
+/* Фон кузницы, как в главном меню */
+#editor-modal {
+    background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+}
+
 .scenario-selector {
     display: grid;
     grid-template-columns: repeat(3, 280px);
