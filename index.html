@@ -20,18 +20,23 @@
                 <div class="text-amber-500 font-bold text-lg uppercase tracking-widest" data-i18n="checking_archives">Проверка архивов...</div>
             </div>
             <h2 class="text-4xl md:text-5xl font-bold text-amber-500 mb-6 uppercase font-cinzel" data-i18n="name_yourself">Назови себя, Лорд</h2>
-            <p class="text-slate-400 text-lg mb-8 italic" data-i18n="name_desc">Имя будет высечено в камне навечно и сохранено в облаке.</p>
+            <p class="text-slate-400 text-lg mb-8 italic" data-i18n="name_desc">Имя будет высечено в камне навечно и сохранено в облаке. Его нельзя изменить. Одинаковых имен не бывает.</p>
             <input type="text" id="nickname-input" placeholder="Ваше Имя..." class="w-full bg-slate-800 border border-slate-700 p-5 rounded-xl text-amber-500 text-2xl font-bold mb-8 focus:border-amber-500 outline-none transition-colors text-center">
             <button onclick="saveNickname()" class="w-full bg-amber-600 hover:bg-amber-500 p-5 rounded-xl font-bold uppercase transition-colors text-slate-900 text-xl tracking-widest shadow-lg" data-i18n="enter_chronicles">Войти в летопись</button>
         </div>
     </div>
 
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold text-lg tracking-widest z-[9999] transition-all duration-500 opacity-0 pointer-events-none flex items-center gap-3 shadow-[0_0_40px_rgba(0,0,0,0.8)] -translate-y-10">
-        <span id="toast-icon" class="text-3xl">📜</span>
+        <span id="toast-icon" class="flex items-center justify-center w-8 h-8">
+            <img src="Visualization/📜.png" class="w-full h-full object-contain" onerror="this.outerHTML='<span class=&quot;text-3xl&quot;>📜</span>'">
+        </span>
         <span id="toast-text" class="drop-shadow-md">Сообщение</span>
     </div>
 
-    <audio id="audio-bg" loop><source src="Music_Background.mp3" type="audio/mpeg"></audio>
+    <audio id="audio-bg" loop>
+        <source src="Music_Background.mp3" type="audio/mpeg">
+    </audio>
+
     <div id="flash" class="flash-screen"></div>
 
     <div id="main-menu">
@@ -90,21 +95,31 @@
             <div class="space-y-8 text-slate-300 text-lg leading-relaxed">
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
                     <h3 class="text-amber-500 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/⚔️.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> <span data-i18n="guide_battle">Начало Битвы</span>
+                        <img src="Visualization/⚔️.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_battle">Начало Битвы</span>
                     </h3>
                     <p data-i18n="guide_battle_desc">Выберите историю в главном меню и нажмите 'Начать битву'.</p>
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-sky-900">
                     <h3 class="text-sky-400 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/🔨.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> <span data-i18n="guide_forge">Кузница Сценариев</span>
+                        <img src="Visualization/🔨.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_forge">Кузница Сценариев</span>
                     </h3>
                     <p data-i18n="guide_forge_desc">Здесь вы создаете свои истории. Задайте имя летописи, теги и цели. Делая ходы на доске, вы создаете шаги.</p>
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-purple-900">
                     <h3 class="text-purple-400 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/📜.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> <span data-i18n="guide_scrolls">Зал Свитков</span>
+                        <img src="Visualization/📜.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_scrolls">Зал Свитков</span>
                     </h3>
                     <p data-i18n="guide_scrolls_desc">Облачная библиотека, где хранятся творения других Лордов.</p>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-600">
+                    <h3 class="text-slate-200 font-bold mb-3 text-2xl flex items-center gap-3">
+                        <img src="Visualization/🐦‍⬛.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_mail">Воронья Почта</span>
+                    </h3>
+                    <p data-i18n="guide_mail_desc">Чат правителей. Общайтесь с другими создателями. Лихослів'я карається Інквізицією.</p>
                 </div>
             </div>
         </div>
@@ -150,7 +165,7 @@
             
             <div class="mb-6 flex flex-col items-center">
                 <span class="text-sky-400 font-bold mb-4 text-base uppercase tracking-widest flex items-center gap-2">
-                    <span class="text-2xl">🗣️</span> <span data-i18n="voice_vol">Голос Летописца</span>
+                    <img src="Visualization/🗣️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=&quot;text-2xl&quot;>🗣️</span>'"> <span data-i18n="voice_vol">Голос Летописца</span>
                 </span>
                 <input type="range" class="w-full max-w-xs h-4 rounded-lg accent-sky-400 cursor-pointer" min="0" max="1" step="0.01" value="0.5" oninput="updateVoiceVolume(this.value)">
             </div>
