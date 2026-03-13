@@ -2,9 +2,9 @@ const audioFolderPath = "audio/";
 let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-let baseMusicVolume = 0.15; // Громкость, установленная в настройках
-let voiceVolume = 1.0; 
-let isMainMenu = true; // Флаг нахождения в главном меню
+let baseMusicVolume = 0.5; // Значение ползунка по умолчанию (середина)
+let voiceVolume = 0.5;     // Значение ползунка голоса по умолчанию (середина)
+let isMainMenu = true;     // Флаг нахождения в главном меню
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -13,18 +13,23 @@ function resumeAudio() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Логика затихания: в меню музыка в 2.5 раза тише
+// Логика затихания: Музыка в меню тише в 2 раза
 function applyMenuVolumeLogic() {
-    if (isSpeaking) return; // Если говорит голос, громкость регулируется в speak()
+    if (isSpeaking) return; // Если говорит голос, работает другая логика в speak()
+    
+    // Умножаем на 0.3 как базовый максимальный лимит для комфортного звука.
+    // Если игрок выкрутил на макс (1.0), то громкость будет 0.3. Если на 0.5, то 0.15.
+    const actualVolume = baseMusicVolume * 0.3; 
+    
     if (isMainMenu) {
-        bgMusic.volume = baseMusicVolume * 0.4;
+        bgMusic.volume = actualVolume * 0.4; // В меню еще тише
     } else {
-        bgMusic.volume = baseMusicVolume;
+        bgMusic.volume = actualVolume; // В бою нормальная громкость
     }
 }
 
 function updateVolume(val) {
-    baseMusicVolume = parseFloat(val) * 0.2; 
+    baseMusicVolume = parseFloat(val); 
     document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = val);
     applyMenuVolumeLogic();
 }
@@ -44,19 +49,21 @@ function speak(text, turn, stepAtMoment) {
     const audioPath = `${audioFolderPath}${fileName}`;
 
     const voiceAudio = new Audio(audioPath);
+    
+    // Громкость аудио от 0 до 1
     voiceAudio.volume = voiceVolume;
 
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume, 0.01); }; // Музыка стихает под голос
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume * 0.3, 0.01); }; // Музыка стихает под голос
     voiceAudio.onended = () => { 
         isSpeaking = false; 
-        applyMenuVolumeLogic(); // Возвращаем громкость
+        applyMenuVolumeLogic(); 
         finalizeTurnLogic(); 
     };
     
     voiceAudio.onerror = () => {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
-        msg.volume = voiceVolume;
+        msg.volume = voiceVolume; 
         msg.onend = () => { 
             isSpeaking = false; 
             applyMenuVolumeLogic(); 
