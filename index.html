@@ -181,12 +181,12 @@
     </div>
 
     <div class="app-container" id="main-app">
-        <div class="left-panel">
+        <div class="left-panel relative">
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
-            <div class="vol-game volume-box hidden md:flex">
-                <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol" onerror="this.outerHTML='<span>🔊</span>'">
-                <input type="range" class="volume-slider cursor-pointer" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
+            <div class="vol-game volume-box hidden md:flex absolute top-6 left-6 flex-row bg-slate-900/80 p-4 rounded-2xl border border-amber-500/50 shadow-lg">
+                <img src="Visualization/🔊.png" class="w-6 h-6 mr-3" alt="vol" onerror="this.outerHTML='<span>🔊</span>'">
+                <input type="range" class="w-32 h-2 rounded-lg accent-amber-500 volume-slider cursor-pointer" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
             </div>
 
             <div class="theater-zone-mini mt-10">
@@ -225,11 +225,13 @@
     <div id="editor-modal" class="fixed inset-0 z-[5000] hidden overflow-y-auto p-4 md:p-8 flex flex-col items-center">
         <div class="btn-exit-x" onclick="closeEditor()" style="position: fixed; top: 1.5rem; left: 1.5rem;">×</div>
 
-        <div class="w-full max-w-[110rem] pt-6 flex flex-col items-center">
+        <div class="w-full max-w-[110rem] pt-2 flex flex-col items-center">
             
-            <div class="flex flex-col lg:flex-row justify-center items-start gap-8 w-full mt-2">
+            <h2 class="text-3xl md:text-4xl font-bold text-amber-500 uppercase mb-6 tracking-widest text-center drop-shadow-xl" data-i18n="forge_title">Кузница Сценариев</h2>
+
+            <div class="flex flex-col lg:flex-row justify-center items-center lg:items-stretch gap-8 w-full">
                 
-                <div class="flex flex-col bg-slate-900/80 p-6 rounded-3xl border border-slate-700 shadow-2xl gap-5 w-full lg:w-[360px] shrink-0 lg:h-[80vh]">
+                <div class="flex flex-col bg-slate-900/80 p-6 rounded-3xl border border-slate-700 shadow-2xl gap-5 w-full lg:w-[360px] shrink-0">
                     <h3 class="text-amber-500 font-bold text-2xl uppercase text-center border-b border-slate-700 pb-4" data-i18n="forge_settings">Магия Свитка</h3>
                     
                     <div class="space-y-4 mt-2">
@@ -249,15 +251,14 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col items-center justify-start flex-1 w-full min-w-[400px]">
-                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-8 tracking-widest text-center drop-shadow-xl" data-i18n="forge_title">Кузница Сценариев</h2>
+                <div class="flex flex-col items-center justify-center mx-auto">
                     <div class="chess-board-outer shadow-[0_0_50px_rgba(56,189,248,0.15)] mb-6">
                         <div id="editor-board" class="chess-board"></div>
                     </div>
-                    <div class="text-sky-400 font-mono text-lg uppercase tracking-widest mt-2 bg-slate-900/80 px-6 py-2 rounded-full border border-sky-900/50 shadow-lg" data-i18n="make_moves">Творите историю на поле брани</div>
+                    <div class="text-sky-400 font-mono text-lg uppercase tracking-widest bg-slate-900/80 px-6 py-2 rounded-full border border-sky-900/50 shadow-lg text-center" data-i18n="make_moves">Творите историю на поле брани</div>
                 </div>
 
-                <div class="flex flex-col bg-slate-900/50 p-6 rounded-3xl border border-slate-800 w-full lg:w-[360px] shrink-0 lg:h-[80vh] shadow-2xl overflow-hidden relative z-10">
+                <div class="flex flex-col bg-slate-900/50 p-6 rounded-3xl border border-slate-800 w-full lg:w-[360px] shrink-0 shadow-2xl overflow-hidden relative z-10">
                     
                     <div id="editor-step-form" class="hidden flex-col gap-4 p-5 border border-sky-900 bg-slate-800/50 rounded-2xl shrink-0 shadow-inner mb-5">
                         <h3 class="text-sky-400 font-bold text-base uppercase mb-1 text-center" id="editing-step-label">Редактирование хода</h3>
@@ -296,6 +297,8 @@
 
     <script src="js/scenarios.js"></script>
     <script src="js/audio.js"></script>
-    <script src="js/script.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/forge.js"></script>
 </body>
 </html>
