@@ -3,7 +3,7 @@ let isSpeaking = false;
 
 const bgMusic = document.getElementById('audio-bg');
 bgMusic.volume = 0.05; 
-let voiceVolume = 1.0; // Новая переменная для громкости голоса
+let voiceVolume = 1.0; 
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -25,12 +25,15 @@ function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
-    const fileName = `${selectedScenarioKey}_${stepAtMoment}.mp3`;
+    // Загружаем язык из LocalStorage напрямую, чтобы избежать проблем с порядком загрузки скриптов
+    const lang = localStorage.getItem('chess_saga_lang') || 'ru';
+    const prefix = lang === 'en' ? 'E_' : lang === 'uk' ? 'U_' : '';
+    
+    const fileName = `${prefix}${selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
 
     const voiceAudio = new Audio(audioPath);
-    voiceAudio.volume = voiceVolume; // Применяем громкость
-
+    voiceAudio.volume = voiceVolume;
     const originalBgVolume = bgMusic.volume;
 
     voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.01); };
@@ -38,8 +41,8 @@ function speak(text, turn, stepAtMoment) {
     voiceAudio.onerror = () => {
         bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = currentLang === 'en' ? 'en-US' : currentLang === 'uk' ? 'uk-UA' : 'ru-RU';
-        msg.volume = voiceVolume; // Громкость синтезатора
+        msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
+        msg.volume = voiceVolume;
         msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
         window.speechSynthesis.speak(msg);
     };
