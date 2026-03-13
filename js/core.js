@@ -25,7 +25,7 @@ const dict = {
         guide_scrolls: "Зал Свитков", guide_scrolls_desc: "Облачная библиотека, где хранятся творения других Лордов. Читайте истории, ставьте лайки или дизлайки, скачивайте их.",
         guide_mail: "Воронья Почта", guide_mail_desc: "Чат правителей. Общайтесь с другими создателями. Сообщения удаляются со временем, а сквернословие строго карается.",
         guide_battle: "Начало Битвы", guide_battle_desc: "Выберите историю в главном меню и нажмите 'Начать битву'.",
-        goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага"
+        goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага", flip_board: "Окинуть взором врага", choose_promotion: "Кого призвать?"
     },
     en: {
         checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud.",
@@ -45,11 +45,11 @@ const dict = {
         forge_step_title_ph: "Maneuver Name", forge_step_text_ph: "Narrative or speeches...", chat_ph: "Your message...",
         search_ph: "Search by Lord's name or Scroll title...", 
         guide_btn_title: "Wisdom of Ancestors", guide_title: "Tome of Wisdom", guide_intro: "Welcome, Lord! This folio will help you master the Chronicler's art.",
-        guide_forge: "Scenario Forge", guide_forge_desc: "Here you forge your stories. Set the chronicle's name, tags, and goals. Making moves on the board creates steps. Give each step a title, description, and select a rune.",
-        guide_scrolls: "Hall of Scrolls", guide_scrolls_desc: "A cloud library containing creations of other Lords. Read stories, leave likes or dislikes, and download them.",
-        guide_mail: "Raven Mail", guide_mail_desc: "The rulers' chat. Speak with other creators. Messages vanish over time, and foul language is strictly punished.",
+        guide_forge: "Scenario Forge", guide_forge_desc: "Here you forge your stories. Set name, tags, and goals. Making moves creates steps. Give each step a name, desc, and rune.",
+        guide_scrolls: "Hall of Scrolls", guide_scrolls_desc: "A cloud library containing creations of other Lords. Read, like, dislike, and download them.",
+        guide_mail: "Raven Mail", guide_mail_desc: "The rulers' chat. Speak with other creators. Old messages vanish, foul language is punished.",
         guide_battle: "Starting a Battle", guide_battle_desc: "Select a story in the main menu and press 'Start Battle'.",
-        goal_none: "Completes no goal", goal_mine: "Completes Your goal", goal_enemy: "Completes Enemy goal"
+        goal_none: "Completes no goal", goal_mine: "Completes Your goal", goal_enemy: "Completes Enemy goal", flip_board: "View through enemy eyes", choose_promotion: "Who to summon?"
     },
     uk: {
         checking_archives: "Перевірка архівів...", name_yourself: "Назви себе, Лорде", name_desc: "Ім'я буде викарбувано в камені навічно і збережено в хмарі.",
@@ -69,11 +69,11 @@ const dict = {
         forge_step_title_ph: "Ім'я Маневру (Хід)", forge_step_text_ph: "Оповідь або промови...", chat_ph: "Ваше послання...",
         search_ph: "Пошук за іменем Лорда або назвою Сувою...", 
         guide_btn_title: "Мудрість Предків", guide_title: "Том Мудрості", guide_intro: "Вітаємо, Лорде! Цей фоліант допоможе вам опанувати мистецтво Літописця.",
-        guide_forge: "Кузня Сценаріїв", guide_forge_desc: "Тут ви створюєте свої історії. Задайте ім'я літопису, теги та цілі. Роблячи ходи на дошці, ви створюєте кроки. Кожному кроку можна дати ім'я, опис та вибрати руну.",
-        guide_scrolls: "Зала Сувоїв", guide_scrolls_desc: "Хмарна бібліотека з творіннями інших Лордів. Читайте історії, ставте вподобайки або дизлайки, завантажуйте їх.",
+        guide_forge: "Кузня Сценаріїв", guide_forge_desc: "Тут ви створюєте свої історії. Задайте ім'я, теги та цілі. Роблячи ходи на дошці, ви створюєте кроки. Кожному кроку можна дати ім'я, опис та вибрати руну.",
+        guide_scrolls: "Зала Сувоїв", guide_scrolls_desc: "Хмарна бібліотека з творіннями інших Лордів. Читайте їхні історії, ставте лайки або дизлайки, завантажуйте.",
         guide_mail: "Вороняча Пошта", guide_mail_desc: "Чат правителів. Спілкуйтеся з іншими творцями. Повідомлення видаляються з часом, а лихослів'я суворо карається.",
         guide_battle: "Початок Битви", guide_battle_desc: "Виберіть історію в головному меню і натисніть 'Почати битву'.",
-        goal_none: "Не виконує ціль", goal_mine: "Виконує Вашу ціль", goal_enemy: "Виконує Ціль Ворога"
+        goal_none: "Не виконує ціль", goal_mine: "Виконує Вашу ціль", goal_enemy: "Виконує Ціль Ворога", flip_board: "Окинути оком ворога", choose_promotion: "Кого призвати?"
     }
 };
 
@@ -125,6 +125,10 @@ window.addEventListener('DOMContentLoaded', () => {
     window.applyTranslations();
     window.updateScenariosLanguage();
     
+    // Инициализация ползунков на 0.5 при старте
+    document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = "0.5");
+    document.querySelectorAll('input[oninput="updateVoiceVolume(this.value)"]').forEach(s => s.value = "0.5");
+    
     if (!window.myAuthorId) {
         window.myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9) + Date.now();
         localStorage.setItem('chess_saga_author_id', window.myAuthorId);
@@ -137,16 +141,17 @@ window.addEventListener('DOMContentLoaded', () => {
         let guideShown = localStorage.getItem('chess_saga_guide_shown');
         if (!guideShown) {
             localStorage.setItem('chess_saga_guide_shown', 'true');
-            setTimeout(openGuide, 500);
+            setTimeout(window.openGuide, 500);
         }
     }
 });
 
 window.saveNickname = async function() {
     const input = document.getElementById('nickname-input').value.trim();
-    if (input.length < 3) return showNotification(t('msg_short'), "error");
-    if (window.AntiMate && window.AntiMate.check(input)) return showNotification(t('msg_inq'), "error");
+    if (input.length < 3) return window.showNotification(t('msg_short'), "error");
+    if (window.AntiMate && window.AntiMate.check(input)) return window.showNotification(t('msg_inq'), "error");
     
+    // Железное сохранение локально
     window.myNickname = input;
     localStorage.setItem('chess_saga_nickname', window.myNickname);
     
@@ -166,7 +171,7 @@ window.saveNickname = async function() {
                 localStorage.removeItem('chess_saga_nickname');
                 window.myNickname = null;
                 document.getElementById('nick-loader').style.display = 'none';
-                return showNotification(t('msg_taken'), "error");
+                return window.showNotification(t('msg_taken'), "error");
             }
         }
         await fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ data: { type: 'profile', author_id: window.myAuthorId, nickname: input } }) });
@@ -175,12 +180,12 @@ window.saveNickname = async function() {
     document.getElementById('nick-loader').style.display = 'none';
     document.getElementById('nickname-modal').classList.add('hidden');
     updateNicknameDisplay();
-    showNotification(t('msg_welcome') + window.myNickname + "!", "success");
+    window.showNotification(t('msg_welcome') + window.myNickname + "!", "success");
 
     let guideShown = localStorage.getItem('chess_saga_guide_shown');
     if (!guideShown) {
         localStorage.setItem('chess_saga_guide_shown', 'true');
-        setTimeout(openGuide, 1000);
+        setTimeout(window.openGuide, 1000);
     }
 }
 
@@ -208,8 +213,8 @@ window.sendChatMessage = async function() {
     const text = input.value.trim();
     if (!text) return;
     
-    if (Date.now() - lastChatTime < 5000) return showNotification(t('msg_spam'), "error");
-    if (window.AntiMate && window.AntiMate.check(text)) return showNotification(t('msg_inq'), "error");
+    if (Date.now() - lastChatTime < 5000) return window.showNotification(t('msg_spam'), "error");
+    if (window.AntiMate && window.AntiMate.check(text)) return window.showNotification(t('msg_inq'), "error");
 
     const msgObj = { type: 'chat_msg', author: window.myNickname || t('unknown'), text: text, time: Date.now() };
     input.value = "";
@@ -401,10 +406,10 @@ window.deleteFromGallery = async function(index) {
         try {
             const endpoint = window.API_URL.endsWith('/') ? `${window.API_URL}${p.db_id}` : `${window.API_URL}/${p.db_id}`;
             const response = await fetch(endpoint, { method: 'DELETE', mode: 'cors' });
-            if (response.ok) showNotification(t('msg_scroll_burned'), "success");
+            if (response.ok) window.showNotification(t('msg_scroll_burned'), "success");
         } catch (error) { }
     } else {
-        showNotification(t('msg_scroll_burned'), "success");
+        window.showNotification(t('msg_scroll_burned'), "success");
     }
     window.renderGallery();
 }
