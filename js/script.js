@@ -1,4 +1,71 @@
-// ====== ЛОГИКА АВТОРИЗАЦИИ (ИМЯ ЛОРДА) ======
+const API_URL = 'https://chess-api.kilanov.workers.dev/';
+
+// ====== СЛОВАРЬ (Мультиязычность) ======
+const dict = {
+    ru: {
+        checking_archives: "Проверка архивов...", name_yourself: "Назови себя, Лорд", name_desc: "Имя будет высечено в камне навечно и сохранено в облаке. Его нельзя изменить. Одинаковых имен не бывает.",
+        enter_chronicles: "Войти в летопись", choose_chapter: "Выберите главу истории", argus_title: "Свет Аргуса", argus_desc: "Поучительная история о самопожертвовании.",
+        standard_title: "Знамя Света", standard_desc: "Орден Юстициария против Клана Кровавого Тотема.", traxler_title: "Судьба Тракслера", traxler_desc: "Безумный гамбит и падение Белого Солнца.",
+        btn_start: "НАЧАТЬ БИТВУ", btn_forge: "КУЗНИЦА", btn_scrolls: "ЗАЛ СВИТКОВ", raven_mail: "Воронья Почта", chat_loading: "Вороны летят с письмами...",
+        chat_send: "Отправить", settings_title: "Тайные Руны (Настройки)", music_vol: "Музыка Битвы", voice_vol: "Голос Летописца", current_lord: "Текущий Лорд:",
+        scrolls_title: "Свитки других Лордов", calm_title: "Затишье", calm_desc: "Армии ждут...", tasks_title: "Задачи", enemy_title: "Враг", chronicle_title: "Хроника",
+        forge_title: "Кузница Сценариев", make_moves: "Делайте ходы на доске", forge_publish: "Высечь в Свитках", forge_download: "Забрать в Архив (Скачать)",
+        forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать ход забвению (Удалить)",
+        msg_spam: "Вороны устали! Подождите 3 секунд.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
+        msg_short: "Имя не достойно Лорда! (Минимум 3 буквы)", msg_welcome: "С возвращением, Лорд ", msg_forge_empty: "Кузница пуста! Скуйте хотя бы один ход!",
+        msg_title_empty: "Нареките свою Летопись именем!", msg_scroll_saved: "Ваша летопись навеки запечатлена в Зале Свитков!", msg_scroll_downloaded: "Свиток перенесен в ваши личные архивы!",
+        msg_scroll_burned: "Свиток предан огню и стерт из памяти веков!", read: "Читать", unknown: "Неизвестный", goals: "Цели"
+    },
+    en: {
+        checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud. Cannot be changed. No duplicates allowed.",
+        enter_chronicles: "Enter Chronicles", choose_chapter: "Choose a chapter of history", argus_title: "Light of Argus", argus_desc: "A cautionary tale of self-sacrifice.",
+        standard_title: "Banner of Light", standard_desc: "Order of Justiciar vs. Blood Totem Clan.", traxler_title: "Traxler's Fate", traxler_desc: "A mad gambit and the fall of the White Sun.",
+        btn_start: "START BATTLE", btn_forge: "THE FORGE", btn_scrolls: "HALL OF SCROLLS", raven_mail: "Raven Mail", chat_loading: "Ravens are flying with letters...",
+        chat_send: "Send", settings_title: "Secret Runes (Settings)", music_vol: "Battle Music", voice_vol: "Chronicler's Voice", current_lord: "Current Lord:",
+        scrolls_title: "Scrolls of other Lords", calm_title: "Calm", calm_desc: "Armies are waiting...", tasks_title: "Tasks", enemy_title: "Enemy", chronicle_title: "Chronicle",
+        forge_title: "Scenario Forge", make_moves: "Make moves on the board", forge_publish: "Carve into Scrolls", forge_download: "Take to Archive (Download)",
+        forge_empty: "The forge is empty. Forge the first move...", forge_undo: "Cast move into oblivion (Undo)",
+        msg_spam: "Ravens are tired! Wait 3 seconds.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
+        msg_short: "Name unworthy of a Lord! (Min 3 letters)", msg_welcome: "Welcome back, Lord ", msg_forge_empty: "Forge is empty! Forge at least one move!",
+        msg_title_empty: "Name your Chronicle!", msg_scroll_saved: "Your chronicle is forever carved in the Hall of Scrolls!", msg_scroll_downloaded: "Scroll transferred to your personal archives!",
+        msg_scroll_burned: "Scroll burned and erased from the memory of ages!", read: "Read", unknown: "Unknown", goals: "Goals"
+    },
+    uk: {
+        checking_archives: "Перевірка архівів...", name_yourself: "Назви себе, Лорде", name_desc: "Ім'я буде викарбувано в камені навічно і збережено в хмарі. Його не можна змінити. Однакових імен не буває.",
+        enter_chronicles: "Увійти в літопис", choose_chapter: "Оберіть главу історії", argus_title: "Світло Аргуса", argus_desc: "Повчальна історія про самопожертву.",
+        standard_title: "Прапор Світла", standard_desc: "Орден Юстиціарія проти Клану Кривавого Тотема.", traxler_title: "Доля Тракслера", traxler_desc: "Божевільний гамбіт і падіння Білого Сонця.",
+        btn_start: "ПОЧАТИ БИТВУ", btn_forge: "КУЗНЯ", btn_scrolls: "ЗАЛА СУВОЇВ", raven_mail: "Вороняча Пошта", chat_loading: "Ворони летять із листами...",
+        chat_send: "Відправити", settings_title: "Таємні Руни (Налаштування)", music_vol: "Музика Битви", voice_vol: "Голос Літописця", current_lord: "Поточний Лорд:",
+        scrolls_title: "Сувої інших Лордів", calm_title: "Затишшя", calm_desc: "Армії чекають...", tasks_title: "Завдання", enemy_title: "Ворог", chronicle_title: "Літопис",
+        forge_title: "Кузня Сценаріїв", make_moves: "Робіть ходи на дошці", forge_publish: "Викарбувати в Сувоях", forge_download: "Забрати в Архів (Завантажити)",
+        forge_empty: "Кузня порожня. Викуйте перший хід...", forge_undo: "Віддати хід забуттю (Видалити)",
+        msg_spam: "Ворони втомилися! Зачекайте 3 секунди.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
+        msg_short: "Ім'я не гідне Лорда! (Мінімум 3 літери)", msg_welcome: "З поверненням, Лорде ", msg_forge_empty: "Кузня порожня! Викуйте хоча б один хід!",
+        msg_title_empty: "Назвіть свій Літопис!", msg_scroll_saved: "Ваш літопис навіки збережено в Залі Сувоїв!", msg_scroll_downloaded: "Сувій перенесено до ваших особистих архівів!",
+        msg_scroll_burned: "Сувій спалено і стерто з пам'яті віків!", read: "Читати", unknown: "Невідомий", goals: "Цілі"
+    }
+};
+
+let currentLang = localStorage.getItem('chess_saga_lang') || 'ru';
+document.getElementById('lang-selector').value = currentLang;
+
+function changeLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('chess_saga_lang', lang);
+    applyTranslations();
+}
+
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
+    });
+}
+window.addEventListener('DOMContentLoaded', applyTranslations);
+
+function t(key) { return dict[currentLang][key] || key; }
+
+// ====== ЛОГИКА АВТОРИЗАЦИИ (Уникальное Имя Лорда) ======
 let myAuthorId = localStorage.getItem('chess_saga_author_id');
 if (!myAuthorId) {
     myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9);
@@ -15,22 +82,111 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function saveNickname() {
+async function saveNickname() {
     const input = document.getElementById('nickname-input').value.trim();
-    if (input.length < 3) return showNotification("Имя не достойно Лорда! (Минимум 3 буквы)", "error");
-    if (window.AntiMate && AntiMate.check(input)) return showNotification("Инквизиция отвергла это имя!", "error");
+    if (input.length < 3) return showNotification(t('msg_short'), "error");
+    if (window.AntiMate && AntiMate.check(input)) return showNotification(t('msg_inq'), "error");
+    
+    document.getElementById('nick-loader').style.display = 'flex';
+    
+    try {
+        const resp = await fetch(API_URL);
+        if (resp.ok) {
+            const data = await resp.json();
+            const rows = Array.isArray(data) ? data : (data.data || data.result || []);
+            const isTaken = rows.some(r => {
+                let p = typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || r);
+                return p.type === 'profile' && p.nickname.toLowerCase() === input.toLowerCase() && p.author_id !== myAuthorId;
+            });
+
+            if (isTaken) {
+                document.getElementById('nick-loader').style.display = 'none';
+                return showNotification(t('msg_taken'), "error");
+            }
+        }
+        // Сохраняем профиль
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ data: { type: 'profile', author_id: myAuthorId, nickname: input } }) });
+    } catch(e) { console.log("Связь с облаком нарушена, сохраняем локально."); }
     
     myNickname = input;
     localStorage.setItem('chess_saga_nickname', myNickname);
+    document.getElementById('nick-loader').style.display = 'none';
     document.getElementById('nickname-modal').classList.add('hidden');
     document.getElementById('settings-nickname-display').textContent = myNickname;
-    showNotification(`С возвращением, Лорд ${myNickname}!`, "success");
+    showNotification(t('msg_welcome') + myNickname + "!", "success");
 }
 
 function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
 function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
 
-const API_URL = 'https://chess-api.kilanov.workers.dev/';
+// ====== ВОРОНЬЯ ПОЧТА (Чат) ======
+let chatPollInterval;
+let lastChatTime = 0;
+
+function openChat() {
+    document.getElementById('chat-modal').classList.remove('hidden');
+    loadChat();
+    chatPollInterval = setInterval(loadChat, 5000);
+}
+
+function closeChat() {
+    document.getElementById('chat-modal').classList.add('hidden');
+    clearInterval(chatPollInterval);
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    if (Date.now() - lastChatTime < 5000) return showNotification(t('msg_spam'), "error");
+    if (window.AntiMate && AntiMate.check(text)) return showNotification(t('msg_inq'), "error");
+
+    const msgObj = { type: 'chat_msg', author: myNickname || t('unknown'), text: text, time: Date.now() };
+    
+    // Оптимистичный UI
+    input.value = "";
+    renderSingleMessage(msgObj, true);
+    lastChatTime = Date.now();
+
+    try {
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ data: msgObj }) });
+    } catch(e) { showNotification("Ворон сбился с пути...", "error"); }
+}
+
+async function loadChat() {
+    try {
+        const resp = await fetch(API_URL);
+        if (resp.ok) {
+            const data = await resp.json();
+            const rows = Array.isArray(data) ? data : (data.data || data.result || []);
+            let messages = rows.map(r => typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || r))
+                               .filter(p => p.type === 'chat_msg')
+                               .sort((a,b) => a.time - b.time)
+                               .slice(-50); // Храним только 50 последних
+            
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = "";
+            if (messages.length === 0) container.innerHTML = `<p class="text-center text-slate-500 italic text-sm mt-10">${t('chat_loading')}</p>`;
+            else messages.forEach(m => renderSingleMessage(m, false));
+        }
+    } catch(e) { }
+}
+
+function renderSingleMessage(msg, scrollToBottom) {
+    const container = document.getElementById('chat-messages');
+    const isMe = msg.author === myNickname;
+    const div = document.createElement('div');
+    div.className = `chat-msg flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+    div.innerHTML = `
+        <span class="text-[9px] text-slate-500 uppercase tracking-widest mb-1 mx-1">${msg.author}</span>
+        <div class="px-4 py-2 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
+            ${msg.text}
+        </div>
+    `;
+    container.appendChild(div);
+    if (scrollToBottom || isMe) container.scrollTop = container.scrollHeight;
+}
 
 function showNotification(text, type = 'success') {
     const toast = document.getElementById('toast');
@@ -57,7 +213,7 @@ window.AntiMate = {
     }
 };
 
-// ====== ГАЛЕРЕЯ И ЛАЙКИ ======
+// ====== ГАЛЕРЕЯ И ЛАЙКИ (♥️ и 💔) ======
 let gallerySearchTerm = "";
 let userLikes = JSON.parse(localStorage.getItem('chess_saga_likes') || '{}');
 
@@ -112,9 +268,9 @@ async function renderGallery() {
                 return pd;
             });
         }
-    } catch (e) { console.log("Орден связи не отвечает, загружаем локальные:", e); }
+    } catch (e) { console.log("Связь нарушена, грузим локальные:", e); }
 
-    let allParties = [...dbParties];
+    let allParties = [...dbParties].filter(p => p.type !== 'profile' && p.type !== 'chat_msg');
     localParties.forEach(lp => {
         if (!allParties.some(p => p.title === lp.title)) {
             allParties.push(lp);
@@ -127,7 +283,7 @@ async function renderGallery() {
     );
 
     if (filteredParties.length === 0) {
-        gallery.innerHTML = '<p class="col-span-full text-center text-slate-600 italic">Свитки с таким именем не найдены в архивах...</p>';
+        gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic">Свитки не найдены...</p>`;
         return;
     }
 
@@ -149,16 +305,16 @@ async function renderGallery() {
             ${canDelete ? `<button onclick="deleteFromGallery(${localIndex})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 transition-colors" title="Сжечь свиток">🗑️</button>` : ''}
 
             <div class="flex justify-between items-center mb-3">
-                <span class="text-[11px] text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || 'Неизвестный'}</span>
+                <span class="text-[11px] text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
                 <div class="flex gap-2 text-xs">
-                    <button onclick="toggleReaction(${localIndex}, 'like')" class="${userLikes[uId] === 1 ? 'text-green-500' : 'text-slate-500'} hover:text-green-400 transition-colors">👍 ${p.likes || 0}</button>
-                    <button onclick="toggleReaction(${localIndex}, 'dislike')" class="${userLikes[uId] === -1 ? 'text-red-500' : 'text-slate-500'} hover:text-red-400 transition-colors">👎 ${p.dislikes || 0}</button>
+                    <button onclick="toggleReaction(${localIndex}, 'like')" class="${userLikes[uId] === 1 ? 'text-green-500' : 'text-slate-500'} hover:text-green-400 transition-colors">♥️ ${p.likes || 0}</button>
+                    <button onclick="toggleReaction(${localIndex}, 'dislike')" class="${userLikes[uId] === -1 ? 'text-red-500' : 'text-slate-500'} hover:text-red-400 transition-colors">💔 ${p.dislikes || 0}</button>
                 </div>
             </div>
 
             <div class="flex gap-2">
                 <button onclick="playCustomScenario(${localIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white flex items-center justify-center gap-1">
-                    <img src="Visualization/👁️.png" class="w-4 h-4" onerror="this.outerHTML='<span>👁️</span>'"> Читать
+                    <img src="Visualization/👁️.png" class="w-4 h-4" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
                 </button>
                 <button onclick="downloadFromGallery(${localIndex})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm transition-colors text-white" title="Забрать в архив">💾</button>
             </div>
@@ -175,15 +331,13 @@ async function deleteFromGallery(index) {
     localStorage.setItem('chess_saga_custom', JSON.stringify(customParties));
 
     if (p.db_id) {
-        showNotification("Сжигаем свиток в архиве...", "info");
         try {
             const endpoint = API_URL.endsWith('/') ? `${API_URL}${p.db_id}` : `${API_URL}/${p.db_id}`;
             const response = await fetch(endpoint, { method: 'DELETE', mode: 'cors' });
-            if (response.ok) showNotification("Свиток стерт из памяти веков!", "success");
-            else showNotification("Темная магия мешает удалить Свиток", "error");
-        } catch (error) { showNotification("Связь с архивом потеряна", "error"); }
+            if (response.ok) showNotification(t('msg_scroll_burned'), "success");
+        } catch (error) { }
     } else {
-        showNotification("Локальный свиток сожжен!", "success");
+        showNotification(t('msg_scroll_burned'), "success");
     }
     renderGallery();
 }
@@ -202,10 +356,9 @@ function downloadFromGallery(index) {
     dl.setAttribute("href", dataStr);
     dl.setAttribute("download", p.title + ".json");
     document.body.appendChild(dl); dl.click(); dl.remove();
-    showNotification("Свиток успешно перенесен в ваши архивы!", "success");
+    showNotification(t('msg_scroll_downloaded'), "success");
 }
 
-const visualizationPath = "Visualization/";
 const figuresPath = "Figures/";
 
 let selectedScenarioKey = 'argus';
@@ -216,7 +369,7 @@ let historyStates = [];
 
 function finalizeTurnLogic() {
     const sc = scenarios[selectedScenarioKey];
-    if (currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
+    if (sc && currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
         setTimeout(processMove, 600); 
     }
 }
@@ -241,14 +394,20 @@ function selectScenario(key) {
 function startGame() {
     resumeAudio();
     document.getElementById('menu-vol').style.display = 'none';
+    
+    // Если сценарий кастомный, но его нет в объекте (например, обновили страницу), грузим первый
+    if (!scenarios[selectedScenarioKey]) {
+        selectedScenarioKey = 'argus';
+    }
+    
     const sc = scenarios[selectedScenarioKey];
     
     currentStep = 0; maxReachedStep = 0; isSpeaking = false;
 
     const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
     const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = "ПЛАНЫ КОМПАНИИ";
-    if (egoalsHeader) egoalsHeader.textContent = "ЗАДУМЫ СОПЕРНИКА";
+    if (goalsHeader) goalsHeader.textContent = t('tasks_title');
+    if (egoalsHeader) egoalsHeader.textContent = t('enemy_title');
 
     document.getElementById('goals-list').innerHTML = (sc.goals || []).map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = (sc.egoals || []).map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -257,9 +416,9 @@ function startGame() {
     document.getElementById('move-counter').textContent = `ХОД: 1`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
 
-    document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span>🏰</span>'">`;
-    document.getElementById('scene-title').textContent = sc.title || "Ваша история начинается";
-    document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
+    document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>🏰</span>'">`;
+    document.getElementById('scene-title').textContent = sc.title || t('calm_title');
+    document.getElementById('scene-desc').textContent = t('calm_desc');
 
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
@@ -339,9 +498,9 @@ function jumpToStep(stepIndex) {
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
     } else {
-        document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span>🏰</span>'">`;
-        document.getElementById('scene-title').textContent = "Ваша история начинается";
-        document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
+        document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>🏰</span>'">`;
+        document.getElementById('scene-title').textContent = sc.title || t('calm_title');
+        document.getElementById('scene-desc').textContent = t('calm_desc');
         document.getElementById('move-counter').textContent = `ХОД: 1`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
     }
@@ -367,7 +526,6 @@ function updateVisuals(data, createLog) {
     }
     
     const stage = document.getElementById('visual-stage');
-    // Обновленный рендер: Пытаемся грузить .png. Если нет файла, фолбэк на span с текстом (эмодзи).
     stage.innerHTML = `<img src="Visualization/${data.icon}.png" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>${data.icon}</span>'">`;
 
     document.getElementById('scene-title').textContent = data.title;
@@ -413,15 +571,16 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+// ====== КУЗНИЦА ======
 let editorEngine = new Chess();
 let editorSteps = [];
 let selectedSquare = null;
 let validMovesForSelected = [];
 let selectedEditorStepIndex = null;
 
-// Новый порядок иконок, как просил
+// Эмодзи по твоему заказу: сначала ‼️❗❓, потом остальные, затем фигуры
 const availableIcons = [
-    "!!", "!", "?",
+    "‼️", "❗", "❓",
     "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
     "☀️","⚡","🔱","😰","🪓","🐎","🐢","☁️","🔨","🩸","🕊️","🦅","👺","🏃",
     "🔆","🌫️","🏆","⛪","⚠️","🍴","💥","👸","💎","😵","😈","💔",
@@ -450,14 +609,14 @@ function initIcons() {
 
     let paginationHtml = '';
     if (currentIconPage > 0) {
-        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬆️ Вверх</button>`;
+        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬆️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️ Вверх</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
     }
     if (end < availableIcons.length) {
-        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬇️ Вниз</button>`;
+        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-bold text-white transition-colors shadow">⬇️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️ Вниз</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-1 bg-slate-800 rounded text-xs text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
     }
     pagination.innerHTML = paginationHtml;
 }
@@ -471,8 +630,12 @@ function openEditor() {
     document.getElementById('editor-modal').classList.remove('hidden');
     editorEngine = new Chess(); editorSteps = []; selectedSquare = null; validMovesForSelected = [];
     selectedEditorStepIndex = null; currentIconPage = 0;
-    document.getElementById('editor-steps-list').innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Кузница пуста. Скуйте первый ход...</p>';
+    document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-sm text-center mt-4">${t('forge_empty')}</p>`;
     document.getElementById('editor-step-form').classList.add('hidden');
+    
+    document.getElementById('edit-scenario-goal').value = "";
+    document.getElementById('edit-scenario-egoal').value = "";
+    
     initIcons(); renderEditorBoard();
 }
 
@@ -550,7 +713,7 @@ function handleEditorClick(coord) {
 }
 
 function undoEditorStep() {
-    if (editorSteps.length === 0) return showNotification("Нет ходов для отмены!", "error");
+    if (editorSteps.length === 0) return;
     editorSteps.pop();
     editorEngine = new Chess();
     for(let step of editorSteps) { editorEngine.move({from: step.move.substring(0,2), to: step.move.substring(2,4), promotion: 'q'}); }
@@ -563,7 +726,7 @@ function undoEditorStep() {
 function renderEditorStepsList() {
     const list = document.getElementById('editor-steps-list');
     if(editorSteps.length === 0) {
-        list.innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Кузница пуста. Скуйте первый ход...</p>';
+        list.innerHTML = `<p class="text-slate-500 italic text-sm text-center mt-4">${t('forge_empty')}</p>`;
         document.getElementById('editor-step-form').classList.add('hidden');
         return;
     }
@@ -572,9 +735,13 @@ function renderEditorStepsList() {
         const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
         const isActive = selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800 shadow-md' : 'border-slate-700 bg-slate-900/50';
         
+        let targetText = "";
+        if (s.goal === 0) targetText += '<span class="text-sky-400 font-bold ml-1">✓ Ц</span>';
+        if (s.egoal === 0) targetText += '<span class="text-red-500 font-bold ml-1">✓ В</span>';
+
         return `
         <div onclick="selectEditorStep(${i})" class="p-2 border rounded-lg cursor-pointer hover:border-amber-500 transition-colors ${isActive} flex justify-between items-center text-slate-300 shrink-0">
-            <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b> (${turnName})</span>
+            <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b> (${turnName}) ${targetText}</span>
             <span class="text-[10px] truncate ml-3 flex-1 text-right italic text-slate-400">${s.title || 'Без названия'}</span>
             <span class="ml-2 text-base"><img src="Visualization/${s.icon}.png" class="w-5 h-5 inline object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'"></span>
         </div>`;
@@ -593,6 +760,9 @@ function selectEditorStep(index) {
     document.getElementById('edit-text').value = step.text;
     document.getElementById('edit-icon-input').value = step.icon;
     
+    document.getElementById('edit-goal-check').checked = step.goal === 0;
+    document.getElementById('edit-egoal-check').checked = step.egoal === 0;
+
     const moveNum = Math.floor(index / 2) + 1;
     const turnName = step.turn === 'white' ? 'Белые' : 'Черные';
     document.getElementById('editing-step-label').textContent = `Редактирование: ${moveNum}. ${step.san} (${turnName})`;
@@ -605,32 +775,41 @@ function updateCurrentStepData() {
     const title = document.getElementById('edit-title').value;
     const text = document.getElementById('edit-text').value;
     const icon = document.getElementById('edit-icon-input').value;
+    const goalChecked = document.getElementById('edit-goal-check').checked;
+    const egoalChecked = document.getElementById('edit-egoal-check').checked;
 
     if (window.AntiMate && (AntiMate.check(text) || AntiMate.check(title))) {
-        return showNotification("Инквизиция отвергла текст! Обнаружена темная магия (нецензурная лексика)!", "error");
+        return showNotification(t('msg_inq'), "error");
     }
 
     editorSteps[selectedEditorStepIndex].title = title;
     editorSteps[selectedEditorStepIndex].text = text;
     editorSteps[selectedEditorStepIndex].icon = icon;
+    
+    if (goalChecked) editorSteps[selectedEditorStepIndex].goal = 0; else delete editorSteps[selectedEditorStepIndex].goal;
+    if (egoalChecked) editorSteps[selectedEditorStepIndex].egoal = 0; else delete editorSteps[selectedEditorStepIndex].egoal;
+
     renderEditorStepsList();
 }
 
 async function publishStory() {
     const scenarioName = document.getElementById('edit-scenario-name').value;
-    if (!scenarioName) return showNotification("Нареките свою Летопись именем!", "error");
-    if (editorSteps.length < 1) return showNotification("Кузница пуста! Скуйте хотя бы один ход!", "error");
+    const gGoal = document.getElementById('edit-scenario-goal').value || "Победить";
+    const eGoal = document.getElementById('edit-scenario-egoal').value || "Уничтожить врага";
+
+    if (!scenarioName) return showNotification(t('msg_title_empty'), "error");
+    if (editorSteps.length < 1) return showNotification(t('msg_forge_empty'), "error");
 
     if (window.AntiMate && AntiMate.check(scenarioName)) {
-        return showNotification("Инквизиция отвергла название (нецензурная лексика)!", "error");
+        return showNotification(t('msg_inq'), "error");
     }
     
     const newScenario = {
         title: scenarioName,
         author_id: myAuthorId, 
-        author_name: myNickname || "Неизвестный Лорд", // Прикрепляем ник!
-        goals: ["Вписать свое имя в Вечность", "Сокрушить вражескую цитадель"],
-        egoals: ["Повергнуть вашего Монарха"],
+        author_name: myNickname || t('unknown'),
+        goals: [gGoal],
+        egoals: [eGoal],
         story: editorSteps,
         likes: 0,
         dislikes: 0
@@ -641,8 +820,6 @@ async function publishStory() {
     community.push(newScenario);
     localStorage.setItem('chess_saga_custom', JSON.stringify(community));
 
-    showNotification("Отправка ворона с партией...", "info");
-
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -650,10 +827,8 @@ async function publishStory() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: newScenario })
         });
-
-        if (response.ok) showNotification("Ваша летопись навеки запечатлена в Зале Свитков!", "success");
-        else showNotification("Темная магия исказила связь с архивом. Сохранено локально.", "error");
-    } catch (e) { showNotification("Связь утеряна. Сохранено локально.", "error"); }
+        if (response.ok) showNotification(t('msg_scroll_saved'), "success");
+    } catch (e) { }
     
     setTimeout(() => {
         closeEditor();
@@ -663,13 +838,16 @@ async function publishStory() {
 
 function downloadCurrentEditorStory() {
     const scenarioName = document.getElementById('edit-scenario-name').value || "My_Chess_Saga";
-    if (editorSteps.length === 0) return showNotification("Кузница пуста! Скуйте хотя бы один ход!", "error");
+    const gGoal = document.getElementById('edit-scenario-goal').value || "Победить";
+    const eGoal = document.getElementById('edit-scenario-egoal').value || "Уничтожить врага";
+
+    if (editorSteps.length === 0) return showNotification(t('msg_forge_empty'), "error");
 
     const data = { 
         title: scenarioName, 
-        author_name: myNickname || "Неизвестный Лорд",
-        goals: ["Сокрушить вражескую цитадель"], 
-        egoals: ["Повергнуть вашего Монарха"], 
+        author_name: myNickname || t('unknown'),
+        goals: [gGoal], 
+        egoals: [eGoal], 
         story: editorSteps 
     };
     
@@ -680,5 +858,5 @@ function downloadCurrentEditorStory() {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-    showNotification("Свиток успешно перенесен в ваши архивы!", "success");
+    showNotification(t('msg_scroll_downloaded'), "success");
 }
