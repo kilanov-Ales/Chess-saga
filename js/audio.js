@@ -2,9 +2,9 @@ const audioFolderPath = "audio/";
 let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-let baseMusicVolume = 0.5; // Значение ползунка по умолчанию
-let voiceVolume = 0.5;     // Значение ползунка голоса по умолчанию
-let isMainMenu = true;     // Флаг нахождения в главном меню
+let baseMusicVolume = 0.5; // Значение ползунка (от 0 до 1)
+let voiceVolume = 0.5;     // Значение ползунка голоса
+let isMainMenu = true;     
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -13,16 +13,16 @@ function resumeAudio() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Музыка в меню тише в 2 раза
+// Новая безупречная логика громкости
 function applyMenuVolumeLogic() {
     if (isSpeaking) return; 
     
-    const actualVolume = baseMusicVolume * 0.3; // 0.3 это предел, чтобы не оглохнуть
-    
     if (isMainMenu) {
-        bgMusic.volume = actualVolume * 0.4; // В меню утихает
+        // В меню музыка играет на 30% от заданного ползунка
+        bgMusic.volume = baseMusicVolume * 0.3; 
     } else {
-        bgMusic.volume = actualVolume; // Во время боя норм громкость
+        // В бою музыка играет на 100% от заданного ползунка
+        bgMusic.volume = baseMusicVolume; 
     }
 }
 
@@ -49,19 +49,19 @@ function speak(text, turn, stepAtMoment) {
     const voiceAudio = new Audio(audioPath);
     voiceAudio.volume = voiceVolume;
 
-    // Приглушаем музыку, пока идет речь
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume * 0.3, 0.01); }; 
+    // Глушим музыку почти в ноль, пока говорит диктор
+    voiceAudio.onplay = () => { bgMusic.volume = baseMusicVolume * 0.1; }; 
     voiceAudio.onended = () => { 
         isSpeaking = false; 
-        applyMenuVolumeLogic(); 
+        applyMenuVolumeLogic(); // Возвращаем нормальную громкость
         if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
     };
     
-    // Фолбек на встроенный голос, если файла нет
     voiceAudio.onerror = () => {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
         msg.volume = voiceVolume; 
+        msg.onstart = () => { bgMusic.volume = baseMusicVolume * 0.1; }; // Глушим для синтезатора
         msg.onend = () => { 
             isSpeaking = false; 
             applyMenuVolumeLogic(); 
