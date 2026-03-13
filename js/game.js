@@ -5,6 +5,7 @@ window.currentStep = 0;
 window.maxReachedStep = 0; 
 window.boardState = [];
 window.historyStates = []; 
+window.gameFlipped = false; // Флаг для игры за черных (переворот доски)
 
 window.finalizeTurnLogic = function() {
     const sc = window.scenarios[window.selectedScenarioKey];
@@ -31,7 +32,6 @@ window.selectScenario = function(key) {
 }
 
 window.startGame = function() {
-    // Включаем флаги для звука
     if(typeof window.isMainMenu !== 'undefined') window.isMainMenu = false; 
     if(typeof resumeAudio === 'function') resumeAudio();
     if(typeof applyMenuVolumeLogic === 'function') applyMenuVolumeLogic();
@@ -42,7 +42,7 @@ window.startGame = function() {
     
     const sc = window.scenarios[window.selectedScenarioKey];
     
-    window.currentStep = 0; window.maxReachedStep = 0; 
+    window.currentStep = 0; window.maxReachedStep = 0; window.gameFlipped = false;
     if(typeof window.isSpeaking !== 'undefined') window.isSpeaking = false;
 
     const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
@@ -67,6 +67,11 @@ window.startGame = function() {
         document.getElementById('main-app').classList.add('app-visible');
         window.initBoard(); window.renderBoard();
     }, 800);
+}
+
+window.toggleGameFlip = function() {
+    window.gameFlipped = !window.gameFlipped;
+    window.renderBoard();
 }
 
 window.playCustomScenario = function(index) {
@@ -94,10 +99,14 @@ window.renderBoard = function() {
     const sc = window.scenarios[window.selectedScenarioKey];
     const next = sc.story[window.currentStep];
 
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            // Логика переворота доски
+            const r = window.gameFlipped ? 7 - row : row;
+            const c = window.gameFlipped ? 7 - col : col;
+            
             const sq = document.createElement('div');
-            sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+            sq.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`; // цвет клетки не меняется от переворота массива
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
             
             if (!window.isSpeaking && window.currentStep === window.maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
@@ -127,7 +136,16 @@ window.processMove = function() {
     const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
     const to = [8 - parseInt(moveClean[3]), moveClean.charCodeAt(2) - 97];
     
-    window.boardState[to[0]][to[1]] = window.boardState[from[0]][from[1]];
+    // Обработка превращения пешки из строки (e7e8q)
+    let movingPiece = window.boardState[from[0]][from[1]];
+    if (moveClean.length > 4) {
+        const promStr = moveClean[4];
+        const pColor = data.turn === 'white' ? 'w' : 'b';
+        const pieceMapNames = { 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight' };
+        movingPiece = `${pColor}_${pieceMapNames[promStr] || 'queen'}`;
+    }
+
+    window.boardState[to[0]][to[1]] = movingPiece;
     window.boardState[from[0]][from[1]] = '';
     window.historyStates.push(JSON.parse(JSON.stringify(window.boardState)));
 
