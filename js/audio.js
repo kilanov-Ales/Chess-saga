@@ -2,8 +2,8 @@ const audioFolderPath = "audio/";
 let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-let baseMusicVolume = 0.5; // Значение ползунка по умолчанию (середина)
-let voiceVolume = 0.5;     // Значение ползунка голоса по умолчанию (середина)
+let baseMusicVolume = 0.5; // Значение ползунка по умолчанию
+let voiceVolume = 0.5;     // Значение ползунка голоса по умолчанию
 let isMainMenu = true;     // Флаг нахождения в главном меню
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -13,17 +13,16 @@ function resumeAudio() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Логика затихания: Музыка в меню тише
+// Музыка в меню тише в 2 раза
 function applyMenuVolumeLogic() {
     if (isSpeaking) return; 
     
-    // Умножаем на 0.3 как базовый предел, чтобы музыка не "орала"
-    const actualVolume = baseMusicVolume * 0.3; 
+    const actualVolume = baseMusicVolume * 0.3; // 0.3 это предел, чтобы не оглохнуть
     
     if (isMainMenu) {
-        bgMusic.volume = actualVolume * 0.4; // В меню звук утихает
+        bgMusic.volume = actualVolume * 0.4; // В меню утихает
     } else {
-        bgMusic.volume = actualVolume; // Во время битвы нормальная громкость
+        bgMusic.volume = actualVolume; // Во время боя норм громкость
     }
 }
 
@@ -44,13 +43,13 @@ function speak(text, turn, stepAtMoment) {
     const lang = localStorage.getItem('chess_saga_lang') || 'ru';
     const prefix = lang === 'en' ? 'E_' : lang === 'uk' ? 'U_' : '';
     
-    const fileName = `${prefix}${selectedScenarioKey}_${stepAtMoment}.mp3`;
+    const fileName = `${prefix}${window.selectedScenarioKey}_${stepAtMoment}.mp3`;
     const audioPath = `${audioFolderPath}${fileName}`;
 
     const voiceAudio = new Audio(audioPath);
-    
     voiceAudio.volume = voiceVolume;
 
+    // Приглушаем музыку, пока идет речь
     voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume * 0.3, 0.01); }; 
     voiceAudio.onended = () => { 
         isSpeaking = false; 
@@ -58,6 +57,7 @@ function speak(text, turn, stepAtMoment) {
         if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
     };
     
+    // Фолбек на встроенный голос, если файла нет
     voiceAudio.onerror = () => {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
