@@ -3,6 +3,8 @@ window.editorSteps = [];
 window.selectedSquare = null;
 window.validMovesForSelected = [];
 window.selectedEditorStepIndex = null;
+window.editorFlipped = false;
+window.pendingPromotionMove = null;
 
 const availableIcons = [
     "‼️", "❗", "❓",
@@ -59,6 +61,7 @@ window.openEditor = function() {
     window.validMovesForSelected = [];
     window.selectedEditorStepIndex = null; 
     window.currentIconPage = 0;
+    window.editorFlipped = false;
     
     document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-lg text-center mt-12">${window.t('forge_empty')}</p>`;
     document.getElementById('editor-step-form').classList.add('hidden');
@@ -74,6 +77,11 @@ window.openEditor = function() {
 
 window.closeEditor = function() { document.getElementById('editor-modal').classList.add('hidden'); }
 
+window.toggleEditorFlip = function() {
+    window.editorFlipped = !window.editorFlipped;
+    window.renderEditorBoard();
+}
+
 window.setEditIcon = function(val) {
     document.getElementById('edit-icon-input').value = val;
     window.updateCurrentStepData();
@@ -88,10 +96,13 @@ window.renderEditorBoard = function() {
     const board = window.editorEngine.board();
     const highlightTargets = window.validMovesForSelected.map(m => m.to);
 
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const r = window.editorFlipped ? 7 - row : row;
+            const c = window.editorFlipped ? 7 - col : col;
+
             const squareEl = document.createElement('div');
-            squareEl.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+            squareEl.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = String.fromCharCode(97 + c) + (8 - r);
             squareEl.dataset.coord = coord;
 
@@ -130,20 +141,17 @@ window.handleEditorClick = function(coord) {
             window.renderEditorBoard();
         }
     } else {
-        const moveObj = window.validMovesForSelected.find(m => m.to === coord);
-        if (moveObj) {
-            if (window.selectedEditorStepIndex !== null && window.selectedEditorStepIndex < window.editorSteps.length - 1) {
-                window.editorSteps = window.editorSteps.slice(0, window.selectedEditorStepIndex + 1);
+        const matchingMoves = window.validMovesForSelected.filter(m => m.to === coord);
+        if (matchingMoves.length > 0) {
+            // Проверка на превращение пешки (если есть флаг 'p' или свойство promotion)
+            const isPromotion = matchingMoves.some(m => m.flags.includes('p') || m.promotion);
+            if (isPromotion) {
+                window.pendingPromotionMove = { from: window.selectedSquare, to: coord };
+                window.showPromotionModal(window.editorEngine.turn());
+                return;
             }
-            const move = window.editorEngine.move({ from: window.selectedSquare, to: coord, promotion: 'q' });
-            if (move) {
-                window.editorSteps.push({
-                    move: move.from + move.to, turn: move.color === 'w' ? 'white' : 'black',
-                    san: move.san, title: "", text: "", icon: "⚔️", capture: move.captured ? true : false
-                });
-                window.selectEditorStep(window.editorSteps.length - 1);
-                setTimeout(() => { const listEl = document.getElementById('editor-steps-list'); if(listEl) listEl.scrollTop = listEl.scrollHeight; }, 50);
-            }
+            // Обычный ход
+            window.executeForgeMove(window.selectedSquare, coord, 'q');
         }
         window.selectedSquare = null; 
         window.validMovesForSelected = []; 
@@ -151,11 +159,64 @@ window.handleEditorClick = function(coord) {
     }
 }
 
+// === Модалка Превращения Пешки ===
+window.showPromotionModal = function(color) {
+    const modal = document.getElementById('promotion-modal');
+    const container = document.getElementById('promotion-pieces');
+    const prefix = color === 'w' ? 'w' : 'b';
+    
+    container.innerHTML = `
+        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
+        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
+        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Слон">
+        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Конь">
+    `;
+    modal.classList.remove('hidden');
+}
+
+window.confirmPromotion = function(pieceCode) {
+    document.getElementById('promotion-modal').classList.add('hidden');
+    if (window.pendingPromotionMove) {
+        window.executeForgeMove(window.pendingPromotionMove.from, window.pendingPromotionMove.to, pieceCode);
+        window.pendingPromotionMove = null;
+    }
+}
+
+window.cancelPromotion = function() {
+    document.getElementById('promotion-modal').classList.add('hidden');
+    window.pendingPromotionMove = null;
+    window.selectedSquare = null; 
+    window.validMovesForSelected = []; 
+    window.renderEditorBoard();
+}
+
+window.executeForgeMove = function(from, to, promotionPiece) {
+    if (window.selectedEditorStepIndex !== null && window.selectedEditorStepIndex < window.editorSteps.length - 1) {
+        window.editorSteps = window.editorSteps.slice(0, window.selectedEditorStepIndex + 1);
+    }
+    const move = window.editorEngine.move({ from: from, to: to, promotion: promotionPiece });
+    if (move) {
+        window.editorSteps.push({
+            move: move.from + move.to + (move.promotion ? move.promotion : ''),
+            turn: move.color === 'w' ? 'white' : 'black',
+            san: move.san, title: "", text: "", icon: "⚔️", capture: move.captured ? true : false
+        });
+        window.selectEditorStep(window.editorSteps.length - 1);
+        setTimeout(() => { const listEl = document.getElementById('editor-steps-list'); if(listEl) listEl.scrollTop = listEl.scrollHeight; }, 50);
+    }
+    window.selectedSquare = null; 
+    window.validMovesForSelected = []; 
+    window.renderEditorBoard();
+}
+
 window.undoEditorStep = function() {
     if (window.editorSteps.length === 0) return;
     window.editorSteps.pop();
     window.editorEngine = new Chess();
-    for(let step of window.editorSteps) { window.editorEngine.move({from: step.move.substring(0,2), to: step.move.substring(2,4), promotion: 'q'}); }
+    for(let step of window.editorSteps) { 
+        const promStr = step.move.length > 4 ? step.move[4] : 'q';
+        window.editorEngine.move({from: step.move.substring(0,2), to: step.move.substring(2,4), promotion: promStr}); 
+    }
     window.selectedSquare = null; window.validMovesForSelected = [];
     
     if(window.editorSteps.length > 0) { window.selectEditorStep(window.editorSteps.length - 1); } 
@@ -191,7 +252,10 @@ window.selectEditorStep = function(index) {
     window.selectedEditorStepIndex = index;
     const step = window.editorSteps[index];
     window.editorEngine = new Chess();
-    for (let i = 0; i <= index; i++) { window.editorEngine.move({ from: window.editorSteps[i].move.substring(0, 2), to: window.editorSteps[i].move.substring(2, 4), promotion: 'q' }); }
+    for (let i = 0; i <= index; i++) { 
+        const promStr = window.editorSteps[i].move.length > 4 ? window.editorSteps[i].move[4] : 'q';
+        window.editorEngine.move({ from: window.editorSteps[i].move.substring(0, 2), to: window.editorSteps[i].move.substring(2, 4), promotion: promStr }); 
+    }
     window.selectedSquare = null; window.validMovesForSelected = []; window.renderEditorBoard();
 
     document.getElementById('editor-step-form').classList.remove('hidden');
@@ -219,8 +283,7 @@ window.updateCurrentStepData = function() {
     const goalSelect = document.getElementById('edit-step-goal-select').value;
 
     if (window.AntiMate && (window.AntiMate.check(text) || window.AntiMate.check(title))) {
-        if(typeof showNotification === 'function') showNotification(window.t('msg_inq'), "error");
-        return;
+        return window.showNotification(window.t('msg_inq'), "error");
     }
 
     window.editorSteps[window.selectedEditorStepIndex].title = title;
@@ -244,11 +307,11 @@ window.publishStory = async function() {
     const gGoal = document.getElementById('edit-scenario-goal').value || "Победить";
     const eGoal = document.getElementById('edit-scenario-egoal').value || "Уничтожить врага";
 
-    if (!scenarioName) return showNotification(window.t('msg_title_empty'), "error");
-    if (window.editorSteps.length < 1) return showNotification(window.t('msg_forge_empty'), "error");
+    if (!scenarioName) return window.showNotification(window.t('msg_title_empty'), "error");
+    if (window.editorSteps.length < 1) return window.showNotification(window.t('msg_forge_empty'), "error");
 
     if (window.AntiMate && window.AntiMate.check(scenarioName)) {
-        return showNotification(window.t('msg_inq'), "error");
+        return window.showNotification(window.t('msg_inq'), "error");
     }
     
     const newScenario = {
@@ -275,12 +338,12 @@ window.publishStory = async function() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: newScenario })
         });
-        if (response.ok && typeof showNotification === 'function') showNotification(window.t('msg_scroll_saved'), "success");
+        if (response.ok && typeof showNotification === 'function') window.showNotification(window.t('msg_scroll_saved'), "success");
     } catch (e) { }
     
     setTimeout(() => {
         window.closeEditor();
-        if(typeof renderGallery === 'function' && !document.getElementById('community-modal').classList.contains('hidden')) { window.renderGallery(); }
+        if(typeof window.renderGallery === 'function' && !document.getElementById('community-modal').classList.contains('hidden')) { window.renderGallery(); }
     }, 1000);
 }
 
@@ -292,7 +355,7 @@ window.downloadCurrentEditorStory = function() {
     const gGoal = document.getElementById('edit-scenario-goal').value || "Победить";
     const eGoal = document.getElementById('edit-scenario-egoal').value || "Уничтожить врага";
 
-    if (window.editorSteps.length === 0) return showNotification(window.t('msg_forge_empty'), "error");
+    if (window.editorSteps.length === 0) return window.showNotification(window.t('msg_forge_empty'), "error");
 
     const data = { 
         title: scenarioName, 
@@ -310,5 +373,5 @@ window.downloadCurrentEditorStory = function() {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-    if(typeof showNotification === 'function') showNotification(window.t('msg_scroll_downloaded'), "success");
+    if(typeof showNotification === 'function') window.showNotification(window.t('msg_scroll_downloaded'), "success");
 }
