@@ -11,10 +11,20 @@ const dict = {
         scrolls_title: "Свитки других Лордов", calm_title: "Затишье", calm_desc: "Армии ждут...", tasks_title: "Задачи", enemy_title: "Враг", chronicle_title: "Хроника",
         forge_title: "Кузница Сценариев", make_moves: "Делайте ходы на доске", forge_publish: "Высечь в Свитках", forge_download: "Забрать в Архив (Скачать)",
         forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать ход забвению (Удалить)",
-        msg_spam: "Вороны устали! Подождите 3 секунд.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
+        msg_spam: "Вороны устали! Подождите 5 секунд.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
         msg_short: "Имя не достойно Лорда! (Минимум 3 буквы)", msg_welcome: "С возвращением, Лорд ", msg_forge_empty: "Кузница пуста! Скуйте хотя бы один ход!",
         msg_title_empty: "Нареките свою Летопись именем!", msg_scroll_saved: "Ваша летопись навеки запечатлена в Зале Свитков!", msg_scroll_downloaded: "Свиток перенесен в ваши личные архивы!",
-        msg_scroll_burned: "Свиток предан огню и стерт из памяти веков!", read: "Читать", unknown: "Неизвестный", goals: "Цели"
+        msg_scroll_burned: "Свиток предан огню и стерт из памяти веков!", read: "Читать", unknown: "Неизвестный", goals: "Цели",
+        forge_name_ph: "Название вашей главы (всей партии)", forge_goal_ph: "Ваша Цель (напр. Захватить центр)", forge_egoal_ph: "Цель Врага (напр. Казнь короля)",
+        forge_step_title_ph: "Название текущего хода (напр. Прорыв)", forge_step_text_ph: "Текст истории или реплика для этого хода...", chat_ph: "Ваше послание...",
+        search_ph: "Поиск по имени Лорда или названию Свитка...", hint_forge_name: "Нареките свою историю, чтобы она вошла в века.",
+        hint_forge_goals: "Укажите, к чему стремится ваше войско и армия врага.", hint_forge_step: "Опишите маневр, добавьте реплики героев и выберите подходящую руну.",
+        guide_btn_title: "Мудрость Предков (Гайд)", guide_title: "Том Мудрости", guide_intro: "Приветствуем, Лорд! Этот фолиант поможет вам освоить искусство Летописца.",
+        guide_forge: "🔨 Кузница Сценариев", guide_forge_desc: "Здесь вы создаете свои истории. Задайте имя летописи и глобальные цели сторон. Делая ходы на доске, вы создаете шаги. Каждому шагу можно дать имя, описание (повествование или диалог) и выбрать эмодзи. Если ход выполняет цель, поставьте галочку.",
+        guide_scrolls: "📜 Зал Свитков", guide_scrolls_desc: "Облачная библиотека, где хранятся творения других Лордов. Вы можете читать их истории, ставить лайки (♥️) или дизлайки (💔), а также скачивать их себе.",
+        guide_mail: "🐦‍⬛ Воронья Почта", guide_mail_desc: "Чат правителей. Общайтесь с другими создателями. Сообщения удаляются со временем, а сквернословие строго карается Инквизицией.",
+        guide_battle: "⚔️ Начало Битвы", guide_battle_desc: "Выберите историю в главном меню и нажмите 'Начать битву', чтобы насладиться партией с озвучкой и визуализацией.",
+        forge_check_goal: "Выполняет вашу цель", forge_check_egoal: "Выполняет цель врага"
     },
     en: {
         checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud. Cannot be changed. No duplicates allowed.",
@@ -25,10 +35,20 @@ const dict = {
         scrolls_title: "Scrolls of other Lords", calm_title: "Calm", calm_desc: "Armies are waiting...", tasks_title: "Tasks", enemy_title: "Enemy", chronicle_title: "Chronicle",
         forge_title: "Scenario Forge", make_moves: "Make moves on the board", forge_publish: "Carve into Scrolls", forge_download: "Take to Archive (Download)",
         forge_empty: "The forge is empty. Forge the first move...", forge_undo: "Cast move into oblivion (Undo)",
-        msg_spam: "Ravens are tired! Wait 3 seconds.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
+        msg_spam: "Ravens are tired! Wait 5 seconds.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
         msg_short: "Name unworthy of a Lord! (Min 3 letters)", msg_welcome: "Welcome back, Lord ", msg_forge_empty: "Forge is empty! Forge at least one move!",
         msg_title_empty: "Name your Chronicle!", msg_scroll_saved: "Your chronicle is forever carved in the Hall of Scrolls!", msg_scroll_downloaded: "Scroll transferred to your personal archives!",
-        msg_scroll_burned: "Scroll burned and erased from the memory of ages!", read: "Read", unknown: "Unknown", goals: "Goals"
+        msg_scroll_burned: "Scroll burned and erased from the memory of ages!", read: "Read", unknown: "Unknown", goals: "Goals",
+        forge_name_ph: "Name of your chapter (entire game)", forge_goal_ph: "Your Goal (e.g. Capture center)", forge_egoal_ph: "Enemy Goal (e.g. Execute king)",
+        forge_step_title_ph: "Current move title (e.g. Breakthrough)", forge_step_text_ph: "Story text or character dialogue for this move...", chat_ph: "Your message...",
+        search_ph: "Search by Lord's name or Scroll title...", hint_forge_name: "Name your story so it goes down in history.",
+        hint_forge_goals: "Define what your army and the enemy strive for.", hint_forge_step: "Describe the maneuver, add dialogue, and select a rune (icon).",
+        guide_btn_title: "Tome of Wisdom (Guide)", guide_title: "Tome of Wisdom", guide_intro: "Welcome, Lord! This folio will help you master the Chronicler's art.",
+        guide_forge: "🔨 Scenario Forge", guide_forge_desc: "Here you forge your stories. Set the chronicle's name and global goals. Making moves on the board creates steps. Give each step a title, description (narrative or dialogue), and an emoji. If a move completes a goal, check the box.",
+        guide_scrolls: "📜 Hall of Scrolls", guide_scrolls_desc: "A cloud library containing the creations of other Lords. Read their stories, leave likes (♥️) or dislikes (💔), and download them to your archive.",
+        guide_mail: "🐦‍⬛ Raven Mail", guide_mail_desc: "The rulers' chat. Speak with other creators. Old messages vanish, and foul language is punished by the Inquisition.",
+        guide_battle: "⚔️ Starting a Battle", guide_battle_desc: "Select a story in the main menu and press 'Start Battle' to enjoy a fully voiced and visual game.",
+        forge_check_goal: "Completes your goal", forge_check_egoal: "Completes enemy goal"
     },
     uk: {
         checking_archives: "Перевірка архівів...", name_yourself: "Назви себе, Лорде", name_desc: "Ім'я буде викарбувано в камені навічно і збережено в хмарі. Його не можна змінити. Однакових імен не буває.",
@@ -39,10 +59,20 @@ const dict = {
         scrolls_title: "Сувої інших Лордів", calm_title: "Затишшя", calm_desc: "Армії чекають...", tasks_title: "Завдання", enemy_title: "Ворог", chronicle_title: "Літопис",
         forge_title: "Кузня Сценаріїв", make_moves: "Робіть ходи на дошці", forge_publish: "Викарбувати в Сувоях", forge_download: "Забрати в Архів (Завантажити)",
         forge_empty: "Кузня порожня. Викуйте перший хід...", forge_undo: "Віддати хід забуттю (Видалити)",
-        msg_spam: "Ворони втомилися! Зачекайте 3 секунди.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
+        msg_spam: "Ворони втомилися! Зачекайте 5 секунд.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
         msg_short: "Ім'я не гідне Лорда! (Мінімум 3 літери)", msg_welcome: "З поверненням, Лорде ", msg_forge_empty: "Кузня порожня! Викуйте хоча б один хід!",
         msg_title_empty: "Назвіть свій Літопис!", msg_scroll_saved: "Ваш літопис навіки збережено в Залі Сувоїв!", msg_scroll_downloaded: "Сувій перенесено до ваших особистих архівів!",
-        msg_scroll_burned: "Сувій спалено і стерто з пам'яті віків!", read: "Читати", unknown: "Невідомий", goals: "Цілі"
+        msg_scroll_burned: "Сувій спалено і стерто з пам'яті віків!", read: "Читати", unknown: "Невідомий", goals: "Цілі",
+        forge_name_ph: "Назва вашої глави (всієї партії)", forge_goal_ph: "Ваша Ціль (напр. Захопити центр)", forge_egoal_ph: "Ціль Ворога (напр. Страта короля)",
+        forge_step_title_ph: "Назва поточного ходу (напр. Прорив)", forge_step_text_ph: "Текст історії або репліка для цього ходу...", chat_ph: "Ваше послання...",
+        search_ph: "Пошук за іменем Лорда або назвою Сувою...", hint_forge_name: "Назвіть свою історію, щоб вона увійшла у віки.",
+        hint_forge_goals: "Вкажіть, до чого прагне ваше військо та армія ворога.", hint_forge_step: "Опишіть маневр, додайте репліки героїв і виберіть руну (іконку).",
+        guide_btn_title: "Том Мудрості (Гайд)", guide_title: "Том Мудрості", guide_intro: "Вітаємо, Лорде! Цей фоліант допоможе вам опанувати мистецтво Літописця.",
+        guide_forge: "🔨 Кузня Сценаріїв", guide_forge_desc: "Тут ви створюєте свої історії. Задайте ім'я літопису та глобальні цілі. Роблячи ходи на дошці, ви створюєте кроки. Кожному кроку можна дати ім'я, опис (оповідь або діалог) та вибрати емодзі. Якщо хід виконує ціль, поставте галочку.",
+        guide_scrolls: "📜 Зала Сувоїв", guide_scrolls_desc: "Хмарна бібліотека з творіннями інших Лордів. Читайте їхні історії, ставте вподобайки (♥️) або навпаки (💔), а також завантажуйте їх собі.",
+        guide_mail: "🐦‍⬛ Вороняча Пошта", guide_mail_desc: "Чат правителів. Спілкуйтеся з іншими творцями. Повідомлення видаляються з часом, а лихослів'я карається Інквізицією.",
+        guide_battle: "⚔️ Початок Битви", guide_battle_desc: "Виберіть історію в головному меню і натисніть 'Почати битву', щоб насолодитися партією з озвучкою та візуалізацією.",
+        forge_check_goal: "Виконує вашу ціль", forge_check_egoal: "Виконує ціль ворога"
     }
 };
 
@@ -58,7 +88,15 @@ function changeLanguage(lang) {
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (dict[currentLang][key]) el.textContent = dict[currentLang][key];
+        if (dict[currentLang] && dict[currentLang][key]) el.innerHTML = dict[currentLang][key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[currentLang] && dict[currentLang][key]) el.placeholder = dict[currentLang][key];
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (dict[currentLang] && dict[currentLang][key]) el.title = dict[currentLang][key];
     });
 }
 window.addEventListener('DOMContentLoaded', applyTranslations);
@@ -118,6 +156,8 @@ async function saveNickname() {
 
 function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
 function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
+function openGuide() { document.getElementById('guide-modal').classList.remove('hidden'); }
+function closeGuide() { document.getElementById('guide-modal').classList.add('hidden'); }
 
 // ====== ВОРОНЬЯ ПОЧТА (Чат) ======
 let chatPollInterval;
@@ -395,7 +435,6 @@ function startGame() {
     resumeAudio();
     document.getElementById('menu-vol').style.display = 'none';
     
-    // Если сценарий кастомный, но его нет в объекте (например, обновили страницу), грузим первый
     if (!scenarios[selectedScenarioKey]) {
         selectedScenarioKey = 'argus';
     }
@@ -578,7 +617,6 @@ let selectedSquare = null;
 let validMovesForSelected = [];
 let selectedEditorStepIndex = null;
 
-// Эмодзи по твоему заказу: сначала ‼️❗❓, потом остальные, затем фигуры
 const availableIcons = [
     "‼️", "❗", "❓",
     "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
