@@ -1,9 +1,34 @@
-// Генерация или получение секретного ID пользователя (чтобы защитить удаление)
+// ====== ЛОГИКА АВТОРИЗАЦИИ (ИМЯ ЛОРДА) ======
 let myAuthorId = localStorage.getItem('chess_saga_author_id');
 if (!myAuthorId) {
-    myAuthorId = 'user_' + Math.random().toString(36).substr(2, 9);
+    myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chess_saga_author_id', myAuthorId);
 }
+
+let myNickname = localStorage.getItem('chess_saga_nickname');
+
+window.addEventListener('DOMContentLoaded', () => {
+    if (!myNickname) {
+        document.getElementById('nickname-modal').classList.remove('hidden');
+    } else {
+        document.getElementById('settings-nickname-display').textContent = myNickname;
+    }
+});
+
+function saveNickname() {
+    const input = document.getElementById('nickname-input').value.trim();
+    if (input.length < 3) return showNotification("Имя не достойно Лорда! (Минимум 3 буквы)", "error");
+    if (window.AntiMate && AntiMate.check(input)) return showNotification("Инквизиция отвергла это имя!", "error");
+    
+    myNickname = input;
+    localStorage.setItem('chess_saga_nickname', myNickname);
+    document.getElementById('nickname-modal').classList.add('hidden');
+    document.getElementById('settings-nickname-display').textContent = myNickname;
+    showNotification(`С возвращением, Лорд ${myNickname}!`, "success");
+}
+
+function openSettings() { document.getElementById('settings-modal').classList.remove('hidden'); }
+function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
 
 const API_URL = 'https://chess-api.kilanov.workers.dev/';
 
@@ -32,6 +57,15 @@ window.AntiMate = {
     }
 };
 
+// ====== ГАЛЕРЕЯ И ЛАЙКИ ======
+let gallerySearchTerm = "";
+let userLikes = JSON.parse(localStorage.getItem('chess_saga_likes') || '{}');
+
+function updateGallerySearch() {
+    gallerySearchTerm = document.getElementById('community-search').value.toLowerCase();
+    renderGallery();
+}
+
 function openCommunityModal() {
     document.getElementById('community-modal').classList.remove('hidden');
     renderGallery();
@@ -40,9 +74,29 @@ function closeCommunityModal() {
     document.getElementById('community-modal').classList.add('hidden');
 }
 
+window.toggleReaction = function(index, type) {
+    const p = scenarios['custom_' + index];
+    const id = p.db_id || p.title; 
+    let current = userLikes[id] || 0;
+    
+    let diffLike = 0, diffDislike = 0;
+
+    if (type === 'like') {
+        if (current === 1) { userLikes[id] = 0; diffLike = -1; }
+        else { userLikes[id] = 1; diffLike = 1; if (current === -1) diffDislike = -1; }
+    } else {
+        if (current === -1) { userLikes[id] = 0; diffDislike = -1; }
+        else { userLikes[id] = -1; diffDislike = 1; if (current === 1) diffLike = -1; }
+    }
+
+    localStorage.setItem('chess_saga_likes', JSON.stringify(userLikes));
+    p.likes = (p.likes || 0) + diffLike;
+    p.dislikes = (p.dislikes || 0) + diffDislike;
+    renderGallery();
+}
+
 async function renderGallery() {
     const gallery = document.getElementById('community-gallery');
-    gallery.innerHTML = '<p class="col-span-full text-center text-amber-500 italic animate-pulse">Ищем свитки в облачных архивах...</p>';
     
     let localParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
     let dbParties = [];
@@ -58,7 +112,7 @@ async function renderGallery() {
                 return pd;
             });
         }
-    } catch (e) { console.log("Ошибка загрузки с облака, используем локальные:", e); }
+    } catch (e) { console.log("Орден связи не отвечает, загружаем локальные:", e); }
 
     let allParties = [...dbParties];
     localParties.forEach(lp => {
@@ -67,16 +121,23 @@ async function renderGallery() {
         }
     });
 
-    if (allParties.length === 0) {
-        gallery.innerHTML = '<p class="col-span-full text-center text-slate-600 italic">Здесь пока пусто... Создайте первую историю в Кузнице!</p>';
+    const filteredParties = allParties.filter(p => 
+        (p.title && p.title.toLowerCase().includes(gallerySearchTerm)) || 
+        (p.author_name && p.author_name.toLowerCase().includes(gallerySearchTerm))
+    );
+
+    if (filteredParties.length === 0) {
+        gallery.innerHTML = '<p class="col-span-full text-center text-slate-600 italic">Свитки с таким именем не найдены в архивах...</p>';
         return;
     }
 
-    gallery.innerHTML = allParties.map((p, index) => {
+    gallery.innerHTML = filteredParties.map((p, originalIndex) => {
         if(!p || !p.story) return '';
-        scenarios['custom_' + index] = p; 
+        const localIndex = originalIndex; 
+        scenarios['custom_' + localIndex] = p; 
         
         const canDelete = p.author_id === myAuthorId;
+        const uId = p.db_id || p.title;
 
         return `
         <div class="scenario-card border-purple-900 bg-slate-900/80 p-4 rounded-xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
@@ -85,13 +146,21 @@ async function renderGallery() {
                 <p class="text-[10px] text-slate-400 mt-1 uppercase">Ходов: ${p.story.length}</p>
             </div>
             
-            ${canDelete ? `<button onclick="deleteFromGallery(${index})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 transition-colors" title="Удалить партию">🗑️</button>` : ''}
+            ${canDelete ? `<button onclick="deleteFromGallery(${localIndex})" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 transition-colors" title="Сжечь свиток">🗑️</button>` : ''}
+
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[11px] text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || 'Неизвестный'}</span>
+                <div class="flex gap-2 text-xs">
+                    <button onclick="toggleReaction(${localIndex}, 'like')" class="${userLikes[uId] === 1 ? 'text-green-500' : 'text-slate-500'} hover:text-green-400 transition-colors">👍 ${p.likes || 0}</button>
+                    <button onclick="toggleReaction(${localIndex}, 'dislike')" class="${userLikes[uId] === -1 ? 'text-red-500' : 'text-slate-500'} hover:text-red-400 transition-colors">👎 ${p.dislikes || 0}</button>
+                </div>
+            </div>
 
             <div class="flex gap-2">
-                <button onclick="playCustomScenario(${index})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white flex items-center justify-center gap-1">
-                    <img src="${visualizationPath}👁️.png" class="w-4 h-4" onerror="this.style.display='none'"> Смотреть
+                <button onclick="playCustomScenario(${localIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-xs font-bold uppercase transition-colors text-white flex items-center justify-center gap-1">
+                    <img src="Visualization/👁️.png" class="w-4 h-4" onerror="this.outerHTML='<span>👁️</span>'"> Читать
                 </button>
-                <button onclick="downloadFromGallery(${index})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm transition-colors text-white" title="Скачать">💾</button>
+                <button onclick="downloadFromGallery(${localIndex})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm transition-colors text-white" title="Забрать в архив">💾</button>
             </div>
         </div>`;
     }).join('');
@@ -99,7 +168,7 @@ async function renderGallery() {
 
 async function deleteFromGallery(index) {
     const p = scenarios['custom_' + index];
-    if(!confirm(`Вы точно хотите удалить партию "${p.title}" из Свитков?`)) return;
+    if(!confirm(`Вы точно хотите предать огню свиток "${p.title}"?`)) return;
 
     let customParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
     customParties = customParties.filter(cp => cp.title !== p.title);
@@ -110,11 +179,11 @@ async function deleteFromGallery(index) {
         try {
             const endpoint = API_URL.endsWith('/') ? `${API_URL}${p.db_id}` : `${API_URL}/${p.db_id}`;
             const response = await fetch(endpoint, { method: 'DELETE', mode: 'cors' });
-            if (response.ok) showNotification("Партия успешно удалена из всех баз!", "success");
-            else showNotification("Ошибка удаления на сервере", "error");
-        } catch (error) { showNotification("Ошибка сети при удалении", "error"); }
+            if (response.ok) showNotification("Свиток стерт из памяти веков!", "success");
+            else showNotification("Темная магия мешает удалить Свиток", "error");
+        } catch (error) { showNotification("Связь с архивом потеряна", "error"); }
     } else {
-        showNotification("Локальная партия удалена!", "success");
+        showNotification("Локальный свиток сожжен!", "success");
     }
     renderGallery();
 }
@@ -133,6 +202,7 @@ function downloadFromGallery(index) {
     dl.setAttribute("href", dataStr);
     dl.setAttribute("download", p.title + ".json");
     document.body.appendChild(dl); dl.click(); dl.remove();
+    showNotification("Свиток успешно перенесен в ваши архивы!", "success");
 }
 
 const visualizationPath = "Visualization/";
@@ -187,7 +257,7 @@ function startGame() {
     document.getElementById('move-counter').textContent = `ХОД: 1`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
 
-    document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;" onerror="this.style.display='none'">`;
+    document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span>🏰</span>'">`;
     document.getElementById('scene-title').textContent = sc.title || "Ваша история начинается";
     document.getElementById('scene-desc').textContent = "Сделайте первый ход, чтобы запустить летопись.";
 
@@ -269,7 +339,7 @@ function jumpToStep(stepIndex) {
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
     } else {
-        document.getElementById('visual-stage').innerHTML = `<img src="${visualizationPath}🏰.png" style="width: 80px; height: 80px;" onerror="this.style.display='none'">`;
+        document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span>🏰</span>'">`;
         document.getElementById('scene-title').textContent = "Ваша история начинается";
         document.getElementById('scene-desc').textContent = "Сделайте первый ход...";
         document.getElementById('move-counter').textContent = `ХОД: 1`;
@@ -297,12 +367,8 @@ function updateVisuals(data, createLog) {
     }
     
     const stage = document.getElementById('visual-stage');
-    if (data.icon && !data.icon.includes('.png') && [...data.icon].length <= 2) {
-        stage.innerHTML = `<span style="font-size: 4rem;">${data.icon}</span>`;
-    } else {
-        let iconSrc = data.icon.includes('.png') ? data.icon : `${data.icon}.png`;
-        stage.innerHTML = `<img src="${visualizationPath}${iconSrc}" onerror="this.style.display='none'">`;
-    }
+    // Обновленный рендер: Пытаемся грузить .png. Если нет файла, фолбэк на span с текстом (эмодзи).
+    stage.innerHTML = `<img src="Visualization/${data.icon}.png" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>${data.icon}</span>'">`;
 
     document.getElementById('scene-title').textContent = data.title;
     document.getElementById('scene-desc').textContent = data.text;
@@ -321,7 +387,7 @@ function updateVisuals(data, createLog) {
         const g = document.getElementById(`g${data.goal}`);
         if(g) { 
             g.className = "text-green-500 font-bold transition-all"; 
-            g.innerHTML = `<img src="${visualizationPath}g✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.style.display='none'"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
+            g.innerHTML = `<img src="Visualization/g✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.outerHTML='<span>✔️</span>'"> ` + g.innerText.replace('• ', '').replace('✔ ', '');
             g.style.textDecoration = "line-through";
         }
     }
@@ -329,7 +395,7 @@ function updateVisuals(data, createLog) {
         const eg = document.getElementById(`eg${data.egoal}`);
         if(eg) { 
             eg.className = "text-red-500 font-bold transition-all"; 
-            eg.innerHTML = `<img src="${visualizationPath}r✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.style.display='none'"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
+            eg.innerHTML = `<img src="Visualization/r✔️.png" class="inline-block w-4 h-4 mr-1" onerror="this.outerHTML='<span>✔️</span>'"> ` + eg.innerText.replace('• ', '').replace('✔ ', '');
             eg.style.textDecoration = "line-through";
         }
     }
@@ -353,7 +419,7 @@ let selectedSquare = null;
 let validMovesForSelected = [];
 let selectedEditorStepIndex = null;
 
-// Обновленный массив иконок: "!!", "!", "?", затем старые, затем шахматные символы
+// Новый порядок иконок, как просил
 const availableIcons = [
     "!!", "!", "?",
     "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
@@ -377,7 +443,9 @@ function initIcons() {
     const pageIcons = availableIcons.slice(start, end);
 
     container.innerHTML = pageIcons.map(icon => 
-        `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">${icon}</button>`
+        `<button onclick="setEditIcon('${icon}')" class="p-1 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
+            <img src="Visualization/${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
+        </button>`
     ).join('');
 
     let paginationHtml = '';
@@ -403,7 +471,7 @@ function openEditor() {
     document.getElementById('editor-modal').classList.remove('hidden');
     editorEngine = new Chess(); editorSteps = []; selectedSquare = null; validMovesForSelected = [];
     selectedEditorStepIndex = null; currentIconPage = 0;
-    document.getElementById('editor-steps-list').innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>';
+    document.getElementById('editor-steps-list').innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Кузница пуста. Скуйте первый ход...</p>';
     document.getElementById('editor-step-form').classList.add('hidden');
     initIcons(); renderEditorBoard();
 }
@@ -495,7 +563,7 @@ function undoEditorStep() {
 function renderEditorStepsList() {
     const list = document.getElementById('editor-steps-list');
     if(editorSteps.length === 0) {
-        list.innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>';
+        list.innerHTML = '<p class="text-slate-500 italic text-sm text-center mt-4">Кузница пуста. Скуйте первый ход...</p>';
         document.getElementById('editor-step-form').classList.add('hidden');
         return;
     }
@@ -508,7 +576,7 @@ function renderEditorStepsList() {
         <div onclick="selectEditorStep(${i})" class="p-2 border rounded-lg cursor-pointer hover:border-amber-500 transition-colors ${isActive} flex justify-between items-center text-slate-300 shrink-0">
             <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b> (${turnName})</span>
             <span class="text-[10px] truncate ml-3 flex-1 text-right italic text-slate-400">${s.title || 'Без названия'}</span>
-            <span class="ml-2 text-base">${s.icon}</span>
+            <span class="ml-2 text-base"><img src="Visualization/${s.icon}.png" class="w-5 h-5 inline object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'"></span>
         </div>`;
     }).join(''); 
 }
@@ -539,7 +607,7 @@ function updateCurrentStepData() {
     const icon = document.getElementById('edit-icon-input').value;
 
     if (window.AntiMate && (AntiMate.check(text) || AntiMate.check(title))) {
-        return showNotification("Обнаружена темная магия (нецензурная лексика)!", "error");
+        return showNotification("Инквизиция отвергла текст! Обнаружена темная магия (нецензурная лексика)!", "error");
     }
 
     editorSteps[selectedEditorStepIndex].title = title;
@@ -550,19 +618,22 @@ function updateCurrentStepData() {
 
 async function publishStory() {
     const scenarioName = document.getElementById('edit-scenario-name').value;
-    if (!scenarioName) return showNotification("Дайте название вашей Главе!", "error");
-    if (editorSteps.length < 1) return showNotification("Сделайте хотя бы один ход!", "error");
+    if (!scenarioName) return showNotification("Нареките свою Летопись именем!", "error");
+    if (editorSteps.length < 1) return showNotification("Кузница пуста! Скуйте хотя бы один ход!", "error");
 
     if (window.AntiMate && AntiMate.check(scenarioName)) {
-        return showNotification("Нецензурная лексика в названии!", "error");
+        return showNotification("Инквизиция отвергла название (нецензурная лексика)!", "error");
     }
     
     const newScenario = {
         title: scenarioName,
         author_id: myAuthorId, 
-        goals: ["Завершить партию", "Войти в историю"],
-        egoals: ["Не проиграть"],
-        story: editorSteps
+        author_name: myNickname || "Неизвестный Лорд", // Прикрепляем ник!
+        goals: ["Вписать свое имя в Вечность", "Сокрушить вражескую цитадель"],
+        egoals: ["Повергнуть вашего Монарха"],
+        story: editorSteps,
+        likes: 0,
+        dislikes: 0
     };
 
     let community = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
@@ -580,9 +651,9 @@ async function publishStory() {
             body: JSON.stringify({ data: newScenario })
         });
 
-        if (response.ok) showNotification("Партия выложена в общие Свитки!", "success");
-        else showNotification("Ошибка сервера. Сохранено локально.", "error");
-    } catch (e) { showNotification("Нет сети. Сохранено локально.", "error"); }
+        if (response.ok) showNotification("Ваша летопись навеки запечатлена в Зале Свитков!", "success");
+        else showNotification("Темная магия исказила связь с архивом. Сохранено локально.", "error");
+    } catch (e) { showNotification("Связь утеряна. Сохранено локально.", "error"); }
     
     setTimeout(() => {
         closeEditor();
@@ -592,9 +663,16 @@ async function publishStory() {
 
 function downloadCurrentEditorStory() {
     const scenarioName = document.getElementById('edit-scenario-name').value || "My_Chess_Saga";
-    if (editorSteps.length === 0) return showNotification("Сначала создайте ходы в Кузнице!", "error");
+    if (editorSteps.length === 0) return showNotification("Кузница пуста! Скуйте хотя бы один ход!", "error");
 
-    const data = { title: scenarioName, goals: ["Победить врага"], egoals: ["Разрушить ваши планы"], story: editorSteps };
+    const data = { 
+        title: scenarioName, 
+        author_name: myNickname || "Неизвестный Лорд",
+        goals: ["Сокрушить вражескую цитадель"], 
+        egoals: ["Повергнуть вашего Монарха"], 
+        story: editorSteps 
+    };
+    
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
@@ -602,5 +680,5 @@ function downloadCurrentEditorStory() {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-    showNotification("Скачивание началось!", "success");
+    showNotification("Свиток успешно перенесен в ваши архивы!", "success");
 }
