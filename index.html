@@ -8,107 +8,67 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body onclick="resumeAudio()"> 
     
-    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm tracking-widest z-[9999] transition-all duration-500 opacity-0 pointer-events-none flex items-center gap-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] -translate-y-10">
-        <div id="toast-icon" class="w-6 h-6 flex-shrink-0 flex items-center justify-center"></div>
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm tracking-widest z-[9999] transition-all duration-500 opacity-0 pointer-events-none flex items-center gap-2 shadow-[0_0_30px_rgba(0,0,0,0.8)] -translate-y-10">
+        <span id="toast-icon" class="text-xl">📜</span>
         <span id="toast-text" class="drop-shadow-md">Сообщение</span>
     </div>
 
-    <audio id="audio-bg" loop><source src="Music_Background.mp3" type="audio/mpeg"></audio>
+    <audio id="audio-bg" loop>
+        <source src="Music_Background.mp3" type="audio/mpeg">
+    </audio>
+
     <div id="flash" class="flash-screen"></div>
 
-    <div id="main-menu" class="radial-bg">
-        <button onclick="openSettings()" class="absolute top-6 right-6 text-slate-400 hover:text-amber-500 transition-colors z-[2001]">
-            <img src="Visualization/⚙️.png" alt="Settings" class="w-8 h-8 opacity-80 hover:opacity-100" onerror="this.src=''; this.alt='⚙️'">
-        </button>
+    <div id="menu-vol" class="vol-menu volume-box">
+        <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
+        <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
+    </div>
 
+    <div id="main-menu">
         <h1 class="text-6xl text-amber-500 font-bold mb-4 tracking-tighter text-center">CHESS SAGA</h1>
-        <p class="text-slate-400 italic mb-4 text-center" data-i18n="menu_subtitle">Выберите главу истории</p>
+        <p class="text-slate-400 italic mb-4 text-center">Выберите главу истории</p>
         
         <div class="scenario-selector">
             <div class="scenario-card active" onclick="selectScenario('argus')">
                 <h3 class="text-amber-500 font-bold mb-2">
-                    <img src="Visualization/✨.png" class="menu-icon" onerror="this.style.display='none'"> <span data-i18n="scen_1_title">Свет Аргуса</span>
+                    <img src="Visualization/✨.png" class="menu-icon" onerror="this.style.display='none'"> Свет Аргуса
                 </h3>
-                <p class="text-xs text-slate-400" data-i18n="scen_1_desc">Поучительная история о самопожертвовании.</p>
+                <p class="text-xs text-slate-400">Поучительная история о самопожертвовании.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('standard')">
                 <h3 class="text-sky-400 font-bold mb-2">
-                    <img src="Visualization/🚩.png" class="menu-icon" onerror="this.style.display='none'"> <span data-i18n="scen_2_title">Знамя Света</span>
+                    <img src="Visualization/🚩.png" class="menu-icon" onerror="this.style.display='none'"> Знамя Света
                 </h3>
-                <p class="text-xs text-slate-400" data-i18n="scen_2_desc">Орден Юстициария против Клана.</p>
+                <p class="text-xs text-slate-400">Орден Юстициария против Клана Кровавого Тотема.</p>
             </div>
             <div class="scenario-card" onclick="selectScenario('traxler')">
                 <h3 class="text-red-500 font-bold mb-2">
-                    <img src="Visualization/🌑.png" class="menu-icon" onerror="this.style.display='none'"> <span data-i18n="scen_3_title">Судьба Тракслера</span>
+                    <img src="Visualization/🌑.png" class="menu-icon" onerror="this.style.display='none'"> Судьба Тракслера
                 </h3>
-                <p class="text-xs text-slate-400" data-i18n="scen_3_desc">Безумный гамбит и падение Белого Солнца.</p>
+                <p class="text-xs text-slate-400">Безумный гамбит и падение Белого Солнца.</p>
             </div>
         </div>
 
         <div class="flex flex-wrap justify-center gap-4 mt-8">
-            <button class="menu-btn border-amber-500 text-amber-500 hover:bg-amber-500" onclick="startGame()" data-i18n="btn_start">НАЧАТЬ БИТВУ</button>
-            <button class="menu-btn border-sky-500 text-sky-500 hover:bg-sky-500" onclick="openForgeColorSelect()" data-i18n="btn_forge">КУЗНИЦА</button>
-            <button class="menu-btn border-purple-500 text-purple-500 hover:bg-purple-500" onclick="openCommunityModal()" data-i18n="btn_community">СВИТКИ КОРОЛЕВСТВ</button>
-            <button class="menu-btn border-green-500 text-green-500 hover:bg-green-500" onclick="openChat()" data-i18n="btn_chat">ВОРОНЬЯ ПОЧТА</button>
-        </div>
-    </div>
-
-    <div id="settings-modal" class="fixed inset-0 bg-black/95 z-[6000] hidden flex justify-center items-center">
-        <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md relative">
-            <div class="btn-exit-x" onclick="closeSettings()" style="top: 10px; left: 10px;">×</div>
-            <h2 class="text-3xl font-bold text-amber-500 text-center mb-6" data-i18n="settings_title">Настройки</h2>
-            
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-slate-400 text-sm mb-2 uppercase" data-i18n="set_lang">Язык / Language</label>
-                    <select id="lang-select" class="w-full bg-slate-800 border border-slate-600 p-3 rounded text-white" onchange="changeLanguage(this.value)">
-                        <option value="ru">Русский</option>
-                        <option value="en">English</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-sm mb-2 uppercase" data-i18n="set_music">Музыка</label>
-                    <input type="range" id="vol-music" min="0" max="1" step="0.01" class="w-full" oninput="updateMusicVolume(this.value)">
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-sm mb-2 uppercase" data-i18n="set_voice">Озвучка ходов</label>
-                    <input type="range" id="vol-voice" min="0" max="1" step="0.01" class="w-full" oninput="updateVoiceVolume(this.value)">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="chat-modal" class="fixed inset-0 bg-black/95 z-[5000] hidden flex flex-col items-center justify-center p-4">
-        <div class="btn-exit-x" onclick="closeChat()" style="position: absolute; top: 1.5rem; left: 1.5rem;">×</div>
-        <div class="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl h-[80vh] flex flex-col overflow-hidden">
-            <div class="p-4 bg-slate-800 border-b border-slate-700 flex items-center gap-3">
-                <img src="Visualization/🐦‍⬛.png" class="w-8 h-8" onerror="this.style.display='none'">
-                <h2 class="text-2xl font-bold text-green-500" data-i18n="chat_title">Воронья Почта</h2>
-            </div>
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
-                </div>
-            <div class="p-4 bg-slate-800 border-t border-slate-700 flex gap-2">
-                <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-600 p-3 rounded text-white" placeholder="Написать письмо..." data-i18n="chat_placeholder">
-                <button onclick="sendChatMessage()" class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded font-bold text-white transition-colors" data-i18n="chat_send">Отправить</button>
-            </div>
+            <button class="px-8 py-3 border-2 border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="startGame()">НАЧАТЬ БИТВУ</button>
+            <button class="px-8 py-3 border-2 border-sky-500 text-sky-500 rounded-full hover:bg-sky-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openEditor()">КУЗНИЦА</button>
+            <button class="px-8 py-3 border-2 border-purple-500 text-purple-500 rounded-full hover:bg-purple-500 hover:text-slate-900 transition-all font-bold tracking-widest" onclick="openCommunityModal()">ИСТОРИИ КОРОЛЕВСТВ</button>
         </div>
     </div>
 
     <div id="community-modal" class="fixed inset-0 bg-black/95 z-[5000] hidden overflow-y-auto p-4 md:p-8">
         <div class="max-w-7xl mx-auto relative">
             <div class="btn-exit-x" onclick="closeCommunityModal()" style="top: -10px; left: -10px;">×</div>
-            <div class="flex flex-col justify-center items-center mb-8 mt-4">
-                <h2 class="text-3xl font-bold text-purple-500 uppercase mb-4" data-i18n="comm_title">Истории других королевств</h2>
-                <div class="w-full max-w-md relative">
-                    <input type="text" id="search-input" class="w-full bg-slate-900 border border-slate-600 p-3 pl-10 rounded-full text-white" placeholder="Поиск по названию или тегам (#ловушка)..." oninput="filterGallery(this.value)">
-                    <span class="absolute left-4 top-3 opacity-50">🔍</span>
-                </div>
+            <div class="flex justify-center items-center mb-8 mt-4">
+                <h2 class="text-3xl font-bold text-purple-500 uppercase">Истории других королевств</h2>
             </div>
-            <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-12"></div>
+            <div id="community-gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-12">
+                </div>
         </div>
     </div>
 
@@ -116,6 +76,11 @@
         <div class="left-panel">
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
+            <div class="vol-game volume-box">
+                <img src="Visualization/🔊.png" class="vol-icon-img" alt="vol">
+                <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.15" oninput="updateVolume(this.value)">
+            </div>
+
             <div class="theater-zone-mini">
                 <div id="visual-stage" class="visual-stage-mini">
                     <img src="Visualization/🏰.png" alt="scene">
@@ -130,11 +95,11 @@
         <div class="right-panel">
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest" data-i18n="goals_title">Задачи</h3>
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest">Задачи</h3>
                     <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
                 <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
-                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest" data-i18n="egoals_title">Враг</h3>
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest">Враг</h3>
                     <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
@@ -143,50 +108,33 @@
                 <span id="player-turn" class="text-xs font-mono text-amber-500">ОЧЕРЕДЬ: БЕЛЫЕ</span>
             </div>
             <div class="chronicle-card">
-                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase" data-i18n="chronicle">Хроника</h2></div>
+                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase">Хроника</h2></div>
                 <div class="narrative-scroll" id="narrative-box"><div id="chronicle-list" class="space-y-4"></div></div>
             </div>
         </div>
     </div>
 
-    <div id="forge-color-modal" class="fixed inset-0 bg-black/95 z-[5500] hidden flex justify-center items-center">
-        <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl text-center">
-            <div class="btn-exit-x" onclick="document.getElementById('forge-color-modal').classList.add('hidden')" style="top: 10px; left: 10px;">×</div>
-            <h2 class="text-3xl font-bold text-amber-500 mb-6" data-i18n="forge_color_title">За кого будете писать историю?</h2>
-            <div class="flex justify-center gap-8">
-                <div class="cursor-pointer hover:scale-110 transition-transform" onclick="openEditor('w')">
-                    <img src="Figures/w_king.png" class="w-24 h-24 mx-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
-                    <p class="text-white mt-4 font-bold uppercase" data-i18n="color_white">Белые (Орден)</p>
-                </div>
-                <div class="cursor-pointer hover:scale-110 transition-transform" onclick="openEditor('b')">
-                    <img src="Figures/b_king.png" class="w-24 h-24 mx-auto drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]">
-                    <p class="text-slate-400 mt-4 font-bold uppercase" data-i18n="color_black">Черные (Легион)</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="editor-modal" class="fixed inset-0 radial-bg z-[5000] hidden overflow-y-auto p-4 md:p-8">
+    <div id="editor-modal" class="fixed inset-0 z-[5000] hidden overflow-y-auto p-4 md:p-8">
         <div class="btn-exit-x" onclick="closeEditor()" style="position: fixed; top: 1.5rem; left: 1.5rem;">×</div>
 
         <div class="max-w-6xl mx-auto pt-4 md:pt-8">
             <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8">
+                
                 <div class="flex flex-col items-center">
-                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-6 tracking-widest text-center" data-i18n="forge_title">Кузница Сценариев</h2>
+                    <h2 class="text-4xl font-bold text-amber-500 uppercase mb-6 tracking-widest text-center">Кузница Сценариев</h2>
                     <div class="chess-board-outer">
                         <div id="editor-board" class="chess-board shadow-2xl shadow-sky-500/20"></div>
                     </div>
-                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest" data-i18n="forge_hint">Делайте ходы на доске</div>
+                    <div class="mt-4 text-sky-400 font-mono text-sm uppercase tracking-widest">Делайте ходы на доске</div>
                 </div>
 
-                <div class="flex flex-col bg-slate-900/80 p-4 rounded-2xl border border-slate-800 h-[85vh] shadow-xl overflow-hidden backdrop-blur-md">
-                    <div class="shrink-0 mb-4 space-y-2">
-                        <input id="edit-scenario-name" type="text" placeholder="Название вашей главы" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold text-sm focus:border-amber-500 outline-none">
-                        <input id="edit-scenario-tags" type="text" placeholder="Теги через запятую (напр. гамбит, ловушка)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-300 text-xs focus:border-sky-500 outline-none">
-                        
-                        <div class="grid grid-cols-2 gap-3 mt-2">
-                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg" data-i18n="btn_publish">Опубликовать</button>
-                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg" data-i18n="btn_download">Скачать</button>
+                <div class="flex flex-col bg-slate-900/50 p-4 rounded-2xl border border-slate-800 h-[85vh] shadow-xl shadow-black overflow-hidden">
+                    
+                    <div class="shrink-0 mb-4">
+                        <input id="edit-scenario-name" type="text" placeholder="Название вашей главы (всей партии)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-amber-500 font-bold mb-3 text-sm focus:border-amber-500 outline-none transition-colors">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="publishStory()" class="bg-amber-600 hover:bg-amber-500 p-2 rounded-lg font-bold uppercase transition-colors text-slate-900 text-[10px] tracking-widest shadow-lg">Опубликовать</button>
+                            <button onclick="downloadCurrentEditorStory()" class="bg-slate-700 hover:bg-slate-600 p-2 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest shadow-lg">Скачать партию</button>
                         </div>
                     </div>
 
@@ -195,8 +143,8 @@
                     <div id="editor-step-form" class="hidden flex-col gap-2 p-3 border border-sky-900 bg-slate-800/50 rounded-lg shrink-0 shadow-inner mb-4">
                         <h3 class="text-sky-400 font-bold text-xs uppercase" id="editing-step-label">Редактирование хода</h3>
                         
-                        <input id="edit-title" type="text" placeholder="Название текущего хода" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs outline-none" oninput="updateCurrentStepData()">
-                        <textarea id="edit-text" placeholder="Текст истории..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg h-16 text-slate-200 text-xs resize-none outline-none" oninput="updateCurrentStepData()"></textarea>
+                        <input id="edit-title" type="text" placeholder="Название текущего хода (напр. Прорыв)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-slate-200 text-xs focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
+                        <textarea id="edit-text" placeholder="Текст истории или реплика для этого хода..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg h-16 text-slate-200 text-xs resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
                         
                         <input id="edit-icon-input" type="hidden" value="⚔️">
                         
@@ -207,14 +155,15 @@
                     </div>
                     
                     <div id="editor-steps-list" class="flex flex-col gap-2 flex-1 overflow-y-auto pr-2 mb-4">
-                        <p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход...</p>
+                        <p class="text-slate-500 italic text-sm text-center mt-4">Сделайте первый ход на доске...</p>
                     </div>
 
                     <div class="pt-3 border-t border-slate-700 shrink-0">
-                        <button onclick="undoEditorStep()" class="w-full bg-red-900/80 hover:bg-red-700 p-3 rounded-lg font-bold uppercase transition-colors text-white text-[10px] flex justify-center items-center gap-2">
-                            <span data-i18n="btn_undo">Удалить ход</span> <span class="text-lg leading-none">↩</span>
+                        <button onclick="undoEditorStep()" class="w-full bg-red-900/80 hover:bg-red-700 p-3 rounded-lg font-bold uppercase transition-colors text-white text-[10px] tracking-widest flex justify-center items-center gap-2">
+                            <span>Удалить ход</span> <span class="text-lg leading-none">↩</span>
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
