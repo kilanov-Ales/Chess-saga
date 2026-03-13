@@ -40,13 +40,13 @@
     <div id="main-menu">
         <div class="absolute top-6 right-6 flex gap-6 z-[2000]">
             <button onclick="openGuide()" class="hover:scale-110 transition-transform duration-300" data-i18n-title="guide_btn_title">
-                <img src="Visualization/📖.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=\\'text-5xl\\'>📖</span>'">
+                <img src="Visualization/📖.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=&quot;text-5xl&quot;>📖</span>'">
             </button>
             <button onclick="openChat()" class="hover:scale-110 transition-transform duration-300" data-i18n-title="raven_mail">
-                <img src="Visualization/🐦‍⬛.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=\\'text-5xl\\'>🐦‍⬛</span>'">
+                <img src="Visualization/🐦‍⬛.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=&quot;text-5xl&quot;>🐦‍⬛</span>'">
             </button>
             <button onclick="openSettings()" class="hover:rotate-90 transition-transform duration-300" data-i18n-title="settings_title">
-                <img src="Visualization/⚙️.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=\\'text-5xl\\'>⚙️</span>'">
+                <img src="Visualization/⚙️.png" class="w-14 h-14 object-contain" onerror="this.outerHTML='<span class=&quot;text-5xl&quot;>⚙️</span>'">
             </button>
         </div>
 
@@ -85,32 +85,37 @@
         <div class="btn-exit-x" onclick="closeGuide()" style="top: 1.5rem; right: 1.5rem; left: auto;">×</div>
         <div class="bg-slate-900 border border-amber-700 p-8 md:p-12 rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-y-auto shadow-[0_0_60px_rgba(245,158,11,0.15)]">
             <h2 class="text-4xl md:text-5xl font-bold text-amber-500 mb-4 uppercase text-center font-cinzel flex justify-center items-center gap-4">
-                <img src="Visualization/📖.png" class="w-14 h-14 object-contain" alt="Гайд"> <span data-i18n="guide_title">Том Мудрости</span>
+                <img src="Visualization/📖.png" class="w-14 h-14 object-contain" alt="Гайд" onerror="this.style.display='none'"> 
+                <span data-i18n="guide_title">Том Мудрости</span>
             </h2>
             <p class="text-center text-slate-400 italic text-lg mb-10" data-i18n="guide_intro">Приветствуем, Лорд! Этот фолиант поможет вам освоить искусство Летописца.</p>
             
             <div class="space-y-8 text-slate-300 text-lg leading-relaxed">
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
                     <h3 class="text-amber-500 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/⚔️.png" class="w-8 h-8 object-contain" alt=""> <span data-i18n="guide_battle">Начало Битвы</span>
+                        <img src="Visualization/⚔️.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_battle">Начало Битвы</span>
                     </h3>
                     <p data-i18n="guide_battle_desc">Выберите историю в главном меню и нажмите 'Начать битву', чтобы насладиться партией с озвучкой и визуализацией.</p>
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-sky-900">
                     <h3 class="text-sky-400 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/🔨.png" class="w-8 h-8 object-contain" alt=""> <span data-i18n="guide_forge">Кузница Сценариев</span>
+                        <img src="Visualization/🔨.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_forge">Кузница Сценариев</span>
                     </h3>
                     <p data-i18n="guide_forge_desc">Здесь вы создаете свои истории. Задайте имя летописи, теги и цели. Делая ходы на доске, вы создаете шаги. Каждому шагу можно дать имя, описание (повествование или диалог) и выбрать эмодзи. Выбирайте в выпадающем списке, какую именно цель выполняет ход.</p>
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-purple-900">
                     <h3 class="text-purple-400 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/📜.png" class="w-8 h-8 object-contain" alt=""> <span data-i18n="guide_scrolls">Зал Свитков</span>
+                        <img src="Visualization/📜.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_scrolls">Зал Свитков</span>
                     </h3>
                     <p data-i18n="guide_scrolls_desc">Облачная библиотека, где хранятся творения других Лордов. Вы можете читать их истории, ставить лайки или дизлайки, а также скачивать их себе.</p>
                 </div>
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-600">
                     <h3 class="text-slate-200 font-bold mb-3 text-2xl flex items-center gap-3">
-                        <img src="Visualization/🐦‍⬛.png" class="w-8 h-8 object-contain" alt=""> <span data-i18n="guide_mail">Воронья Почта</span>
+                        <img src="Visualization/🐦‍⬛.png" class="w-8 h-8 object-contain" alt="" onerror="this.style.display='none'"> 
+                        <span data-i18n="guide_mail">Воронья Почта</span>
                     </h3>
                     <p data-i18n="guide_mail_desc">Чат правителей. Общайтесь с другими создателями. Сообщения удаляются со временем, а сквернословие строго карается Инквизицией.</p>
                 </div>
@@ -122,7 +127,7 @@
         <div class="btn-exit-x" onclick="closeChat()" style="top: 1.5rem; right: 1.5rem; left: auto;">×</div>
         <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl w-full max-w-3xl h-[80vh] flex flex-col relative shadow-[0_0_50px_rgba(255,255,255,0.05)]">
             <h2 class="text-4xl font-bold text-slate-200 mb-6 uppercase flex items-center gap-3">
-                <img src="Visualization/🐦‍⬛.png" class="w-12 h-12 object-contain"> 
+                <img src="Visualization/🐦‍⬛.png" class="w-12 h-12 object-contain" onerror="this.style.display='none'"> 
                 <span data-i18n="raven_mail">Воронья Почта</span>
             </h2>
             <div id="chat-messages" class="flex-1 overflow-y-auto bg-slate-800/50 rounded-2xl p-6 space-y-5 mb-5 border border-slate-700 text-lg">
@@ -151,7 +156,7 @@
 
             <div class="mb-10 flex flex-col items-center">
                 <span class="text-amber-500 font-bold mb-4 text-base uppercase tracking-widest flex items-center gap-2">
-                    <img src="Visualization/🔊.png" class="w-6 h-6"> <span data-i18n="music_vol">Музыка Битвы</span>
+                    <img src="Visualization/🔊.png" class="w-6 h-6" onerror="this.style.display='none'"> <span data-i18n="music_vol">Музыка Битвы</span>
                 </span>
                 <input type="range" class="w-full max-w-xs h-4 rounded-lg accent-amber-500 menu-volume-slider cursor-pointer" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
             </div>
@@ -191,7 +196,7 @@
 
             <div class="theater-zone-mini mt-10">
                 <div id="visual-stage" class="visual-stage-mini">
-                    <img src="Visualization/🏰.png" alt="scene">
+                    <img src="Visualization/🏰.png" alt="scene" onerror="this.style.display='none'">
                 </div>
                 <h1 id="scene-title" class="text-3xl text-amber-500 font-bold uppercase mt-5" data-i18n="calm_title">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-lg line-clamp-2 mt-2" data-i18n="calm_desc">Армии ждут...</p>
