@@ -2,8 +2,9 @@ const audioFolderPath = "audio/";
 let isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-bgMusic.volume = 0.05; 
+let baseMusicVolume = 0.15; // Громкость, установленная в настройках
 let voiceVolume = 1.0; 
+let isMainMenu = true; // Флаг нахождения в главном меню
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -12,9 +13,20 @@ function resumeAudio() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
+// Логика затихания: в меню музыка в 2.5 раза тише
+function applyMenuVolumeLogic() {
+    if (isSpeaking) return; // Если говорит голос, громкость регулируется в speak()
+    if (isMainMenu) {
+        bgMusic.volume = baseMusicVolume * 0.4;
+    } else {
+        bgMusic.volume = baseMusicVolume;
+    }
+}
+
 function updateVolume(val) {
-    bgMusic.volume = val * 0.2; 
-    document.querySelectorAll('.volume-slider').forEach(s => s.value = val);
+    baseMusicVolume = parseFloat(val) * 0.2; 
+    document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = val);
+    applyMenuVolumeLogic();
 }
 
 function updateVoiceVolume(val) {
@@ -25,7 +37,6 @@ function speak(text, turn, stepAtMoment) {
     isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
-    // Загружаем язык из LocalStorage напрямую, чтобы избежать проблем с порядком загрузки скриптов
     const lang = localStorage.getItem('chess_saga_lang') || 'ru';
     const prefix = lang === 'en' ? 'E_' : lang === 'uk' ? 'U_' : '';
     
@@ -34,18 +45,29 @@ function speak(text, turn, stepAtMoment) {
 
     const voiceAudio = new Audio(audioPath);
     voiceAudio.volume = voiceVolume;
-    const originalBgVolume = bgMusic.volume;
 
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(originalBgVolume, 0.01); };
-    voiceAudio.onended = () => { bgMusic.volume = originalBgVolume; isSpeaking = false; finalizeTurnLogic(); };
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume, 0.01); }; // Музыка стихает под голос
+    voiceAudio.onended = () => { 
+        isSpeaking = false; 
+        applyMenuVolumeLogic(); // Возвращаем громкость
+        finalizeTurnLogic(); 
+    };
+    
     voiceAudio.onerror = () => {
-        bgMusic.volume = originalBgVolume;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
         msg.volume = voiceVolume;
-        msg.onend = () => { isSpeaking = false; finalizeTurnLogic(); };
+        msg.onend = () => { 
+            isSpeaking = false; 
+            applyMenuVolumeLogic(); 
+            finalizeTurnLogic(); 
+        };
         window.speechSynthesis.speak(msg);
     };
 
-    voiceAudio.play().catch(() => { isSpeaking = false; finalizeTurnLogic(); });
+    voiceAudio.play().catch(() => { 
+        isSpeaking = false; 
+        applyMenuVolumeLogic(); 
+        finalizeTurnLogic(); 
+    });
 }
