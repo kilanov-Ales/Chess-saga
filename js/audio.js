@@ -1,43 +1,47 @@
 const audioFolderPath = "audio/"; 
-let isSpeaking = false; 
+window.isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-let baseMusicVolume = 0.5; // Значение ползунка (от 0 до 1)
-let voiceVolume = 0.5;     // Значение ползунка голоса
-let isMainMenu = true;     
+// Значения ползунков изначально стоят ровно по середине
+let baseMusicVolume = 0.5; 
+let voiceVolume = 0.5;     
+window.isMainMenu = true;     
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-function resumeAudio() {
+window.resumeAudio = function() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Новая безупречная логика громкости
-function applyMenuVolumeLogic() {
-    if (isSpeaking) return; 
+// Логика адаптивной громкости музыки
+window.applyMenuVolumeLogic = function() {
+    if (window.isSpeaking) return; 
     
-    if (isMainMenu) {
-        // В меню музыка играет на 30% от заданного ползунка
-        bgMusic.volume = baseMusicVolume * 0.3; 
+    // Максимальный порог музыки (0.2), чтобы даже на 100% она не оглушала.
+    const actualVolume = baseMusicVolume * 0.2; 
+    
+    if (window.isMainMenu) {
+        // В меню музыка играет еще тише (25% от основной громкости)
+        bgMusic.volume = actualVolume * 0.25; 
     } else {
-        // В бою музыка играет на 100% от заданного ползунка
-        bgMusic.volume = baseMusicVolume; 
+        // В бою музыка играет на полную установленную громкость
+        bgMusic.volume = actualVolume; 
     }
 }
 
-function updateVolume(val) {
+window.updateVolume = function(val) {
     baseMusicVolume = parseFloat(val); 
     document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = val);
-    applyMenuVolumeLogic();
+    window.applyMenuVolumeLogic();
 }
 
-function updateVoiceVolume(val) {
+window.updateVoiceVolume = function(val) {
     voiceVolume = parseFloat(val);
 }
 
-function speak(text, turn, stepAtMoment) {
-    isSpeaking = true; 
+window.speak = function(text, turn, stepAtMoment) {
+    window.isSpeaking = true; 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const lang = localStorage.getItem('chess_saga_lang') || 'ru';
@@ -50,29 +54,29 @@ function speak(text, turn, stepAtMoment) {
     voiceAudio.volume = voiceVolume;
 
     // Глушим музыку почти в ноль, пока говорит диктор
-    voiceAudio.onplay = () => { bgMusic.volume = baseMusicVolume * 0.1; }; 
+    voiceAudio.onplay = () => { bgMusic.volume = baseMusicVolume * 0.02; }; 
     voiceAudio.onended = () => { 
-        isSpeaking = false; 
-        applyMenuVolumeLogic(); // Возвращаем нормальную громкость
-        if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
+        window.isSpeaking = false; 
+        window.applyMenuVolumeLogic(); 
+        if(typeof window.finalizeTurnLogic === 'function') window.finalizeTurnLogic(); 
     };
     
     voiceAudio.onerror = () => {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
         msg.volume = voiceVolume; 
-        msg.onstart = () => { bgMusic.volume = baseMusicVolume * 0.1; }; // Глушим для синтезатора
+        msg.onstart = () => { bgMusic.volume = baseMusicVolume * 0.02; }; // Глушим музыку для синтезатора
         msg.onend = () => { 
-            isSpeaking = false; 
-            applyMenuVolumeLogic(); 
-            if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
+            window.isSpeaking = false; 
+            window.applyMenuVolumeLogic(); 
+            if(typeof window.finalizeTurnLogic === 'function') window.finalizeTurnLogic(); 
         };
         window.speechSynthesis.speak(msg);
     };
 
     voiceAudio.play().catch(() => { 
-        isSpeaking = false; 
-        applyMenuVolumeLogic(); 
-        if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
+        window.isSpeaking = false; 
+        window.applyMenuVolumeLogic(); 
+        if(typeof window.finalizeTurnLogic === 'function') window.finalizeTurnLogic(); 
     });
 }
