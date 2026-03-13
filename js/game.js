@@ -1,54 +1,54 @@
-const figuresPath = "Figures/";
+window.figuresPath = "Figures/";
 
-let selectedScenarioKey = 'argus';
-let currentStep = 0;
-let maxReachedStep = 0; 
-let boardState = [];
-let historyStates = []; 
+window.selectedScenarioKey = 'argus';
+window.currentStep = 0;
+window.maxReachedStep = 0; 
+window.boardState = [];
+window.historyStates = []; 
 
-function finalizeTurnLogic() {
-    const sc = scenarios[selectedScenarioKey];
-    if (sc && currentStep < sc.story.length && sc.story[currentStep].turn === 'black' && currentStep === maxReachedStep) {
-        setTimeout(processMove, 600); 
+window.finalizeTurnLogic = function() {
+    const sc = window.scenarios[window.selectedScenarioKey];
+    if (sc && window.currentStep < sc.story.length && sc.story[window.currentStep].turn === 'black' && window.currentStep === window.maxReachedStep) {
+        setTimeout(window.processMove, 600); 
     }
 }
 
-function initBoard() {
-    boardState = [
+window.initBoard = function() {
+    window.boardState = [
         ['b_rook', 'b_knight', 'b_bishop', 'b_queen', 'b_king', 'b_bishop', 'b_knight', 'b_rook'],
         ['b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn'],
         ['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],['','','','','','','',''],
         ['w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn'],
         ['w_rook', 'w_knight', 'w_bishop', 'w_queen', 'w_king', 'w_bishop', 'w_knight', 'w_rook']
     ];
-    historyStates = [JSON.parse(JSON.stringify(boardState))];
+    window.historyStates = [JSON.parse(JSON.stringify(window.boardState))];
 }
 
-function selectScenario(key) {
-    selectedScenarioKey = key;
+window.selectScenario = function(key) {
+    window.selectedScenarioKey = key;
     document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
     if (event) event.currentTarget.classList.add('active');
 }
 
-function startGame() {
-    isMainMenu = false; 
-    resumeAudio();
-    applyMenuVolumeLogic();
+window.startGame = function() {
+    // Включаем флаги для звука
+    if(typeof window.isMainMenu !== 'undefined') window.isMainMenu = false; 
+    if(typeof resumeAudio === 'function') resumeAudio();
+    if(typeof applyMenuVolumeLogic === 'function') applyMenuVolumeLogic();
     
-    // ИСПРАВЛЕН БАГ: удален код, который искал удаленный элемент меню
-    
-    if (!scenarios[selectedScenarioKey]) {
-        selectedScenarioKey = 'argus';
+    if (!window.scenarios[window.selectedScenarioKey]) {
+        window.selectedScenarioKey = 'argus';
     }
     
-    const sc = scenarios[selectedScenarioKey];
+    const sc = window.scenarios[window.selectedScenarioKey];
     
-    currentStep = 0; maxReachedStep = 0; isSpeaking = false;
+    window.currentStep = 0; window.maxReachedStep = 0; 
+    if(typeof window.isSpeaking !== 'undefined') window.isSpeaking = false;
 
     const goalsHeader = document.querySelector('.right-panel h3.text-sky-400');
     const egoalsHeader = document.querySelector('.right-panel h3.text-red-500');
-    if (goalsHeader) goalsHeader.textContent = t('tasks_title');
-    if (egoalsHeader) egoalsHeader.textContent = t('enemy_title');
+    if (goalsHeader) goalsHeader.textContent = window.t('tasks_title');
+    if (egoalsHeader) egoalsHeader.textContent = window.t('enemy_title');
 
     document.getElementById('goals-list').innerHTML = (sc.goals || []).map((g, i) => `<li id="g${i}">• ${g}</li>`).join('');
     document.getElementById('enemy-goals').innerHTML = (sc.egoals || []).map((g, i) => `<li id="eg${i}">• ${g}</li>`).join('');
@@ -58,41 +58,41 @@ function startGame() {
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
 
     document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>🏰</span>'">`;
-    document.getElementById('scene-title').textContent = sc.title || t('calm_title');
-    document.getElementById('scene-desc').textContent = t('calm_desc');
+    document.getElementById('scene-title').textContent = sc.title || window.t('calm_title');
+    document.getElementById('scene-desc').textContent = window.t('calm_desc');
 
     document.getElementById('main-menu').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('main-app').classList.add('app-visible');
-        initBoard(); renderBoard();
+        window.initBoard(); window.renderBoard();
     }, 800);
 }
 
-function playCustomScenario(index) {
-    selectedScenarioKey = 'custom_' + index;
-    closeCommunityModal();
-    startGame();
+window.playCustomScenario = function(index) {
+    window.selectedScenarioKey = 'custom_' + index;
+    if(typeof closeCommunityModal === 'function') closeCommunityModal();
+    window.startGame();
 }
 
-function downloadFromGallery(index) {
-    const p = scenarios['custom_' + index];
+window.downloadFromGallery = function(index) {
+    const p = window.scenarios['custom_' + index];
     if(!p) return;
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(p));
     const dl = document.createElement('a');
     dl.setAttribute("href", dataStr);
     dl.setAttribute("download", p.title + ".json");
     document.body.appendChild(dl); dl.click(); dl.remove();
-    showNotification(t('msg_scroll_downloaded'), "success");
+    if(typeof showNotification === 'function') showNotification(window.t('msg_scroll_downloaded'), "success");
 }
 
-function renderBoard() {
+window.renderBoard = function() {
     const boardEl = document.getElementById('board');
     if (!boardEl) return;
     boardEl.innerHTML = '';
     
-    const sc = scenarios[selectedScenarioKey];
-    const next = sc.story[currentStep];
+    const sc = window.scenarios[window.selectedScenarioKey];
+    const next = sc.story[window.currentStep];
 
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
@@ -100,14 +100,14 @@ function renderBoard() {
             sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
             const coord = `${String.fromCharCode(97 + c)}${8 - r}`;
             
-            if (!isSpeaking && currentStep === maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
+            if (!window.isSpeaking && window.currentStep === window.maxReachedStep && next && next.turn === 'white' && coord === next.move.substring(2, 4)) {
                 sq.classList.add('active-target'); 
-                sq.onclick = processMove;
+                sq.onclick = window.processMove;
             }
             
-            if (boardState[r] && boardState[r][c]) {
+            if (window.boardState[r] && window.boardState[r][c]) {
                 const img = document.createElement('img');
-                img.src = `${figuresPath}${boardState[r][c]}.png`;
+                img.src = `${window.figuresPath}${window.boardState[r][c]}.png`;
                 img.className = 'piece-img'; 
                 img.onerror = function() { this.style.display='none'; };
                 sq.appendChild(img);
@@ -117,65 +117,66 @@ function renderBoard() {
     }
 }
 
-function processMove() {
-    if (isSpeaking) return;
-    const sc = scenarios[selectedScenarioKey];
-    if (currentStep >= sc.story.length) return;
+window.processMove = function() {
+    if (window.isSpeaking) return;
+    const sc = window.scenarios[window.selectedScenarioKey];
+    if (window.currentStep >= sc.story.length) return;
     
-    const data = sc.story[currentStep];
+    const data = sc.story[window.currentStep];
     const moveClean = data.move.replace(/[!+#]/g, '');
     const from = [8 - parseInt(moveClean[1]), moveClean.charCodeAt(0) - 97];
     const to = [8 - parseInt(moveClean[3]), moveClean.charCodeAt(2) - 97];
     
-    boardState[to[0]][to[1]] = boardState[from[0]][from[1]];
-    boardState[from[0]][from[1]] = '';
-    historyStates.push(JSON.parse(JSON.stringify(boardState)));
+    window.boardState[to[0]][to[1]] = window.boardState[from[0]][from[1]];
+    window.boardState[from[0]][from[1]] = '';
+    window.historyStates.push(JSON.parse(JSON.stringify(window.boardState)));
 
-    updateVisuals(data, true); 
+    window.updateVisuals(data, true); 
 
-    const stepForAudio = currentStep;
-    currentStep++; maxReachedStep = currentStep; 
+    const stepForAudio = window.currentStep;
+    window.currentStep++; window.maxReachedStep = window.currentStep; 
     
-    renderBoard(); updateStats(data); speak(data.text, data.turn, stepForAudio);
+    window.renderBoard(); window.updateStats(data); 
+    if(typeof speak === 'function') speak(data.text, data.turn, stepForAudio);
 }
 
-function jumpToStep(stepIndex) {
-    if (isSpeaking) return;
-    const sc = scenarios[selectedScenarioKey];
-    if (stepIndex < 0 || stepIndex > maxReachedStep) return;
+window.jumpToStep = function(stepIndex) {
+    if (window.isSpeaking) return;
+    const sc = window.scenarios[window.selectedScenarioKey];
+    if (stepIndex < 0 || stepIndex > window.maxReachedStep) return;
 
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     
-    currentStep = stepIndex;
-    boardState = JSON.parse(JSON.stringify(historyStates[currentStep]));
+    window.currentStep = stepIndex;
+    window.boardState = JSON.parse(JSON.stringify(window.historyStates[window.currentStep]));
 
-    if (currentStep > 0) {
-        const data = sc.story[currentStep - 1];
-        updateVisuals(data, false);
-        let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+    if (window.currentStep > 0) {
+        const data = sc.story[window.currentStep - 1];
+        window.updateVisuals(data, false);
+        let displayMove = Math.floor((window.currentStep - 1) / 2) + 1;
         document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
-        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
+        document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${window.currentStep % 2 === 0 ? 'БЕЛЫЕ' : 'ЧЕРНЫЕ'}`;
     } else {
         document.getElementById('visual-stage').innerHTML = `<img src="Visualization/🏰.png" style="width: 80px; height: 80px;" onerror="this.outerHTML='<span style=\\'font-size: 4rem;\\'>🏰</span>'">`;
-        document.getElementById('scene-title').textContent = sc.title || t('calm_title');
-        document.getElementById('scene-desc').textContent = t('calm_desc');
+        document.getElementById('scene-title').textContent = sc.title || window.t('calm_title');
+        document.getElementById('scene-desc').textContent = window.t('calm_desc');
         document.getElementById('move-counter').textContent = `ХОД: 1`;
         document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: БЕЛЫЕ`;
     }
     
-    renderBoard();
-    if (currentStep === maxReachedStep && sc.story[currentStep] && sc.story[currentStep].turn === 'black') {
-        finalizeTurnLogic();
+    window.renderBoard();
+    if (window.currentStep === window.maxReachedStep && sc.story[window.currentStep] && sc.story[window.currentStep].turn === 'black') {
+        window.finalizeTurnLogic();
     }
 }
 
-function updateStats(data) {
-    let displayMove = Math.floor((currentStep - 1) / 2) + 1;
+window.updateStats = function(data) {
+    let displayMove = Math.floor((window.currentStep - 1) / 2) + 1;
     document.getElementById('move-counter').textContent = `ХОД: ${displayMove}`;
     document.getElementById('player-turn').textContent = `ОЧЕРЕДЬ: ${data.turn === 'white' ? 'ЧЕРНЫЕ' : 'БЕЛЫЕ'}`;
 }
 
-function updateVisuals(data, createLog) {
+window.updateVisuals = function(data, createLog) {
     if (data.capture) {
         document.getElementById('flash').classList.add('flash-active');
         setTimeout(() => document.getElementById('flash').classList.remove('flash-active'), 400);
@@ -190,10 +191,10 @@ function updateVisuals(data, createLog) {
     document.getElementById('scene-desc').textContent = data.text;
 
     if (createLog) {
-        const logIndex = currentStep;
+        const logIndex = window.currentStep;
         const log = document.createElement('div');
         log.className = `log-entry text-sm border-l-4 pl-4 py-3 cursor-pointer transition-colors hover:bg-white/5 ${data.turn === 'black' ? 'border-slate-700 text-slate-400' : 'border-amber-500 text-slate-200 bg-amber-500/5'}`;
-        log.onclick = () => jumpToStep(logIndex + 1);
+        log.onclick = () => window.jumpToStep(logIndex + 1);
         log.innerHTML = `<span class="uppercase font-bold text-xs block mb-1">${data.turn === 'white' ? '⚪ Игрок' : '⚫ Соперник'}</span>${data.text}`;
         document.getElementById('chronicle-list').appendChild(log);
         const box = document.getElementById('narrative-box'); box.scrollTop = box.scrollHeight;
@@ -217,16 +218,16 @@ function updateVisuals(data, createLog) {
     }
 }
 
-function exitToMenu() {
+window.exitToMenu = function() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    isMainMenu = true;
-    applyMenuVolumeLogic();
+    if(typeof window.isMainMenu !== 'undefined') window.isMainMenu = true;
+    if(typeof applyMenuVolumeLogic === 'function') applyMenuVolumeLogic();
     location.reload(); 
 }
 
 window.addEventListener('keydown', (e) => {
     if (document.getElementById('main-app').classList.contains('app-visible')) {
-        if (e.key === "ArrowLeft") jumpToStep(currentStep - 1);
-        if (e.key === "ArrowRight") jumpToStep(currentStep + 1);
+        if (e.key === "ArrowLeft") window.jumpToStep(window.currentStep - 1);
+        if (e.key === "ArrowRight") window.jumpToStep(window.currentStep + 1);
     }
 });
