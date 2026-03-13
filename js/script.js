@@ -79,10 +79,17 @@ const dict = {
 let currentLang = localStorage.getItem('chess_saga_lang') || 'ru';
 document.getElementById('lang-selector').value = currentLang;
 
+function updateScenariosLanguage() {
+    scenarios = JSON.parse(JSON.stringify(defaultScenarios[currentLang] || defaultScenarios['ru']));
+    let localParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
+    localParties.forEach((p, i) => scenarios['custom_' + i] = p);
+}
+
 function changeLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('chess_saga_lang', lang);
     applyTranslations();
+    updateScenariosLanguage();
 }
 
 function applyTranslations() {
@@ -99,7 +106,6 @@ function applyTranslations() {
         if (dict[currentLang] && dict[currentLang][key]) el.title = dict[currentLang][key];
     });
 }
-window.addEventListener('DOMContentLoaded', applyTranslations);
 
 function t(key) { return dict[currentLang][key] || key; }
 
@@ -113,6 +119,8 @@ if (!myAuthorId) {
 let myNickname = localStorage.getItem('chess_saga_nickname');
 
 window.addEventListener('DOMContentLoaded', () => {
+    applyTranslations();
+    updateScenariosLanguage();
     if (!myNickname) {
         document.getElementById('nickname-modal').classList.remove('hidden');
     } else {
@@ -142,7 +150,6 @@ async function saveNickname() {
                 return showNotification(t('msg_taken'), "error");
             }
         }
-        // Сохраняем профиль
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ data: { type: 'profile', author_id: myAuthorId, nickname: input } }) });
     } catch(e) { console.log("Связь с облаком нарушена, сохраняем локально."); }
     
@@ -184,7 +191,6 @@ async function sendChatMessage() {
 
     const msgObj = { type: 'chat_msg', author: myNickname || t('unknown'), text: text, time: Date.now() };
     
-    // Оптимистичный UI
     input.value = "";
     renderSingleMessage(msgObj, true);
     lastChatTime = Date.now();
@@ -203,7 +209,7 @@ async function loadChat() {
             let messages = rows.map(r => typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || r))
                                .filter(p => p.type === 'chat_msg')
                                .sort((a,b) => a.time - b.time)
-                               .slice(-50); // Храним только 50 последних
+                               .slice(-50); 
             
             const container = document.getElementById('chat-messages');
             container.innerHTML = "";
