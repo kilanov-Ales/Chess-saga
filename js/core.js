@@ -1,4 +1,3 @@
-// ====== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВСЕХ МОДУЛЕЙ ======
 window.API_URL = 'https://chess-api.kilanov.workers.dev/';
 window.scenarios = {};
 window.userLikes = JSON.parse(localStorage.getItem('chess_saga_likes') || '{}');
@@ -22,7 +21,7 @@ const dict = {
         forge_step_title_ph: "Имя Маневра (Ход)", forge_step_text_ph: "Слова или деяния героев...", chat_ph: "Ваше послание...",
         search_ph: "Поиск по имени Лорда или названию Свитка...", 
         guide_btn_title: "Мудрость Предков", guide_title: "Том Мудрости", guide_intro: "Приветствуем, Лорд! Этот фолиант поможет вам освоить искусство Летописца.",
-        guide_forge: "Кузница Сценариев", guide_forge_desc: "Здесь вы создаете свои истории. Задайте имя летописи, теги и цели. Делая ходы на доске, вы создаете шаги. Каждому шагу можно дать имя, описание и выбрать руну. Выбирайте в списке, какую именно цель выполняет ход.",
+        guide_forge: "Кузница Сценариев", guide_forge_desc: "Здесь вы создаете свои истории. Задайте имя летописи, теги и цели. Делая ходы на доске, вы создаете шаги. Каждому шагу можно дать имя, описание и выбрать руну.",
         guide_scrolls: "Зал Свитков", guide_scrolls_desc: "Облачная библиотека, где хранятся творения других Лордов. Читайте истории, ставьте лайки или дизлайки, скачивайте их.",
         guide_mail: "Воронья Почта", guide_mail_desc: "Чат правителей. Общайтесь с другими создателями. Сообщения удаляются со временем, а сквернословие строго карается.",
         guide_battle: "Начало Битвы", guide_battle_desc: "Выберите историю в главном меню и нажмите 'Начать битву'.",
@@ -79,9 +78,8 @@ const dict = {
 };
 
 let currentLang = localStorage.getItem('chess_saga_lang') || 'ru';
-document.getElementById('lang-selector').value = currentLang;
 
-function updateScenariosLanguage() {
+window.updateScenariosLanguage = function() {
     if (typeof defaultScenarios !== 'undefined') {
         window.scenarios = JSON.parse(JSON.stringify(defaultScenarios[currentLang] || defaultScenarios['ru']));
     }
@@ -89,14 +87,14 @@ function updateScenariosLanguage() {
     localParties.forEach((p, i) => window.scenarios['custom_' + i] = p);
 }
 
-function changeLanguage(lang) {
+window.changeLanguage = function(lang) {
     currentLang = lang;
     localStorage.setItem('chess_saga_lang', lang);
-    applyTranslations();
-    updateScenariosLanguage();
+    window.applyTranslations();
+    window.updateScenariosLanguage();
 }
 
-function applyTranslations() {
+window.applyTranslations = function() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (dict[currentLang] && dict[currentLang][key]) el.innerHTML = dict[currentLang][key];
@@ -120,13 +118,12 @@ function updateNicknameDisplay() {
     }
 }
 
-// ====== ЛОГИКА АВТОРИЗАЦИИ (Автосохранение) ======
 window.myAuthorId = localStorage.getItem('chess_saga_author_id');
 window.myNickname = localStorage.getItem('chess_saga_nickname');
 
 window.addEventListener('DOMContentLoaded', () => {
-    applyTranslations();
-    updateScenariosLanguage();
+    window.applyTranslations();
+    window.updateScenariosLanguage();
     
     if (!window.myAuthorId) {
         window.myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -150,7 +147,6 @@ window.saveNickname = async function() {
     if (input.length < 3) return showNotification(t('msg_short'), "error");
     if (window.AntiMate && window.AntiMate.check(input)) return showNotification(t('msg_inq'), "error");
     
-    // Сначала надежно сохраняем локально!
     window.myNickname = input;
     localStorage.setItem('chess_saga_nickname', window.myNickname);
     
@@ -193,7 +189,6 @@ window.closeSettings = function() { document.getElementById('settings-modal').cl
 window.openGuide = function() { document.getElementById('guide-modal').classList.remove('hidden'); }
 window.closeGuide = function() { document.getElementById('guide-modal').classList.add('hidden'); }
 
-// ====== ВОРОНЬЯ ПОЧТА (Чат) ======
 let chatPollInterval;
 let lastChatTime = 0;
 
@@ -261,10 +256,21 @@ window.showNotification = function(text, type = 'success') {
     const toast = document.getElementById('toast');
     const icon = document.getElementById('toast-icon');
     document.getElementById('toast-text').textContent = text;
-    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold text-base tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_40px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
-    if (type === 'success') { toast.classList.add('bg-amber-500', 'text-slate-900'); icon.textContent = '✨'; } 
-    else if (type === 'error') { toast.classList.add('bg-red-600', 'text-white'); icon.textContent = '‼️'; } 
-    else { toast.classList.add('bg-sky-600', 'text-white'); icon.textContent = '🕊️'; }
+    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold text-lg tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_40px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
+    
+    if (type === 'success') { 
+        toast.classList.add('bg-amber-500', 'text-slate-900'); 
+        icon.innerHTML = `<img src="Visualization/✨.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>✨</span>'">`;
+    } 
+    else if (type === 'error') { 
+        toast.classList.add('bg-red-600', 'text-white'); 
+        icon.innerHTML = `<img src="Visualization/‼️.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>‼️</span>'">`;
+    } 
+    else { 
+        toast.classList.add('bg-sky-600', 'text-white'); 
+        icon.innerHTML = `<img src="Visualization/📜.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>📜</span>'">`;
+    }
+    
     setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('-translate-y-10', 'opacity-0');
@@ -280,7 +286,6 @@ window.AntiMate = {
     }
 };
 
-// ====== ГАЛЕРЕЯ И ЛАЙКИ (Синхронизация с облаком) ======
 let gallerySearchTerm = "";
 
 window.updateGallerySearch = function() { gallerySearchTerm = document.getElementById('community-search').value.toLowerCase(); window.renderGallery(); }
@@ -306,7 +311,6 @@ window.toggleReaction = async function(index, type) {
     p.dislikes = (p.dislikes || 0) + diffDislike;
     window.renderGallery();
 
-    // Отправка новых лайков в облако
     if (p.db_id) {
         try {
             let url = window.API_URL.endsWith('/') ? window.API_URL + p.db_id : window.API_URL + '/' + p.db_id;
@@ -314,7 +318,7 @@ window.toggleReaction = async function(index, type) {
             if(!response.ok) {
                 await fetch(window.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.db_id, data: p }) });
             }
-        } catch(e) { console.log("Лайк сохранен только локально."); }
+        } catch(e) {}
     }
 }
 
@@ -361,19 +365,27 @@ window.renderGallery = async function() {
                 ${tagsHtml}
                 <p class="text-sm text-slate-400 mt-2 uppercase">Ходов: ${p.story.length}</p>
             </div>
-            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-6 right-6 text-slate-500 hover:text-red-500 transition-colors text-2xl" title="Сжечь свиток">🗑️</button>` : ''}
+            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-6 right-6 text-slate-500 hover:scale-110 transition-transform" title="Сжечь свиток">
+                <img src="Visualization/🗑️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-2xl\\'>🗑️</span>'">
+            </button>` : ''}
             <div class="flex justify-between items-center mb-5">
                 <span class="text-sm text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
                 <div class="flex gap-4 text-base">
-                    <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'text-green-500' : 'text-slate-500'} hover:text-green-400 transition-colors">♥️ ${p.likes || 0}</button>
-                    <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'text-red-500' : 'text-slate-500'} hover:text-red-400 transition-colors">💔 ${p.dislikes || 0}</button>
+                    <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
+                        <img src="Visualization/♥️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
+                    </button>
+                    <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
+                        <img src="Visualization/💔.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
+                    </button>
                 </div>
             </div>
             <div class="flex gap-4">
                 <button onclick="if(typeof playCustomScenario === 'function') playCustomScenario(${originalIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-3 rounded-xl text-base font-bold uppercase transition-colors text-white flex items-center justify-center gap-2 shadow-lg">
                     <img src="Visualization/👁️.png" class="w-6 h-6" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
                 </button>
-                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-5 py-3 rounded-xl text-xl transition-colors text-white shadow-lg" title="Забрать в архив">💾</button>
+                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-5 py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center" title="Забрать в архив">
+                    <img src="Visualization/💾.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl text-white\\'>💾</span>'">
+                </button>
             </div>
         </div>`;
     }).join('');
