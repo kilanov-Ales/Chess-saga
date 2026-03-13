@@ -13,18 +13,17 @@ function resumeAudio() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Логика затихания: Музыка в меню тише в 2 раза
+// Логика затихания: Музыка в меню тише
 function applyMenuVolumeLogic() {
-    if (isSpeaking) return; // Если говорит голос, работает другая логика в speak()
+    if (isSpeaking) return; 
     
-    // Умножаем на 0.3 как базовый максимальный лимит для комфортного звука.
-    // Если игрок выкрутил на макс (1.0), то громкость будет 0.3. Если на 0.5, то 0.15.
+    // Умножаем на 0.3 как базовый предел, чтобы музыка не "орала"
     const actualVolume = baseMusicVolume * 0.3; 
     
     if (isMainMenu) {
-        bgMusic.volume = actualVolume * 0.4; // В меню еще тише
+        bgMusic.volume = actualVolume * 0.4; // В меню звук утихает
     } else {
-        bgMusic.volume = actualVolume; // В бою нормальная громкость
+        bgMusic.volume = actualVolume; // Во время битвы нормальная громкость
     }
 }
 
@@ -50,14 +49,13 @@ function speak(text, turn, stepAtMoment) {
 
     const voiceAudio = new Audio(audioPath);
     
-    // Громкость аудио от 0 до 1
     voiceAudio.volume = voiceVolume;
 
-    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume * 0.3, 0.01); }; // Музыка стихает под голос
+    voiceAudio.onplay = () => { bgMusic.volume = Math.min(baseMusicVolume * 0.3, 0.01); }; 
     voiceAudio.onended = () => { 
         isSpeaking = false; 
         applyMenuVolumeLogic(); 
-        finalizeTurnLogic(); 
+        if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
     };
     
     voiceAudio.onerror = () => {
@@ -67,7 +65,7 @@ function speak(text, turn, stepAtMoment) {
         msg.onend = () => { 
             isSpeaking = false; 
             applyMenuVolumeLogic(); 
-            finalizeTurnLogic(); 
+            if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
         };
         window.speechSynthesis.speak(msg);
     };
@@ -75,6 +73,6 @@ function speak(text, turn, stepAtMoment) {
     voiceAudio.play().catch(() => { 
         isSpeaking = false; 
         applyMenuVolumeLogic(); 
-        finalizeTurnLogic(); 
+        if(typeof finalizeTurnLogic === 'function') finalizeTurnLogic(); 
     });
 }
