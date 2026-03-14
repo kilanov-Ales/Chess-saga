@@ -30,20 +30,20 @@ window.initIcons = function() {
 
     container.innerHTML = pageIcons.map(icon => 
         `<button onclick="setEditIcon('${icon}')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
-            <img src="Visualization/${icon}.png" class="w-8 h-8 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
+            <img src="Visualization/${icon}.png" class="w-10 h-10 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
         </button>`
     ).join('');
 
     let paginationHtml = '';
     if (window.currentIconPage > 0) {
-        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-base font-bold text-white transition-colors shadow">⬆️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-lg font-bold text-white transition-colors shadow">⬆️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-xl text-base text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-3 bg-slate-800 rounded-xl text-lg text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
     }
     if (end < availableIcons.length) {
-        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-base font-bold text-white transition-colors shadow">⬇️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-lg font-bold text-white transition-colors shadow">⬇️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-xl text-base text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-3 bg-slate-800 rounded-xl text-lg text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
     }
     pagination.innerHTML = paginationHtml;
 }
@@ -63,7 +63,7 @@ window.openEditor = function() {
     window.currentIconPage = 0;
     window.editorFlipped = false;
     
-    document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-lg text-center mt-12">${window.t('forge_empty')}</p>`;
+    document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-xl text-center mt-12">${window.t('forge_empty')}</p>`;
     document.getElementById('editor-step-form').classList.add('hidden');
     
     if(document.getElementById('edit-scenario-name')) document.getElementById('edit-scenario-name').value = "";
@@ -72,6 +72,7 @@ window.openEditor = function() {
     if(document.getElementById('edit-scenario-egoal')) document.getElementById('edit-scenario-egoal').value = "";
     
     window.initIcons(); 
+    window.updateGoalDropdown();
     window.renderEditorBoard();
 }
 
@@ -85,6 +86,22 @@ window.toggleEditorFlip = function() {
 window.setEditIcon = function(val) {
     document.getElementById('edit-icon-input').value = val;
     window.updateCurrentStepData();
+}
+
+window.updateGoalDropdown = function() {
+    const pGoal = document.getElementById('edit-scenario-goal').value.trim() || window.t('goal_mine');
+    const eGoal = document.getElementById('edit-scenario-egoal').value.trim() || window.t('goal_enemy');
+    
+    const selectEl = document.getElementById('edit-step-goal-select');
+    if(!selectEl) return;
+    
+    const currentVal = selectEl.value;
+    selectEl.innerHTML = `
+        <option value="none">${window.t('goal_none')}</option>
+        <option value="player">👑 ${pGoal}</option>
+        <option value="enemy">💀 ${eGoal}</option>
+    `;
+    selectEl.value = currentVal || 'none';
 }
 
 const pieceMap = { 'p': 'pawn', 'n': 'knight', 'b': 'bishop', 'r': 'rook', 'q': 'queen', 'k': 'king' };
@@ -143,14 +160,12 @@ window.handleEditorClick = function(coord) {
     } else {
         const matchingMoves = window.validMovesForSelected.filter(m => m.to === coord);
         if (matchingMoves.length > 0) {
-            // Проверка на превращение пешки (если есть флаг 'p' или свойство promotion)
             const isPromotion = matchingMoves.some(m => m.flags.includes('p') || m.promotion);
             if (isPromotion) {
                 window.pendingPromotionMove = { from: window.selectedSquare, to: coord };
                 window.showPromotionModal(window.editorEngine.turn());
                 return;
             }
-            // Обычный ход
             window.executeForgeMove(window.selectedSquare, coord, 'q');
         }
         window.selectedSquare = null; 
@@ -159,17 +174,16 @@ window.handleEditorClick = function(coord) {
     }
 }
 
-// === Модалка Превращения Пешки ===
 window.showPromotionModal = function(color) {
     const modal = document.getElementById('promotion-modal');
     const container = document.getElementById('promotion-pieces');
     const prefix = color === 'w' ? 'w' : 'b';
     
     container.innerHTML = `
-        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
-        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
-        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Слон">
-        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Конь">
+        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
+        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
+        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Слон">
+        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Конь">
     `;
     modal.classList.remove('hidden');
 }
@@ -226,24 +240,33 @@ window.undoEditorStep = function() {
 window.renderEditorStepsList = function() {
     const list = document.getElementById('editor-steps-list');
     if(window.editorSteps.length === 0) {
-        list.innerHTML = `<p class="text-slate-500 italic text-lg text-center mt-12">${window.t('forge_empty')}</p>`;
+        list.innerHTML = `<p class="text-slate-500 italic text-xl text-center mt-12">${window.t('forge_empty')}</p>`;
         document.getElementById('editor-step-form').classList.add('hidden');
         return;
     }
+    
+    const pGoal = document.getElementById('edit-scenario-goal').value.trim() || window.t('goal_mine');
+    const eGoal = document.getElementById('edit-scenario-egoal').value.trim() || window.t('goal_enemy');
+
     list.innerHTML = window.editorSteps.map((s, i) => {
         const moveNum = Math.floor(i / 2) + 1;
         const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
-        const isActive = window.selectedEditorStepIndex === i ? 'border-sky-500 bg-slate-800 shadow-md' : 'border-slate-700 bg-slate-900/50';
+        const isActive = window.selectedEditorStepIndex === i ? 'border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-slate-700 bg-slate-900/50 hover:border-sky-500 hover:bg-slate-800';
         
         let targetText = "";
-        if (s.goal === 0) targetText += '<span class="text-sky-400 font-bold ml-2 text-xs">✓ Ц</span>';
-        if (s.egoal === 0) targetText += '<span class="text-red-500 font-bold ml-2 text-xs">✓ В</span>';
+        if (s.goal === 0) targetText += `<span class="text-sky-400 font-bold ml-3 text-sm">✓ ${pGoal}</span>`;
+        if (s.egoal === 0) targetText += `<span class="text-red-500 font-bold ml-3 text-sm">✓ ${eGoal}</span>`;
 
         return `
-        <div onclick="selectEditorStep(${i})" class="p-4 border rounded-xl cursor-pointer hover:border-amber-500 transition-colors ${isActive} flex justify-between items-center text-slate-300 shrink-0">
-            <span class="text-sm"><b class="text-amber-500">${moveNum}. ${s.san}</b> <span class="text-xs">(${turnName})</span> ${targetText}</span>
-            <span class="text-xs truncate ml-3 flex-1 text-right italic text-slate-400">${s.title || 'Без названия'}</span>
-            <span class="ml-3 text-base"><img src="Visualization/${s.icon}.png" class="w-7 h-7 inline object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'"></span>
+        <div onclick="selectEditorStep(${i})" class="p-5 border-2 rounded-2xl cursor-pointer transition-colors ${isActive} flex flex-col justify-center text-slate-300 shrink-0 gap-2">
+            <div class="flex justify-between items-center w-full">
+                <span class="text-lg"><b class="text-amber-500">${moveNum}. ${s.san}</b> <span class="text-sm text-slate-400">(${turnName})</span></span>
+                <span class="ml-3 text-base"><img src="Visualization/${s.icon}.png" class="w-8 h-8 inline object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'"></span>
+            </div>
+            <div class="flex justify-between items-center w-full">
+                <span class="text-sm truncate italic text-slate-400">${s.title || 'Без названия'}</span>
+                ${targetText}
+            </div>
         </div>`;
     }).join(''); 
 }
@@ -272,12 +295,17 @@ window.selectEditorStep = function(index) {
     const turnName = step.turn === 'white' ? 'Белые' : 'Черные';
     document.getElementById('editing-step-label').textContent = `Редактирование: ${moveNum}. ${step.san} (${turnName})`;
 
+    window.updateGoalDropdown();
     window.renderEditorStepsList(); 
 }
 
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
-    const title = document.getElementById('edit-title').value;
+    
+    // Умное вырезание цифр в начале названия (1. , 2) и т.д.)
+    let titleRaw = document.getElementById('edit-title').value;
+    let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
+    
     const text = document.getElementById('edit-text').value;
     const icon = document.getElementById('edit-icon-input').value;
     const goalSelect = document.getElementById('edit-step-goal-select').value;
