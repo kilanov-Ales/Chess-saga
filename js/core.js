@@ -12,7 +12,7 @@ const dict = {
         chat_send: "Отправить", settings_title: "Настройки Королевства", music_vol: "Музыка Битвы", voice_vol: "Голос Летописца", current_lord: "Текущий Лорд:",
         scrolls_title: "Свитки других Лордов", calm_title: "Затишье", calm_desc: "Армии ждут...", tasks_title: "Задачи", enemy_title: "Враг", chronicle_title: "Хроника",
         forge_title: "Кузница Сценариев", make_moves: "Творите историю на поле брани", forge_publish: "Высечь в Свитках", forge_download: "Скачать Архив",
-        forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать забвению",
+        forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать ход забвению",
         msg_spam: "Вороны устали! Подождите немного.", msg_inq: "Инквизиция скрыла сквернословие!", msg_taken: "Имя уже занято другим Лордом!",
         msg_short: "Имя не достойно Лорда! (Минимум 3 буквы)", msg_welcome: "С возвращением, Лорд ", msg_forge_empty: "Кузница пуста! Скуйте хотя бы один ход!",
         msg_title_empty: "Нареките свою Летопись именем!", msg_scroll_saved: "Летопись навеки запечатлена в Свитках!", msg_scroll_downloaded: "Свиток перенесен в архивы!",
@@ -26,7 +26,7 @@ const dict = {
         guide_scrolls: "Зал Свитков", guide_scrolls_desc: "Облачная библиотека, где хранятся творения других Лордов. Читайте истории, ставьте лайки или дизлайки, скачивайте их.",
         guide_mail: "Воронья Почта", guide_mail_desc: "Чат правителей. Общайтесь с другими создателями. Сообщения удаляются со временем, а сквернословие строго карается.",
         guide_battle: "Начало Битвы", guide_battle_desc: "Выберите историю в главном меню и нажмите 'Начать битву'.",
-        goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага", flip_board: "Окинуть взором врага", choose_promotion: "Кого призвать?"
+        goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага", flip_board: "Окинуть взором", choose_promotion: "Кого призвать?"
     },
     en: {
         checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud. Cannot be changed.",
@@ -147,8 +147,6 @@ window.addEventListener('DOMContentLoaded', () => {
 window.saveNickname = async function() {
     const input = document.getElementById('nickname-input').value.trim();
     if (input.length < 3) return window.showNotification(t('msg_short'), "error");
-    
-    // Никнейм цензурить нельзя, Инквизиция просто его не пропустит
     if (window.AntiMat && window.AntiMat.check(input)) return window.showNotification(t('msg_inq'), "inq");
     
     window.myNickname = input;
@@ -214,15 +212,14 @@ window.sendChatMessage = async function() {
     
     if (Date.now() - lastChatTime < 3000) return window.showNotification(t('msg_spam'), "error");
     
-    // ЦЕНЗУРА ЧАТА: заменяем маты на ***
     if (window.AntiMat) {
         let safeText = window.AntiMat.censor(text);
         if (safeText !== text) {
-            window.showNotification(t('msg_inq'), "inq"); // Уведомляем о цензуре
+            window.showNotification(t('msg_inq'), "inq"); 
             text = safeText;
         }
     }
-    if (text === "***") return; // Если сообщение состояло ТОЛЬКО из мата и пробелов
+    if (text === "***") return;
 
     const msgObj = { author_id: window.myAuthorId, author_name: window.myNickname || t('unknown'), text: text };
     input.value = "";
@@ -316,8 +313,13 @@ window.toggleReaction = async function(index, type) {
     }
     
     localStorage.setItem('chess_saga_likes', JSON.stringify(window.userLikes));
-    p.likes = (p.likes || 0) + diffLike; 
-    p.dislikes = (p.dislikes || 0) + diffDislike;
+    
+    // Безупречный фикс: берем длину массива, если это массив (чтобы избавиться от надписи user_id)
+    let currentLikes = Array.isArray(p.likes) ? p.likes.length : (parseInt(p.likes) || 0);
+    let currentDislikes = Array.isArray(p.dislikes) ? p.dislikes.length : (parseInt(p.dislikes) || 0);
+
+    p.likes = currentLikes + diffLike; 
+    p.dislikes = currentDislikes + diffDislike;
     
     let customParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
     let localIndex = customParties.findIndex(cp => cp.title === p.title);
@@ -393,6 +395,10 @@ window.renderGalleryHTML = function() {
         const uId = p.db_id || p.title;
         let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-[10px] px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
 
+        // Исправление бага с лайками (отображение)
+        let likesCount = Array.isArray(p.likes) ? p.likes.length : (parseInt(p.likes) || 0);
+        let dislikesCount = Array.isArray(p.dislikes) ? p.dislikes.length : (parseInt(p.dislikes) || 0);
+
         return `
         <div class="scenario-card border-purple-900 bg-slate-900/80 p-5 rounded-2xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
             <div class="mb-4 pr-6">
@@ -407,10 +413,10 @@ window.renderGalleryHTML = function() {
                 <span class="text-xs text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
                 <div class="flex gap-3 text-sm">
                     <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/♥️.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
+                        <img src="Visualization/♥️.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${likesCount}
                     </button>
                     <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/💔.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
+                        <img src="Visualization/💔.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${dislikesCount}
                     </button>
                 </div>
             </div>
