@@ -6,28 +6,19 @@ window.selectedEditorStepIndex = null;
 window.editorFlipped = false;
 window.pendingPromotionMove = null;
 
-// Новые иконки добавлены + группировка 35 штук на страницу (5 строк по 7 иконок)
 const availableIcons = [
-    "‼️", "❗", "❓", "❓❗", "❓❓", "✨","🚩",
-    "🌑","🏰","⚔️","🔥","👑","💀","🛡️",
-    "🐐","👁️","⛓️","🤺","🌀","☀️","⚡",
-    "🔱","😰","🪓","🐎","🐢","☁️","🔨",
-    "🩸","🕊️","🦅","👺","🏃","🔆","🌫️",
-    
-    "🏆","⛪","⚠️","🍴","💥","👸","💎",
-    "😵","😈","💔","🗿","🧐","👽","🎀",
-    "👓","👟","🎓","🥇","🧩","♥️","🥁",
-    "⛏️","🔧","🪨","🪵","⚙️","🪚","💣",
-    "🔫","🔪","🔍","💡","🕯","💰","💸",
-    
-    "✏️","✒️","⏱️","✂️","⌛","🌍","🏳️",
-    "💘","☣️","🏹", "🕸️", "🗡️", "🧸", "⛅",
-    "❄️", "🌨️", "🌋", "⛰️", "🏝️", "👻", "🪜",
-    "💧","♔","♕","♖","♗","♘","♙",
+    "‼️", "❗", "❓", "❓❗", "❓❓", "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️",
+    "🐐","👁️","⛓️","🤺","🌀","☀️","⚡","🔱","😰","🪓","🐎","🐢","☁️","🔨",
+    "🩸","🕊️","🦅","👺","🏃","🔆","🌫️","🏆","⛪","⚠️","🍴","💥","👸","💎",
+    "😵","😈","💔","🗿","🧐","👽","🎀","👓","👟","🎓","🥇","🧩","♥️","🥁",
+    "⛏️","🔧","🪨","🪵","⚙️","🪚","💣","🔫","🔪","🔍","💡","🕯","💰","💸",
+    "✏️","✒️","⏱️","✂️","⌛","🌍","🏳️","💘","☣️","🏹", "🕸️", "🗡️", "🧸", "⛅",
+    "❄️", "🌨️", "🌋", "⛰️", "🏝️", "👻", "🪜","💧","♔","♕","♖","♗","♘","♙",
     "♚","♛","♜","♝","♞","♟"
 ];
 
-const ICONS_PER_PAGE = 35; // 5 строк по 7 иконок
+// 6 рядов по 5 иконок
+const ICONS_PER_PAGE = 30; 
 window.currentIconPage = 0;
 
 window.initIcons = function() {
@@ -39,8 +30,8 @@ window.initIcons = function() {
     const pageIcons = availableIcons.slice(start, end);
 
     container.innerHTML = pageIcons.map(icon => 
-        `<button onclick="setEditIcon('${icon}')" class="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
-            <img src="Visualization/${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
+        `<button onclick="setEditIcon('${icon}')" class="p-2 bg-slate-800 rounded-xl hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
+            <img src="Visualization/${icon}.png" class="w-8 h-8 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
         </button>`
     ).join('');
 
@@ -316,7 +307,7 @@ window.selectEditorStep = function(index) {
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
     
-    // Умное вырезание "1. ", "1)", чтобы не было дублей "1. 1. Атака"
+    // Умное вырезание "1. ", "1)", "1 "
     let titleRaw = document.getElementById('edit-title').value;
     let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
     
@@ -324,7 +315,7 @@ window.updateCurrentStepData = function() {
     const icon = document.getElementById('edit-icon-input').value;
     const goalSelect = document.getElementById('edit-step-goal-select').value;
 
-    // ЦЕНЗУРА (Инквизиция)
+    // Цензура
     if (window.AntiMat) {
         let cTitle = window.AntiMat.censor(title);
         let cText = window.AntiMat.censor(text);
@@ -354,7 +345,6 @@ window.publishStory = async function() {
     let scenarioName = document.getElementById('edit-scenario-name').value;
     const rawTags = document.getElementById('edit-scenario-tags').value;
     
-    // ЦЕНЗУРА НАЗВАНИЯ И ТЕГОВ
     if (window.AntiMat) {
         let cName = window.AntiMat.censor(scenarioName);
         let cTags = window.AntiMat.censor(rawTags);
