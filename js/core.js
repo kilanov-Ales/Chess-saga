@@ -4,7 +4,7 @@ window.userLikes = JSON.parse(localStorage.getItem('chess_saga_likes') || '{}');
 
 const dict = {
     ru: {
-        checking_archives: "Проверка архивов...", name_yourself: "Назови себя, Лорд", name_desc: "Имя будет высечено в камне навечно и сохранено в облаке.",
+        checking_archives: "Проверка архивов...", name_yourself: "Назови себя, Лорд", name_desc: "Имя будет высечено в камне навечно и сохранено в облаке. Его нельзя изменить. Одинаковых имен не бывает.",
         enter_chronicles: "Войти в летопись", choose_chapter: "Выберите главу истории", argus_title: "Свет Аргуса", argus_desc: "Поучительная история о самопожертвовании.",
         standard_title: "Знамя Света", standard_desc: "Орден Юстициария против Клана Кровавого Тотема.", traxler_title: "Судьба Тракслера", traxler_desc: "Безумный гамбит и падение Белого Солнца.",
         btn_start: "НАЧАТЬ БИТВУ", btn_forge: "КУЗНИЦА", btn_scrolls: "ЗАЛ СВИТКОВ", raven_mail: "Воронья Почта", chat_loading: "Вороны летят с письмами...",
@@ -28,7 +28,7 @@ const dict = {
         goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага", flip_board: "Окинуть взором врага", choose_promotion: "Кого призвать?"
     },
     en: {
-        checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud.",
+        checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud. Cannot be changed.",
         enter_chronicles: "Enter Chronicles", choose_chapter: "Choose a chapter", argus_title: "Light of Argus", argus_desc: "A cautionary tale of self-sacrifice.",
         standard_title: "Banner of Light", standard_desc: "Order of Justiciar vs. Blood Totem Clan.", traxler_title: "Traxler's Fate", traxler_desc: "A mad gambit and the fall of the White Sun.",
         btn_start: "START BATTLE", btn_forge: "THE FORGE", btn_scrolls: "HALL OF SCROLLS", raven_mail: "Raven Mail", chat_loading: "Ravens are flying with letters...",
@@ -71,7 +71,7 @@ const dict = {
         guide_btn_title: "Мудрість Предків", guide_title: "Том Мудрості", guide_intro: "Вітаємо, Лорде! Цей фоліант допоможе вам опанувати мистецтво Літописця.",
         guide_forge: "Кузня Сценаріїв", guide_forge_desc: "Тут ви створюєте свої історії. Задайте ім'я, теги та цілі. Роблячи ходи на дошці, ви створюєте кроки. Кожному кроку можна дати ім'я, опис та вибрати руну.",
         guide_scrolls: "Зала Сувоїв", guide_scrolls_desc: "Хмарна бібліотека з творіннями інших Лордів. Читайте їхні історії, ставте лайки або дизлайки, завантажуйте.",
-        guide_mail: "Вороняча Пошта", guide_mail_desc: "Чат правителів. Спілкуйтеся з іншими творцями. Повідомлення видаляються з часом, а лихослів'я суворо карається.",
+        guide_mail: "Вороняча Пошта", guide_mail_desc: "Чат правителів. Спілкуйтеся з іншими творцями. Лихослів'я суворо карається.",
         guide_battle: "Початок Битви", guide_battle_desc: "Виберіть історію в головному меню і натисніть 'Почати битву'.",
         goal_none: "Не виконує ціль", goal_mine: "Виконує Вашу ціль", goal_enemy: "Виконує Ціль Ворога", flip_board: "Окинути оком ворога", choose_promotion: "Кого призвати?"
     }
@@ -92,6 +92,7 @@ window.changeLanguage = function(lang) {
     localStorage.setItem('chess_saga_lang', lang);
     window.applyTranslations();
     window.updateScenariosLanguage();
+    if(typeof window.updateGoalDropdown === 'function') window.updateGoalDropdown();
 }
 
 window.applyTranslations = function() {
@@ -125,10 +126,6 @@ window.addEventListener('DOMContentLoaded', () => {
     window.applyTranslations();
     window.updateScenariosLanguage();
     
-    // Инициализация ползунков на 0.5 при старте
-    document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = "0.5");
-    document.querySelectorAll('input[oninput="updateVoiceVolume(this.value)"]').forEach(s => s.value = "0.5");
-    
     if (!window.myAuthorId) {
         window.myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9) + Date.now();
         localStorage.setItem('chess_saga_author_id', window.myAuthorId);
@@ -151,7 +148,6 @@ window.saveNickname = async function() {
     if (input.length < 3) return window.showNotification(t('msg_short'), "error");
     if (window.AntiMate && window.AntiMate.check(input)) return window.showNotification(t('msg_inq'), "error");
     
-    // Железное сохранение локально
     window.myNickname = input;
     localStorage.setItem('chess_saga_nickname', window.myNickname);
     
@@ -249,7 +245,7 @@ function renderSingleMessage(msg, scrollToBottom) {
     div.className = `chat-msg flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
     div.innerHTML = `
         <span class="text-xs text-slate-500 uppercase tracking-widest mb-1 mx-1">${msg.author}</span>
-        <div class="px-5 py-3 rounded-2xl max-w-[80%] text-base ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
+        <div class="px-5 py-3 rounded-2xl max-w-[80%] text-xl ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
             ${msg.text}
         </div>
     `;
@@ -261,19 +257,19 @@ window.showNotification = function(text, type = 'success') {
     const toast = document.getElementById('toast');
     const icon = document.getElementById('toast-icon');
     document.getElementById('toast-text').textContent = text;
-    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold text-lg tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_40px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
+    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-10 py-5 rounded-full font-bold text-xl tracking-widest z-[9999] transition-all duration-300 flex items-center gap-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
     
     if (type === 'success') { 
         toast.classList.add('bg-amber-500', 'text-slate-900'); 
-        icon.innerHTML = `<img src="Visualization/✨.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>✨</span>'">`;
+        icon.innerHTML = `<img src="Visualization/✨.png" class="w-10 h-10 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>✨</span>'">`;
     } 
     else if (type === 'error') { 
         toast.classList.add('bg-red-600', 'text-white'); 
-        icon.innerHTML = `<img src="Visualization/‼️.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>‼️</span>'">`;
+        icon.innerHTML = `<img src="Visualization/‼️.png" class="w-10 h-10 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>‼️</span>'">`;
     } 
     else { 
         toast.classList.add('bg-sky-600', 'text-white'); 
-        icon.innerHTML = `<img src="Visualization/📜.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>📜</span>'">`;
+        icon.innerHTML = `<img src="Visualization/📜.png" class="w-10 h-10 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>📜</span>'">`;
     }
     
     setTimeout(() => {
@@ -352,7 +348,7 @@ window.renderGallery = async function() {
     );
 
     if (filteredParties.length === 0) {
-        gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-xl">Свитки не найдены...</p>`;
+        gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-2xl">Свитки не найдены...</p>`;
         return;
     }
 
@@ -361,35 +357,35 @@ window.renderGallery = async function() {
         window.scenarios['custom_' + originalIndex] = p; 
         const canDelete = p.author_id === window.myAuthorId;
         const uId = p.db_id || p.title;
-        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-[11px] px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
+        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-2 mt-3 mb-3">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-sm px-3 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
 
         return `
-        <div class="scenario-card border-purple-900 bg-slate-900/80 p-6 rounded-3xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
-            <div class="mb-4 pr-6">
-                <h3 class="text-purple-400 font-bold truncate text-2xl" title="${p.title}">${p.title}</h3>
+        <div class="scenario-card border-purple-900 bg-slate-900/80 p-8 rounded-3xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
+            <div class="mb-4 pr-8">
+                <h3 class="text-purple-400 font-bold truncate text-3xl" title="${p.title}">${p.title}</h3>
                 ${tagsHtml}
-                <p class="text-sm text-slate-400 mt-2 uppercase">Ходов: ${p.story.length}</p>
+                <p class="text-base text-slate-400 mt-2 uppercase">Ходов: ${p.story.length}</p>
             </div>
-            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-6 right-6 text-slate-500 hover:scale-110 transition-transform" title="Сжечь свиток">
-                <img src="Visualization/🗑️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-2xl\\'>🗑️</span>'">
+            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-8 right-8 text-slate-500 hover:scale-110 transition-transform" title="Сжечь свиток">
+                <img src="Visualization/🗑️.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-2xl\\'>🗑️</span>'">
             </button>` : ''}
-            <div class="flex justify-between items-center mb-5">
-                <span class="text-sm text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
-                <div class="flex gap-4 text-base">
-                    <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/♥️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
+            <div class="flex justify-between items-center mb-6 mt-auto">
+                <span class="text-lg text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
+                <div class="flex gap-5 text-xl">
+                    <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-2">
+                        <img src="Visualization/♥️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
                     </button>
-                    <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/💔.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
+                    <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-2">
+                        <img src="Visualization/💔.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
                     </button>
                 </div>
             </div>
             <div class="flex gap-4">
-                <button onclick="if(typeof playCustomScenario === 'function') playCustomScenario(${originalIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-3 rounded-xl text-base font-bold uppercase transition-colors text-white flex items-center justify-center gap-2 shadow-lg">
-                    <img src="Visualization/👁️.png" class="w-6 h-6" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
+                <button onclick="if(typeof playCustomScenario === 'function') playCustomScenario(${originalIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-4 rounded-2xl text-lg font-bold uppercase transition-colors text-white flex items-center justify-center gap-3 shadow-lg">
+                    <img src="Visualization/👁️.png" class="w-8 h-8" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
                 </button>
-                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-5 py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center" title="Забрать в архив">
-                    <img src="Visualization/💾.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl text-white\\'>💾</span>'">
+                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-6 py-4 rounded-2xl transition-colors shadow-lg flex items-center justify-center" title="Забрать в архив">
+                    <img src="Visualization/💾.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-xl text-white\\'>💾</span>'">
                 </button>
             </div>
         </div>`;
