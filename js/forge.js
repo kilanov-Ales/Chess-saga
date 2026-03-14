@@ -36,14 +36,14 @@ window.initIcons = function() {
 
     let paginationHtml = '';
     if (window.currentIconPage > 0) {
-        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold text-white transition-colors shadow">⬆️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors shadow flex justify-center items-center"><img src="Visualization/⬆️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>⬆️</span>'"></button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg text-sm text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg shadow opacity-50 cursor-not-allowed flex justify-center items-center"><img src="Visualization/⬆️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>⬆️</span>'"></button>`;
     }
     if (end < availableIcons.length) {
-        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold text-white transition-colors shadow">⬇️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors shadow flex justify-center items-center"><img src="Visualization/⬇️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>⬇️</span>'"></button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg text-sm text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg shadow opacity-50 cursor-not-allowed flex justify-center items-center"><img src="Visualization/⬇️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>⬇️</span>'"></button>`;
     }
     pagination.innerHTML = paginationHtml;
 }
@@ -307,7 +307,7 @@ window.selectEditorStep = function(index) {
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
     
-    // Умное вырезание 1. 2) из названия, чтобы не было дублей "1. 1. Атака"
+    // Умное вырезание цифр (1. 2) из названия, чтобы не было дублей "1. 1. Атака"
     let titleRaw = document.getElementById('edit-title').value;
     let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
     
@@ -315,7 +315,7 @@ window.updateCurrentStepData = function() {
     const icon = document.getElementById('edit-icon-input').value;
     const goalSelect = document.getElementById('edit-step-goal-select').value;
 
-    if (window.AntiMate && (window.AntiMate.check(text) || window.AntiMate.check(title))) {
+    if (window.AntiMat && (window.AntiMat.check(text) || window.AntiMat.check(title))) {
         return window.showNotification(window.t('msg_inq'), "error");
     }
 
@@ -343,7 +343,7 @@ window.publishStory = async function() {
     if (!scenarioName) return window.showNotification(window.t('msg_title_empty'), "error");
     if (window.editorSteps.length < 1) return window.showNotification(window.t('msg_forge_empty'), "error");
 
-    if (window.AntiMate && window.AntiMate.check(scenarioName)) {
+    if (window.AntiMat && window.AntiMat.check(scenarioName)) {
         return window.showNotification(window.t('msg_inq'), "error");
     }
     
