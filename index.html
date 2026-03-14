@@ -14,14 +14,14 @@
 <body onclick="resumeAudio()"> 
     
     <div id="nickname-modal" class="fixed inset-0 bg-black/95 z-[9999] hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-amber-500 p-8 rounded-2xl max-w-lg w-full text-center shadow-[0_0_40px_rgba(245,158,11,0.2)] relative overflow-hidden">
+        <div class="bg-slate-900 border border-amber-500 p-10 rounded-2xl max-w-xl w-full text-center shadow-[0_0_60px_rgba(245,158,11,0.2)] relative overflow-hidden">
             <div id="nick-loader" class="absolute inset-0 bg-slate-900/90 hidden flex-col items-center justify-center z-10">
-                <div class="text-4xl animate-spin mb-3">⏳</div>
-                <div class="text-amber-500 font-bold text-sm uppercase tracking-widest" data-i18n="checking_archives">Проверка архивов...</div>
+                <div class="text-5xl animate-spin mb-4">⏳</div>
+                <div class="text-amber-500 font-bold text-lg uppercase tracking-widest" data-i18n="checking_archives">Проверка архивов...</div>
             </div>
-            <h2 class="text-3xl font-bold text-amber-500 mb-4 uppercase font-cinzel" data-i18n="name_yourself">Назови себя, Лорд</h2>
-            <p class="text-slate-400 text-sm mb-6 italic" data-i18n="name_desc">Имя будет высечено в камне навечно и сохранено в облаке. Одинаковых имен не бывает.</p>
-            <input type="text" id="nickname-input" placeholder="Ваше Имя..." class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-amber-500 text-xl font-bold mb-6 focus:border-amber-500 outline-none transition-colors text-center">
+            <h2 class="text-4xl font-bold text-amber-500 mb-6 uppercase font-cinzel" data-i18n="name_yourself">Назови себя, Лорд</h2>
+            <p class="text-slate-400 text-lg mb-8 italic" data-i18n="name_desc">Имя будет высечено в камне навечно и сохранено в облаке.</p>
+            <input type="text" id="nickname-input" placeholder="Ваше Имя..." class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-amber-500 text-xl font-bold mb-8 focus:border-amber-500 outline-none transition-colors text-center">
             <button onclick="saveNickname()" class="w-full bg-amber-600 hover:bg-amber-500 p-4 rounded-xl font-bold uppercase transition-colors text-slate-900 text-lg tracking-widest shadow-lg" data-i18n="enter_chronicles">Войти в летопись</button>
         </div>
     </div>
@@ -57,7 +57,7 @@
             </button>
         </div>
 
-        <h1 class="text-6xl text-amber-500 font-bold mb-4 tracking-tighter text-center mt-6 drop-shadow-lg">CHESS SAGA</h1>
+        <h1 class="text-[5.5rem] text-amber-500 font-bold mb-6 tracking-tighter text-center mt-6 drop-shadow-xl">CHESS SAGA</h1>
         <p class="text-slate-400 italic text-lg mb-8 text-center" data-i18n="choose_chapter">Выберите главу истории</p>
         
         <div class="scenario-selector max-w-5xl mx-auto">
@@ -146,7 +146,7 @@
     <div id="settings-modal" class="fixed inset-0 bg-black/95 z-[6000] hidden flex items-center justify-center p-4">
         <div class="btn-exit-x" onclick="closeSettings()" style="top: 1.5rem; right: 1.5rem; left: auto;">×</div>
         <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl max-w-sm w-full text-center shadow-[0_0_40px_rgba(0,0,0,0.8)]">
-            <h2 class="text-3xl font-bold text-slate-200 mb-8 uppercase" data-i18n="settings_title">Настройки Королевства</h2>
+            <h2 class="text-2xl font-bold text-slate-200 mb-8 uppercase" data-i18n="settings_title">Настройки Королевства</h2>
             
             <div class="mb-8 flex flex-col items-center">
                 <span class="text-slate-300 font-bold mb-3 text-xs uppercase tracking-widest" data-i18n="lang_select">Язык Летописи</span>
@@ -172,7 +172,7 @@
             </div>
             
             <hr class="border-slate-700 my-6">
-            <p class="text-slate-500 text-xs italic"><span data-i18n="current_lord">Текущий Лорд:</span> <br><span id="settings-nickname-display" class="text-amber-500 font-bold text-xl not-italic mt-1 block"></span></p>
+            <p class="text-slate-500 text-xs italic"><span data-i18n="current_lord">Текущий Лорд:</span> <br><span id="settings-nickname-display" class="text-amber-500 font-bold text-lg not-italic mt-1 block"></span></p>
         </div>
     </div>
 
@@ -192,15 +192,15 @@
             <div class="btn-exit-x" onclick="exitToMenu()">×</div>
             
             <div class="vol-game volume-box hidden md:flex absolute top-6 left-6 flex-row bg-slate-900/80 p-3 rounded-2xl border border-amber-500/50 shadow-lg">
-                <img src="Visualization/🔊.png" class="w-6 h-6 mr-2" alt="vol" onerror="this.style.display='none'">
+                <img src="Visualization/🔊.png" class="w-5 h-5 mr-2" alt="vol" onerror="this.style.display='none'">
                 <input type="range" class="w-24 h-2 rounded-lg accent-amber-500 volume-slider cursor-pointer" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
             </div>
 
-            <div class="theater-zone-mini mt-8">
+            <div class="theater-zone-mini mt-6">
                 <div id="visual-stage" class="visual-stage-mini">
                     <img src="Visualization/🏰.png" alt="scene" onerror="this.style.display='none'">
                 </div>
-                <h1 id="scene-title" class="text-2xl text-amber-500 font-bold uppercase mt-4" data-i18n="calm_title">Затишье</h1>
+                <h1 id="scene-title" class="text-xl text-amber-500 font-bold uppercase mt-2" data-i18n="calm_title">Затишье</h1>
                 <p id="scene-desc" class="text-slate-400 italic text-sm line-clamp-2 mt-1" data-i18n="calm_desc">Армии ждут...</p>
             </div>
             
@@ -211,24 +211,24 @@
             <div class="chess-board-outer mt-2"><div id="board" class="chess-board"></div></div>
         </div>
 
-        <div class="right-panel p-6">
+        <div class="right-panel p-4">
             <div class="grid grid-cols-2 gap-4">
-                <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-700">
-                    <h3 class="text-xs font-bold text-sky-400 mb-3 uppercase tracking-widest" data-i18n="tasks_title">Задачи</h3>
-                    <ul id="goals-list" class="text-sm space-y-2 text-slate-300"></ul>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                    <h3 class="text-[10px] font-bold text-sky-400 mb-2 uppercase tracking-widest" data-i18n="tasks_title">Задачи</h3>
+                    <ul id="goals-list" class="text-[11px] space-y-2 text-slate-300"></ul>
                 </div>
-                <div class="bg-slate-900/80 p-5 rounded-2xl border border-red-900/30">
-                    <h3 class="text-xs font-bold text-red-500 mb-3 uppercase tracking-widest" data-i18n="enemy_title">Враг</h3>
-                    <ul id="enemy-goals" class="text-sm space-y-2 text-slate-400"></ul>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-red-900/30">
+                    <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-widest" data-i18n="enemy_title">Враг</h3>
+                    <ul id="enemy-goals" class="text-[11px] space-y-2 text-slate-400"></ul>
                 </div>
             </div>
-            <div class="flex justify-between items-center px-2 my-4">
-                <span id="move-counter" class="text-sm font-mono text-amber-500 font-bold">ХОД: 1</span>
-                <span id="player-turn" class="text-sm font-mono text-amber-500 font-bold">ОЧЕРЕДЬ: БЕЛЫЕ</span>
+            <div class="flex justify-between items-center px-2 my-2">
+                <span id="move-counter" class="text-xs font-mono text-amber-500 font-bold">ХОД: 1</span>
+                <span id="player-turn" class="text-xs font-mono text-amber-500 font-bold">ОЧЕРЕДЬ: БЕЛЫЕ</span>
             </div>
-            <div class="chronicle-card rounded-2xl border border-slate-700">
-                <div class="bg-slate-800 p-4"><h2 class="text-sm font-bold text-slate-200 uppercase" data-i18n="chronicle_title">Хроника</h2></div>
-                <div class="narrative-scroll p-4" id="narrative-box"><div id="chronicle-list" class="space-y-4 text-sm"></div></div>
+            <div class="chronicle-card rounded-xl border border-slate-700">
+                <div class="bg-slate-800 p-3"><h2 class="text-sm font-bold text-slate-200 uppercase" data-i18n="chronicle_title">Хроника</h2></div>
+                <div class="narrative-scroll p-3" id="narrative-box"><div id="chronicle-list" class="space-y-3 text-xs"></div></div>
             </div>
         </div>
     </div>
@@ -237,9 +237,9 @@
         <div class="btn-exit-x" onclick="closeEditor()" style="position: fixed; top: 1.5rem; left: 1.5rem;">×</div>
 
         <div class="w-full max-w-[100rem] pt-2 flex flex-col items-center">
-            <h2 class="text-4xl font-bold text-amber-500 uppercase mb-8 tracking-widest text-center drop-shadow-xl" data-i18n="forge_title">Кузница Сценариев</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-amber-500 uppercase mb-6 tracking-widest text-center drop-shadow-xl" data-i18n="forge_title">Кузница Сценариев</h2>
 
-            <div class="grid grid-cols-1 lg:grid-cols-[minmax(350px,1fr)_350px_350px] gap-6 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-[minmax(350px,1fr)_320px_320px] gap-6 w-full">
                 
                 <div class="flex flex-col items-center justify-start w-full">
                     <button onclick="toggleEditorFlip()" class="mb-4 bg-slate-800 border border-slate-600 px-4 py-2 rounded-full text-slate-300 text-xs uppercase font-bold tracking-widest hover:border-amber-500 hover:text-amber-500 transition-all flex items-center gap-2 shadow-lg">
@@ -255,31 +255,35 @@
                     </div>
                 </div>
 
-                <div id="editor-step-form" class="hidden flex-col gap-4 p-6 border border-sky-900 bg-slate-900/50 rounded-2xl shadow-xl w-full">
-                    <h3 class="text-sky-400 font-bold text-sm uppercase mb-2 text-center" id="editing-step-label">Редактирование хода</h3>
-                    
-                    <input id="edit-title" type="text" data-i18n-placeholder="forge_step_title_ph" placeholder="Имя Маневра" class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg text-slate-200 text-sm focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
-                    <textarea id="edit-text" data-i18n-placeholder="forge_step_text_ph" placeholder="Слова или деяния героев..." class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg h-24 text-slate-200 text-sm resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
-                    
-                    <div>
-                        <select id="edit-step-goal-select" class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg text-slate-300 text-sm outline-none cursor-pointer focus:border-sky-500" onchange="updateCurrentStepData()">
-                            <option value="none" data-i18n="goal_none">Не выполняет цель</option>
-                        </select>
+                <div class="flex flex-col bg-slate-900/50 p-5 rounded-2xl border border-slate-800 shadow-xl w-full h-full relative">
+                    <div id="editor-step-form" class="hidden flex-col gap-4 w-full h-full">
+                        <h3 class="text-sky-400 font-bold text-sm uppercase mb-1 text-center" id="editing-step-label">Редактирование хода</h3>
+                        
+                        <input id="edit-title" type="text" data-i18n-placeholder="forge_step_title_ph" placeholder="Имя Маневра" class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg text-slate-200 text-sm focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()">
+                        <textarea id="edit-text" data-i18n-placeholder="forge_step_text_ph" placeholder="Слова или деяния героев..." class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg h-24 text-slate-200 text-sm resize-none focus:border-sky-500 outline-none transition-colors" oninput="updateCurrentStepData()"></textarea>
+                        
+                        <div>
+                            <select id="edit-step-goal-select" class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg text-slate-300 text-sm outline-none cursor-pointer focus:border-sky-500" onchange="updateCurrentStepData()">
+                                <option value="none" data-i18n="goal_none">Не выполняет цель</option>
+                            </select>
+                        </div>
+
+                        <input id="edit-icon-input" type="hidden" value="⚔️">
+                        <div class="flex flex-col items-center w-full mt-2" id="icon-selector-container">
+                            <div class="grid grid-cols-7 gap-2 w-full" id="icon-selector"></div>
+                            <div class="flex w-full mt-2 gap-2" id="icon-pagination"></div>
+                        </div>
                     </div>
 
-                    <input id="edit-icon-input" type="hidden" value="⚔️">
-                    <div class="flex flex-col items-center w-full mt-2" id="icon-selector-container">
-                        <div class="grid grid-cols-7 gap-2 w-full" id="icon-selector"></div>
-                        <div class="flex w-full mt-2 gap-2" id="icon-pagination"></div>
+                    <div class="mt-auto pt-4 border-t border-slate-700 w-full">
+                        <button onclick="undoEditorStep()" class="w-full bg-red-900/80 hover:bg-red-700 p-3 rounded-lg font-bold uppercase transition-colors text-white text-xs tracking-widest flex justify-center items-center gap-2 shadow-lg border border-red-500/30">
+                            <img src="Visualization/🗑️.png" class="w-4 h-4" onerror="this.style.display='none'"> <span data-i18n="forge_undo">Предать забвению</span>
+                        </button>
                     </div>
-                    
-                    <button onclick="undoEditorStep()" class="mt-auto w-full bg-red-900/80 hover:bg-red-700 p-3 rounded-lg font-bold uppercase transition-colors text-white text-xs tracking-widest flex justify-center items-center gap-2 shadow-lg border border-red-500/30">
-                        <img src="Visualization/🗑️.png" class="w-4 h-4" onerror="this.style.display='none'"> <span data-i18n="forge_undo">Предать забвению</span>
-                    </button>
                 </div>
 
-                <div class="flex flex-col bg-slate-900/80 p-6 rounded-2xl border border-slate-700 shadow-xl gap-4 w-full">
-                    <h3 class="text-amber-500 font-bold text-xl uppercase text-center border-b border-slate-700 pb-3" data-i18n="forge_settings">Магия Свитка</h3>
+                <div class="flex flex-col bg-slate-900/80 p-5 rounded-2xl border border-slate-700 shadow-xl gap-4 w-full h-full">
+                    <h3 class="text-amber-500 font-bold text-lg uppercase text-center border-b border-slate-700 pb-3" data-i18n="forge_settings">Магия Свитка</h3>
                     
                     <div class="space-y-3">
                         <input id="edit-scenario-name" type="text" data-i18n-placeholder="forge_name_ph" placeholder="Заголовок Летописи" class="w-full bg-slate-800 border border-slate-600 p-3 rounded-lg text-amber-500 font-bold text-sm focus:border-amber-500 outline-none transition-colors">
@@ -305,6 +309,7 @@
     </div>
 
     <script src="js/scenarios.js"></script>
+    <script src="js/antimat.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/core.js"></script>
     <script src="js/game.js"></script>
