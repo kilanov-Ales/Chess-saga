@@ -64,7 +64,7 @@ h1, h2, h3 { font-family: 'Cinzel', serif; }
 
 .app-container {
     display: none; 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 450px; /* Идеальное распределение: доска занимает всё слева, меню справа 450px */
     width: 100vw;
     height: 100vh;
     opacity: 0;
@@ -89,21 +89,22 @@ h1, h2, h3 { font-family: 'Cinzel', serif; }
     background: #0f172a;
     border-right: 1px solid #334155;
     position: relative;
-    padding: 2rem;
+    padding: 1.5rem;
+    height: 100vh;
 }
 
-.theater-zone-mini { text-align: center; margin-bottom: 1rem; max-width: 500px; }
+.theater-zone-mini { text-align: center; max-width: 400px; }
 .visual-stage-mini { 
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100px;
-    filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.4)); 
+    min-height: 80px;
+    filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3)); 
     transition: all 0.5s; 
 }
 .visual-stage-mini img {
-    width: 90px;
-    height: 90px;
+    width: 70px;
+    height: 70px;
     object-fit: contain;
 }
 
@@ -155,7 +156,7 @@ h1, h2, h3 { font-family: 'Cinzel', serif; }
 .btn-exit-x { position: absolute; top: 2rem; left: 2rem; width: 50px; height: 50px; border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; z-index: 5001; font-size: 2rem; background: rgba(2, 6, 23, 0.8); }
 .btn-exit-x:hover { background: var(--gold); color: #000; }
 
-.right-panel { display: flex; flex-direction: column; gap: 1.5rem; background: var(--bg-dark); overflow: hidden; }
+.right-panel { background: var(--bg-dark); }
 .chronicle-card { background: #0f172a; border-color: #334155; display: flex; flex-direction: column; overflow: hidden; flex: 1; }
 .narrative-scroll { flex-grow: 1; overflow-y: auto; }
 
