@@ -17,8 +17,8 @@ const availableIcons = [
     "♚","♛","♜","♝","♞","♟"
 ];
 
-// 6 рядов по 5 иконок
-const ICONS_PER_PAGE = 30; 
+// Ровно 5 рядов по 5 иконок (Итого 25 на страницу)
+const ICONS_PER_PAGE = 25; 
 window.currentIconPage = 0;
 
 window.initIcons = function() {
@@ -307,7 +307,6 @@ window.selectEditorStep = function(index) {
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
     
-    // Умное вырезание "1. ", "1)", "1 "
     let titleRaw = document.getElementById('edit-title').value;
     let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
     
@@ -315,7 +314,6 @@ window.updateCurrentStepData = function() {
     const icon = document.getElementById('edit-icon-input').value;
     const goalSelect = document.getElementById('edit-step-goal-select').value;
 
-    // Цензура
     if (window.AntiMat) {
         let cTitle = window.AntiMat.censor(title);
         let cText = window.AntiMat.censor(text);
