@@ -30,20 +30,20 @@ window.initIcons = function() {
 
     container.innerHTML = pageIcons.map(icon => 
         `<button onclick="setEditIcon('${icon}')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
-            <img src="Visualization/${icon}.png" class="w-10 h-10 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
+            <img src="Visualization/${icon}.png" class="w-8 h-8 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
         </button>`
     ).join('');
 
     let paginationHtml = '';
     if (window.currentIconPage > 0) {
-        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-lg font-bold text-white transition-colors shadow">⬆️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(-1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold text-white transition-colors shadow">⬆️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-3 bg-slate-800 rounded-xl text-lg text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg text-sm text-slate-600 shadow opacity-50 cursor-not-allowed">⬆️</button>`;
     }
     if (end < availableIcons.length) {
-        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-lg font-bold text-white transition-colors shadow">⬇️</button>`;
+        paginationHtml += `<button onclick="changeIconPage(1)" class="flex-1 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-bold text-white transition-colors shadow">⬇️</button>`;
     } else {
-        paginationHtml += `<button disabled class="flex-1 p-3 bg-slate-800 rounded-xl text-lg text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
+        paginationHtml += `<button disabled class="flex-1 p-2 bg-slate-800 rounded-lg text-sm text-slate-600 shadow opacity-50 cursor-not-allowed">⬇️</button>`;
     }
     pagination.innerHTML = paginationHtml;
 }
@@ -63,7 +63,7 @@ window.openEditor = function() {
     window.currentIconPage = 0;
     window.editorFlipped = false;
     
-    document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-xl text-center mt-12">${window.t('forge_empty')}</p>`;
+    document.getElementById('editor-steps-list').innerHTML = `<p class="text-slate-500 italic text-sm text-center w-full my-auto">${window.t('forge_empty')}</p>`;
     document.getElementById('editor-step-form').classList.add('hidden');
     
     if(document.getElementById('edit-scenario-name')) document.getElementById('edit-scenario-name').value = "";
@@ -98,7 +98,7 @@ window.updateGoalDropdown = function() {
     const currentVal = selectEl.value;
     selectEl.innerHTML = `
         <option value="none">${window.t('goal_none')}</option>
-        <option value="player">👑 ${pGoal}</option>
+        <option value="player">✨ ${pGoal}</option>
         <option value="enemy">💀 ${eGoal}</option>
     `;
     selectEl.value = currentVal || 'none';
@@ -180,10 +180,10 @@ window.showPromotionModal = function(color) {
     const prefix = color === 'w' ? 'w' : 'b';
     
     container.innerHTML = `
-        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
-        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
-        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Слон">
-        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-24 h-24 cursor-pointer hover:scale-125 transition-transform" title="Конь">
+        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
+        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
+        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Слон">
+        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Конь">
     `;
     modal.classList.remove('hidden');
 }
@@ -216,7 +216,10 @@ window.executeForgeMove = function(from, to, promotionPiece) {
             san: move.san, title: "", text: "", icon: "⚔️", capture: move.captured ? true : false
         });
         window.selectEditorStep(window.editorSteps.length - 1);
-        setTimeout(() => { const listEl = document.getElementById('editor-steps-list'); if(listEl) listEl.scrollTop = listEl.scrollHeight; }, 50);
+        setTimeout(() => { 
+            const listEl = document.getElementById('editor-steps-list'); 
+            if(listEl) listEl.scrollLeft = listEl.scrollWidth; 
+        }, 50);
     }
     window.selectedSquare = null; 
     window.validMovesForSelected = []; 
@@ -240,7 +243,7 @@ window.undoEditorStep = function() {
 window.renderEditorStepsList = function() {
     const list = document.getElementById('editor-steps-list');
     if(window.editorSteps.length === 0) {
-        list.innerHTML = `<p class="text-slate-500 italic text-xl text-center mt-12">${window.t('forge_empty')}</p>`;
+        list.innerHTML = `<p class="text-slate-500 italic text-sm text-center w-full my-auto">${window.t('forge_empty')}</p>`;
         document.getElementById('editor-step-form').classList.add('hidden');
         return;
     }
@@ -251,20 +254,22 @@ window.renderEditorStepsList = function() {
     list.innerHTML = window.editorSteps.map((s, i) => {
         const moveNum = Math.floor(i / 2) + 1;
         const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
-        const isActive = window.selectedEditorStepIndex === i ? 'border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-slate-700 bg-slate-900/50 hover:border-sky-500 hover:bg-slate-800';
+        
+        // Золотое свечение для выбранного хода
+        const isActive = window.selectedEditorStepIndex === i ? 'border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-slate-700 bg-slate-800/80 hover:border-sky-500';
         
         let targetText = "";
-        if (s.goal === 0) targetText += `<span class="text-sky-400 font-bold ml-3 text-sm">✓ ${pGoal}</span>`;
-        if (s.egoal === 0) targetText += `<span class="text-red-500 font-bold ml-3 text-sm">✓ ${eGoal}</span>`;
+        if (s.goal === 0) targetText += `<span class="text-sky-400 font-bold ml-1 text-[10px]">✓ Ц</span>`;
+        if (s.egoal === 0) targetText += `<span class="text-red-500 font-bold ml-1 text-[10px]">✓ В</span>`;
 
         return `
-        <div onclick="selectEditorStep(${i})" class="p-5 border-2 rounded-2xl cursor-pointer transition-colors ${isActive} flex flex-col justify-center text-slate-300 shrink-0 gap-2">
-            <div class="flex justify-between items-center w-full">
-                <span class="text-lg"><b class="text-amber-500">${moveNum}. ${s.san}</b> <span class="text-sm text-slate-400">(${turnName})</span></span>
-                <span class="ml-3 text-base"><img src="Visualization/${s.icon}.png" class="w-8 h-8 inline object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'"></span>
+        <div onclick="selectEditorStep(${i})" class="flex flex-col min-w-[160px] max-w-[160px] p-3 border-2 rounded-xl cursor-pointer transition-all ${isActive} shrink-0">
+            <div class="flex justify-between items-center w-full mb-1">
+                <span class="text-sm"><b class="text-amber-500">${moveNum}. ${s.san}</b></span>
+                <img src="Visualization/${s.icon}.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'">
             </div>
             <div class="flex justify-between items-center w-full">
-                <span class="text-sm truncate italic text-slate-400">${s.title || 'Без названия'}</span>
+                <span class="text-[10px] text-slate-400 truncate w-[70%]">${s.title || '...'}</span>
                 ${targetText}
             </div>
         </div>`;
@@ -302,7 +307,7 @@ window.selectEditorStep = function(index) {
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
     
-    // Умное вырезание цифр в начале названия (1. , 2) и т.д.)
+    // Умное вырезание 1. 2) из названия, чтобы не было дублей "1. 1. Атака"
     let titleRaw = document.getElementById('edit-title').value;
     let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
     
