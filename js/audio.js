@@ -2,7 +2,6 @@ const audioFolderPath = "audio/";
 window.isSpeaking = false; 
 
 const bgMusic = document.getElementById('audio-bg');
-// Значения ползунков изначально стоят ровно по середине
 let baseMusicVolume = 0.5; 
 let voiceVolume = 0.5;     
 window.isMainMenu = true;     
@@ -14,19 +13,17 @@ window.resumeAudio = function() {
     if (bgMusic.paused) bgMusic.play().catch(() => {});
 }
 
-// Логика адаптивной громкости музыки
+// Новая безупречная логика громкости
 window.applyMenuVolumeLogic = function() {
     if (window.isSpeaking) return; 
     
-    // Максимальный порог музыки (0.2), чтобы даже на 100% она не оглушала.
-    const actualVolume = baseMusicVolume * 0.2; 
+    // Максимальный порог музыки, чтобы даже на 1.0 она не рвала уши.
+    const actualVolume = baseMusicVolume * 0.25; 
     
     if (window.isMainMenu) {
-        // В меню музыка играет еще тише (25% от основной громкости)
-        bgMusic.volume = actualVolume * 0.25; 
+        bgMusic.volume = actualVolume * 0.3; // В меню музыка играет тихо (фоново)
     } else {
-        // В бою музыка играет на полную установленную громкость
-        bgMusic.volume = actualVolume; 
+        bgMusic.volume = actualVolume; // В бою музыка играет на полную мощь ползунка
     }
 }
 
@@ -39,6 +36,11 @@ window.updateVolume = function(val) {
 window.updateVoiceVolume = function(val) {
     voiceVolume = parseFloat(val);
 }
+
+// Применяем громкость сразу при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    window.applyMenuVolumeLogic();
+});
 
 window.speak = function(text, turn, stepAtMoment) {
     window.isSpeaking = true; 
@@ -65,7 +67,7 @@ window.speak = function(text, turn, stepAtMoment) {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = lang === 'en' ? 'en-US' : lang === 'uk' ? 'uk-UA' : 'ru-RU';
         msg.volume = voiceVolume; 
-        msg.onstart = () => { bgMusic.volume = baseMusicVolume * 0.02; }; // Глушим музыку для синтезатора
+        msg.onstart = () => { bgMusic.volume = baseMusicVolume * 0.02; }; 
         msg.onend = () => { 
             window.isSpeaking = false; 
             window.applyMenuVolumeLogic(); 
