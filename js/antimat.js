@@ -1,41 +1,34 @@
 window.AntiMat = {
-    // Массивная база корней, покрывающая все производные из твоего файла (RU, EN, UK)
+    // Корни из твоего файла (ловит все производные, напр: "выебон", "нахуевертить")
     badRoots: [
-        // Русские корни (покрывают тысячи производных: выебон, захуевертить, долбоёб и т.д.)
         'хуй', 'хуя', 'хуе', 'хуё', 'хуи', 'пизд', 'пезд', 'ебан', 'ебат', 'ебл', 'ебу', 
         'ёба', 'ёбн', 'ёбс', 'ебт', 'ёбт', 'бляд', 'блят', 'шлюх', 'мудак', 'мудо', 'муди', 
         'гандон', 'гондон', 'пидор', 'пидар', 'педик', 'залуп', 'херн', 'охуе', 'хуищ', 'долбое',
-
-        // Английские корни из файла
         'fuck', 'shit', 'bitch', 'cunt', 'whore', 'faggot', 'nigger', 'asshole', 'bollocks', 
         'bullshit', 'prick', 'twat', 'minge', 'bellend', 'clunge', 'punani', 'gash', 'munter', 
         'feck', 'douchebag', 'bloodclaat', 'motherfucker', 'bastard',
-
-        // Украинские корни
         'пізд', 'їбан', 'довбойоб', 'хуї', 'лайно', 'покидьок', 'шльондр', 'курва', 'срака'
     ],
     
-    // Короткие слова, которые банятся ТОЛЬКО если написаны целиком 
-    // (чтобы не забанить нормальные слова, содержащие эти слоги, например "cocktail" или "shoe")
+    // Короткие слова (блокируются только целиком)
     exactWords: [
         'ass', 'dick', 'cock', 'hoe', 'slut', 'fool', 'dumb', 'retard', 'freak', 'jerk',
         'бля', 'лох', 'даун', 'сука', 'суки', 'хер', 'член', 'чмо', 'мразь'
     ],
     
-    // БЕЛЫЙ СПИСОК: слова-исключения, которые Инквизиция игнорирует (шахматные термины)
+    // БЕЛЫЙ СПИСОК (Шахматные термины, которые не блокируются)
     whitelist: [
         'шах', 'мат', 'пешка', 'пешку', 'пешки', 'шахмат', 'король', 'короля', 'ферзь', 'ферзя', 
         'ладья', 'ладью', 'слон', 'слона', 'конь', 'коня', 'доска', 'доску', 'партия', 'партию', 'матч'
     ], 
     
-    // Нормализация (leetspeak) — заменяем английские буквы и символы на русские, удаляем ВСЕ пробелы
+    // Leetspeak и удаление пробелов
     normalize: function(text) {
         let s = text.toLowerCase();
         const leet = {
             '@': 'а', 'a': 'а', '0': 'о', 'o': 'о', '3': 'з', '1': 'і', '!': 'і', '$': 's',
             'x': 'х', 'y': 'у', 'p': 'р', 'c': 'с', 'm': 'м', 'k': 'к', 'e': 'е', 'i': 'і', 'u': 'и'
         };
-        // Превращаем "x y й" в "хуй", "n u 3 D a" в "пизда"
         return s.split('').map(c => leet[c] || c).join('').replace(/[\s\.\,\-\_\!\?\(\)\[\]\{\}\=\+]/g, '');
     },
 
@@ -43,22 +36,57 @@ window.AntiMat = {
         if (!text) return false;
         let lower = text.toLowerCase();
         
-        // 1. Временно вырезаем слова из белого списка, чтобы они не попали под фильтр
         for (let w of this.whitelist) {
             let regex = new RegExp(w, 'g');
             lower = lower.replace(regex, ''); 
         }
 
-        // 2. Проверка на точные совпадения коротких слов (сука, dick, хер)
-        // Разбиваем текст на отдельные слова и ищем совпадения
         const words = lower.match(/[a-zа-яёіїєґ]+/g) || [];
         if (words.some(w => this.exactWords.includes(w))) return true;
 
-        // 3. Жесткая нормализация текста (без пробелов) и поиск корней мата
-        // Если игрок написал "н а х у е в е р т и т ь" -> нормализатор сожмет это в "нахуевертить" -> корень "хуе" найдет совпадение
         const normalized = this.normalize(lower);
         if (this.badRoots.some(w => normalized.includes(w))) return true;
 
-        return false; // Инквизиция одобряет! Текст чист.
+        return false; 
+    },
+
+    // Функция, заменяющая маты на ***
+    censor: function(text) {
+        if (!text) return text;
+        if (!this.check(text)) return text; // Если чисто, возвращаем как есть
+
+        let result = text;
+        const wordRegex = /[a-zA-Zа-яА-ЯёЁїієґЇІЄҐ]+/g;
+        let match;
+        const matches = [];
+        
+        while ((match = wordRegex.exec(text)) !== null) {
+            matches.push({word: match[0], index: match.index});
+        }
+        
+        let censoredSomething = false;
+        for (let i = matches.length - 1; i >= 0; i--) {
+            let w = matches[i].word;
+            let l = w.toLowerCase();
+            
+            if (this.whitelist.some(white => l.includes(white))) continue;
+            
+            let isBad = this.exactWords.includes(l);
+            if (!isBad) {
+                let norm = this.normalize(l);
+                isBad = this.badRoots.some(root => norm.includes(root));
+            }
+            if (isBad) {
+                result = result.substring(0, matches[i].index) + '***' + result.substring(matches[i].index + w.length);
+                censoredSomething = true;
+            }
+        }
+        
+        // Если мат был через пробелы (напр. "х у й") и по словам его не вырезало
+        if (!censoredSomething && this.check(result)) {
+            return "***"; // Блокируем всю строку
+        }
+        
+        return result;
     }
 };
