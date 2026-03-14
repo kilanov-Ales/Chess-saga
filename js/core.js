@@ -1,7 +1,7 @@
 window.API_URL = 'https://chess-api.kilanov.workers.dev/';
 window.scenarios = {};
 window.userLikes = JSON.parse(localStorage.getItem('chess_saga_likes') || '{}');
-window._cachedGalleryParties = []; // Кеш для моментального обновления лайков
+window._cachedGalleryParties = [];
 
 const dict = {
     ru: {
@@ -13,7 +13,7 @@ const dict = {
         scrolls_title: "Свитки других Лордов", calm_title: "Затишье", calm_desc: "Армии ждут...", tasks_title: "Задачи", enemy_title: "Враг", chronicle_title: "Хроника",
         forge_title: "Кузница Сценариев", make_moves: "Творите историю на поле брани", forge_publish: "Высечь в Свитках", forge_download: "Скачать Архив",
         forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать ход забвению",
-        msg_spam: "Вороны устали! Подождите 5 секунд.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
+        msg_spam: "Вороны устали! Подождите немного.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
         msg_short: "Имя не достойно Лорда! (Минимум 3 буквы)", msg_welcome: "С возвращением, Лорд ", msg_forge_empty: "Кузница пуста! Скуйте хотя бы один ход!",
         msg_title_empty: "Нареките свою Летопись именем!", msg_scroll_saved: "Летопись навеки запечатлена в Свитках!", msg_scroll_downloaded: "Свиток перенесен в архивы!",
         msg_scroll_burned: "Свиток предан огню и стерт из памяти веков!", read: "Читать", unknown: "Неизвестный", goals: "Цели",
@@ -29,7 +29,7 @@ const dict = {
         goal_none: "Не выполняет цель", goal_mine: "Выполняет Вашу цель", goal_enemy: "Выполняет Цель Врага", flip_board: "Окинуть взором врага", choose_promotion: "Кого призвать?"
     },
     en: {
-        checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud.",
+        checking_archives: "Checking archives...", name_yourself: "Name yourself, Lord", name_desc: "Your name will be carved in stone forever and saved in the cloud. Cannot be changed.",
         enter_chronicles: "Enter Chronicles", choose_chapter: "Choose a chapter", argus_title: "Light of Argus", argus_desc: "A cautionary tale of self-sacrifice.",
         standard_title: "Banner of Light", standard_desc: "Order of Justiciar vs. Blood Totem Clan.", traxler_title: "Traxler's Fate", traxler_desc: "A mad gambit and the fall of the White Sun.",
         btn_start: "START BATTLE", btn_forge: "THE FORGE", btn_scrolls: "HALL OF SCROLLS", raven_mail: "Raven Mail", chat_loading: "Ravens are flying with letters...",
@@ -37,7 +37,7 @@ const dict = {
         scrolls_title: "Scrolls of other Lords", calm_title: "Calm", calm_desc: "Armies are waiting...", tasks_title: "Tasks", enemy_title: "Enemy", chronicle_title: "Chronicle",
         forge_title: "Scenario Forge", make_moves: "Forge history on the battlefield", forge_publish: "Carve into Scrolls", forge_download: "Download Archive",
         forge_empty: "The forge is empty. Forge the first move...", forge_undo: "Cast move into oblivion",
-        msg_spam: "Ravens are tired! Wait 5 seconds.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
+        msg_spam: "Ravens are tired! Wait.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
         msg_short: "Name unworthy of a Lord! (Min 3 letters)", msg_welcome: "Welcome back, Lord ", msg_forge_empty: "Forge is empty! Forge at least one move!",
         msg_title_empty: "Name your Chronicle!", msg_scroll_saved: "Your chronicle is forever carved in the Hall of Scrolls!", msg_scroll_downloaded: "Scroll transferred to archives!",
         msg_scroll_burned: "Scroll burned and erased from memory!", read: "Read", unknown: "Unknown", goals: "Goals",
@@ -61,7 +61,7 @@ const dict = {
         scrolls_title: "Сувої інших Лордів", calm_title: "Затишшя", calm_desc: "Армії чекають...", tasks_title: "Завдання", enemy_title: "Ворог", chronicle_title: "Літопис",
         forge_title: "Кузня Сценаріїв", make_moves: "Творіть історію на полі битви", forge_publish: "Викарбувати в Сувоях", forge_download: "Завантажити Архів",
         forge_empty: "Кузня порожня. Викуйте перший хід...", forge_undo: "Віддати хід забуттю",
-        msg_spam: "Ворони втомилися! Зачекайте 5 секунд.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
+        msg_spam: "Ворони втомилися! Зачекайте.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
         msg_short: "Ім'я не гідне Лорда! (Мінімум 3 літери)", msg_welcome: "З поверненням, Лорде ", msg_forge_empty: "Кузня порожня! Викуйте хоча б один хід!",
         msg_title_empty: "Назвіть свій Літопис!", msg_scroll_saved: "Літопис навіки збережено в Залі Сувоїв!", msg_scroll_downloaded: "Сувій перенесено до архівів!",
         msg_scroll_burned: "Сувій спалено і стерто з пам'яті віків!", read: "Читати", unknown: "Невідомий", goals: "Цілі",
@@ -126,6 +126,10 @@ window.myNickname = localStorage.getItem('chess_saga_nickname');
 window.addEventListener('DOMContentLoaded', () => {
     window.applyTranslations();
     window.updateScenariosLanguage();
+    
+    // Инициализация ползунков на 0.5 при старте
+    document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = "0.5");
+    document.querySelectorAll('input[oninput="updateVoiceVolume(this.value)"]').forEach(s => s.value = "0.5");
     
     if (!window.myAuthorId) {
         window.myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9) + Date.now();
@@ -210,27 +214,28 @@ window.sendChatMessage = async function() {
     const text = input.value.trim();
     if (!text) return;
     
-    if (Date.now() - lastChatTime < 5000) return window.showNotification(t('msg_spam'), "error");
+    if (Date.now() - lastChatTime < 3000) return window.showNotification(t('msg_spam'), "error");
     if (window.AntiMat && window.AntiMat.check(text)) return window.showNotification(t('msg_inq'), "error");
 
-    const msgObj = { type: 'chat_msg', author: window.myNickname || t('unknown'), text: text, time: Date.now() };
+    const msgObj = { author_id: window.myAuthorId, author_name: window.myNickname || t('unknown'), text: text };
     input.value = "";
-    renderSingleMessage(msgObj, true);
+    
+    // Оптимистичный рендер
+    renderSingleMessage({ author_name: window.myNickname, text: text }, true);
     lastChatTime = Date.now();
 
-    try { await fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ data: msgObj }) }); } catch(e) {}
+    try { 
+        let url = window.API_URL.endsWith('/') ? window.API_URL + 'chat' : window.API_URL + '/chat';
+        await fetch(url, { method: 'POST', body: JSON.stringify(msgObj) }); 
+    } catch(e) {}
 }
 
 async function loadChat() {
     try {
-        const resp = await fetch(window.API_URL);
+        let url = window.API_URL.endsWith('/') ? window.API_URL + 'chat' : window.API_URL + '/chat';
+        const resp = await fetch(url);
         if (resp.ok) {
-            const data = await resp.json();
-            const rows = Array.isArray(data) ? data : (data.data || data.result || []);
-            let messages = rows.map(r => typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || r))
-                               .filter(p => p.type === 'chat_msg')
-                               .sort((a,b) => a.time - b.time).slice(-50); 
-            
+            const messages = await resp.json();
             const container = document.getElementById('chat-messages');
             container.innerHTML = "";
             if (messages.length === 0) container.innerHTML = `<p class="text-center text-slate-500 italic mt-10">${t('chat_loading')}</p>`;
@@ -241,12 +246,12 @@ async function loadChat() {
 
 function renderSingleMessage(msg, scrollToBottom) {
     const container = document.getElementById('chat-messages');
-    const isMe = msg.author === window.myNickname;
+    const isMe = msg.author_name === window.myNickname;
     const div = document.createElement('div');
     div.className = `chat-msg flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
     div.innerHTML = `
-        <span class="text-xs text-slate-500 uppercase tracking-widest mb-1 mx-1">${msg.author}</span>
-        <div class="px-5 py-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
+        <span class="text-xs text-slate-500 uppercase tracking-widest mb-1 mx-1">${msg.author_name}</span>
+        <div class="px-5 py-3 rounded-2xl max-w-[80%] text-base ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
             ${msg.text}
         </div>
     `;
@@ -315,13 +320,20 @@ window.toggleReaction = async function(index, type) {
 
     window.renderGalleryHTML();
 
-    // Отправляем изменения в облако
+    // Отправляем изменения в облако (Через эндпоинт /rate)
     if (p.db_id) {
         try {
-            let url = window.API_URL.endsWith('/') ? window.API_URL + p.db_id : window.API_URL + '/' + p.db_id;
-            let response = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: p }) });
-            if(!response.ok) {
-                await fetch(window.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.db_id, data: p }) });
+            let url = window.API_URL.endsWith('/') ? window.API_URL + 'rate' : window.API_URL + '/rate';
+            let response = await fetch(url, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ id: p.db_id, author_id: window.myAuthorId, action: type }) 
+            });
+            if(response.ok) {
+                const resData = await response.json();
+                p.likes = resData.likes;
+                p.dislikes = resData.dislikes;
+                window.renderGalleryHTML(); // Обновляем с реальными данными сервера
             }
         } catch(e) {}
     }
@@ -371,7 +383,7 @@ window.renderGalleryHTML = function() {
         window.scenarios['custom_' + originalIndex] = p; 
         const canDelete = p.author_id === window.myAuthorId;
         const uId = p.db_id || p.title;
-        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-xs px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
+        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-[11px] px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
 
         return `
         <div class="scenario-card border-purple-900 bg-slate-900/80 p-6 rounded-3xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
