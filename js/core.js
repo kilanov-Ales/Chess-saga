@@ -12,14 +12,14 @@ const dict = {
         chat_send: "Отправить", settings_title: "Настройки Королевства", music_vol: "Музыка Битвы", voice_vol: "Голос Летописца", current_lord: "Текущий Лорд:",
         scrolls_title: "Свитки других Лордов", calm_title: "Затишье", calm_desc: "Армии ждут...", tasks_title: "Задачи", enemy_title: "Враг", chronicle_title: "Хроника",
         forge_title: "Кузница Сценариев", make_moves: "Творите историю на поле брани", forge_publish: "Высечь в Свитках", forge_download: "Скачать Архив",
-        forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать ход забвению",
-        msg_spam: "Вороны устали! Подождите немного.", msg_inq: "Инквизиция отвергла эти слова!", msg_taken: "Имя уже занято другим Лордом!",
+        forge_empty: "Кузница пуста. Скуйте первый ход...", forge_undo: "Предать забвению",
+        msg_spam: "Вороны устали! Подождите немного.", msg_inq: "Инквизиция скрыла сквернословие!", msg_taken: "Имя уже занято другим Лордом!",
         msg_short: "Имя не достойно Лорда! (Минимум 3 буквы)", msg_welcome: "С возвращением, Лорд ", msg_forge_empty: "Кузница пуста! Скуйте хотя бы один ход!",
         msg_title_empty: "Нареките свою Летопись именем!", msg_scroll_saved: "Летопись навеки запечатлена в Свитках!", msg_scroll_downloaded: "Свиток перенесен в архивы!",
         msg_scroll_burned: "Свиток предан огню и стерт из памяти веков!", read: "Читать", unknown: "Неизвестный", goals: "Цели",
         forge_settings: "Магия Свитка", forge_goals_title: "Судьбоносные Замыслы", lang_select: "Язык Летописи",
-        forge_name_ph: "Заголовок Летописи (Имя)", forge_tags_ph: "Руны Поиска (Теги, через запятую)", forge_goal_ph: "Ваш Замысел (Глобальная цель)", forge_egoal_ph: "Коварство Врага (Его цель)",
-        forge_step_title_ph: "Имя Маневра (Ход)", forge_step_text_ph: "Слова или деяния героев...", chat_ph: "Ваше послание...",
+        forge_name_ph: "Заголовок Летописи", forge_tags_ph: "Руны Поиска (Теги)", forge_goal_ph: "Ваш Замысел", forge_egoal_ph: "Коварство Врага",
+        forge_step_title_ph: "Имя Маневра", forge_step_text_ph: "Слова или деяния героев...", chat_ph: "Ваше послание...",
         search_ph: "Поиск по имени Лорда или названию Свитка...", 
         guide_btn_title: "Мудрость Предков", guide_title: "Том Мудрости", guide_intro: "Приветствуем, Лорд! Этот фолиант поможет вам освоить искусство Летописца.",
         guide_forge: "Кузница Сценариев", guide_forge_desc: "Здесь вы создаете свои истории. Задайте имя летописи, теги и цели. Делая ходы на доске, вы создаете шаги. Каждому шагу можно дать имя, описание и выбрать руну.",
@@ -36,13 +36,13 @@ const dict = {
         chat_send: "Send", settings_title: "Kingdom Settings", music_vol: "Battle Music", voice_vol: "Chronicler's Voice", current_lord: "Current Lord:",
         scrolls_title: "Scrolls of other Lords", calm_title: "Calm", calm_desc: "Armies are waiting...", tasks_title: "Tasks", enemy_title: "Enemy", chronicle_title: "Chronicle",
         forge_title: "Scenario Forge", make_moves: "Forge history on the battlefield", forge_publish: "Carve into Scrolls", forge_download: "Download Archive",
-        forge_empty: "The forge is empty. Forge the first move...", forge_undo: "Cast move into oblivion",
-        msg_spam: "Ravens are tired! Wait.", msg_inq: "The Inquisition rejected these words!", msg_taken: "Name is already taken by another Lord!",
+        forge_empty: "The forge is empty. Forge the first move...", forge_undo: "Cast into oblivion",
+        msg_spam: "Ravens are tired! Wait.", msg_inq: "The Inquisition censored foul words!", msg_taken: "Name is already taken by another Lord!",
         msg_short: "Name unworthy of a Lord! (Min 3 letters)", msg_welcome: "Welcome back, Lord ", msg_forge_empty: "Forge is empty! Forge at least one move!",
         msg_title_empty: "Name your Chronicle!", msg_scroll_saved: "Your chronicle is forever carved in the Hall of Scrolls!", msg_scroll_downloaded: "Scroll transferred to archives!",
         msg_scroll_burned: "Scroll burned and erased from memory!", read: "Read", unknown: "Unknown", goals: "Goals",
         forge_settings: "Scroll Magic", forge_goals_title: "Fateful Designs", lang_select: "Language",
-        forge_name_ph: "Scroll Name (Chronicle)", forge_tags_ph: "Search Runes (tags, comma separated)", forge_goal_ph: "Your Design (Global Goal)", forge_egoal_ph: "Enemy's Malice",
+        forge_name_ph: "Scroll Name", forge_tags_ph: "Search Runes (tags)", forge_goal_ph: "Your Design", forge_egoal_ph: "Enemy's Malice",
         forge_step_title_ph: "Maneuver Name", forge_step_text_ph: "Narrative or speeches...", chat_ph: "Your message...",
         search_ph: "Search by Lord's name or Scroll title...", 
         guide_btn_title: "Wisdom of Ancestors", guide_title: "Tome of Wisdom", guide_intro: "Welcome, Lord! This folio will help you master the Chronicler's art.",
@@ -61,12 +61,12 @@ const dict = {
         scrolls_title: "Сувої інших Лордів", calm_title: "Затишшя", calm_desc: "Армії чекають...", tasks_title: "Завдання", enemy_title: "Ворог", chronicle_title: "Літопис",
         forge_title: "Кузня Сценаріїв", make_moves: "Творіть історію на полі битви", forge_publish: "Викарбувати в Сувоях", forge_download: "Завантажити Архів",
         forge_empty: "Кузня порожня. Викуйте перший хід...", forge_undo: "Віддати хід забуттю",
-        msg_spam: "Ворони втомилися! Зачекайте.", msg_inq: "Інквізиція відкинула ці слова!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
+        msg_spam: "Ворони втомилися! Зачекайте.", msg_inq: "Інквізиція приховала лихослів'я!", msg_taken: "Ім'я вже зайняте іншим Лордом!",
         msg_short: "Ім'я не гідне Лорда! (Мінімум 3 літери)", msg_welcome: "З поверненням, Лорде ", msg_forge_empty: "Кузня порожня! Викуйте хоча б один хід!",
         msg_title_empty: "Назвіть свій Літопис!", msg_scroll_saved: "Літопис навіки збережено в Залі Сувоїв!", msg_scroll_downloaded: "Сувій перенесено до архівів!",
         msg_scroll_burned: "Сувій спалено і стерто з пам'яті віків!", read: "Читати", unknown: "Невідомий", goals: "Цілі",
         forge_settings: "Магія Сувою", forge_goals_title: "Доленосні Задуми", lang_select: "Мова Літопису",
-        forge_name_ph: "Ім'я Сувою", forge_tags_ph: "Руни пошуку (теги через кому)", forge_goal_ph: "Задум (Ваша Ціль)", forge_egoal_ph: "Підступність (Ціль Ворога)",
+        forge_name_ph: "Ім'я Сувою", forge_tags_ph: "Руни пошуку (теги)", forge_goal_ph: "Задум (Ваша Ціль)", forge_egoal_ph: "Підступність (Ціль Ворога)",
         forge_step_title_ph: "Ім'я Маневру (Хід)", forge_step_text_ph: "Оповідь або промови...", chat_ph: "Ваше послання...",
         search_ph: "Пошук за іменем Лорда або назвою Сувою...", 
         guide_btn_title: "Мудрість Предків", guide_title: "Том Мудрості", guide_intro: "Вітаємо, Лорде! Цей фоліант допоможе вам опанувати мистецтво Літописця.",
@@ -127,10 +127,6 @@ window.addEventListener('DOMContentLoaded', () => {
     window.applyTranslations();
     window.updateScenariosLanguage();
     
-    // Инициализация ползунков на 0.5 при старте
-    document.querySelectorAll('.volume-slider, .menu-volume-slider').forEach(s => s.value = "0.5");
-    document.querySelectorAll('input[oninput="updateVoiceVolume(this.value)"]').forEach(s => s.value = "0.5");
-    
     if (!window.myAuthorId) {
         window.myAuthorId = 'lord_' + Math.random().toString(36).substr(2, 9) + Date.now();
         localStorage.setItem('chess_saga_author_id', window.myAuthorId);
@@ -151,7 +147,9 @@ window.addEventListener('DOMContentLoaded', () => {
 window.saveNickname = async function() {
     const input = document.getElementById('nickname-input').value.trim();
     if (input.length < 3) return window.showNotification(t('msg_short'), "error");
-    if (window.AntiMat && window.AntiMat.check(input)) return window.showNotification(t('msg_inq'), "error");
+    
+    // Никнейм цензурить нельзя, Инквизиция просто его не пропустит
+    if (window.AntiMat && window.AntiMat.check(input)) return window.showNotification(t('msg_inq'), "inq");
     
     window.myNickname = input;
     localStorage.setItem('chess_saga_nickname', window.myNickname);
@@ -211,16 +209,24 @@ window.closeChat = function() {
 
 window.sendChatMessage = async function() {
     const input = document.getElementById('chat-input');
-    const text = input.value.trim();
+    let text = input.value.trim();
     if (!text) return;
     
     if (Date.now() - lastChatTime < 3000) return window.showNotification(t('msg_spam'), "error");
-    if (window.AntiMat && window.AntiMat.check(text)) return window.showNotification(t('msg_inq'), "error");
+    
+    // ЦЕНЗУРА ЧАТА: заменяем маты на ***
+    if (window.AntiMat) {
+        let safeText = window.AntiMat.censor(text);
+        if (safeText !== text) {
+            window.showNotification(t('msg_inq'), "inq"); // Уведомляем о цензуре
+            text = safeText;
+        }
+    }
+    if (text === "***") return; // Если сообщение состояло ТОЛЬКО из мата и пробелов
 
     const msgObj = { author_id: window.myAuthorId, author_name: window.myNickname || t('unknown'), text: text };
     input.value = "";
     
-    // Оптимистичный рендер
     renderSingleMessage({ author_name: window.myNickname, text: text }, true);
     lastChatTime = Date.now();
 
@@ -238,7 +244,7 @@ async function loadChat() {
             const messages = await resp.json();
             const container = document.getElementById('chat-messages');
             container.innerHTML = "";
-            if (messages.length === 0) container.innerHTML = `<p class="text-center text-slate-500 italic mt-10">${t('chat_loading')}</p>`;
+            if (messages.length === 0) container.innerHTML = `<p class="text-center text-slate-500 italic mt-6">${t('chat_loading')}</p>`;
             else messages.forEach(m => renderSingleMessage(m, false));
         }
     } catch(e) {}
@@ -251,7 +257,7 @@ function renderSingleMessage(msg, scrollToBottom) {
     div.className = `chat-msg flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
     div.innerHTML = `
         <span class="text-xs text-slate-500 uppercase tracking-widest mb-1 mx-1">${msg.author_name}</span>
-        <div class="px-5 py-3 rounded-2xl max-w-[80%] text-base ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
+        <div class="px-4 py-2 rounded-xl max-w-[80%] text-sm ${isMe ? 'bg-amber-600/20 border border-amber-600/50 text-amber-100 rounded-tr-sm' : 'bg-slate-700/50 border border-slate-600 text-slate-200 rounded-tl-sm'}">
             ${msg.text}
         </div>
     `;
@@ -263,19 +269,23 @@ window.showNotification = function(text, type = 'success') {
     const toast = document.getElementById('toast');
     const icon = document.getElementById('toast-icon');
     document.getElementById('toast-text').textContent = text;
-    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold text-lg tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_40px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
+    toast.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm tracking-widest z-[9999] transition-all duration-300 flex items-center gap-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] translate-y-0 opacity-100';
     
     if (type === 'success') { 
         toast.classList.add('bg-amber-500', 'text-slate-900'); 
-        icon.innerHTML = `<img src="Visualization/✨.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>✨</span>'">`;
+        icon.innerHTML = `<img src="Visualization/✨.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl\\'>✨</span>'">`;
     } 
     else if (type === 'error') { 
         toast.classList.add('bg-red-600', 'text-white'); 
-        icon.innerHTML = `<img src="Visualization/‼️.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>‼️</span>'">`;
+        icon.innerHTML = `<img src="Visualization/‼️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl\\'>‼️</span>'">`;
     } 
+    else if (type === 'inq') { 
+        toast.classList.add('bg-purple-900', 'text-white'); 
+        icon.innerHTML = `<img src="Visualization/👁️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl\\'>👁️</span>'">`;
+    }
     else { 
         toast.classList.add('bg-sky-600', 'text-white'); 
-        icon.innerHTML = `<img src="Visualization/📜.png" class="w-8 h-8 object-contain" onerror="this.outerHTML='<span class=\\'text-3xl\\'>📜</span>'">`;
+        icon.innerHTML = `<img src="Visualization/📜.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl\\'>📜</span>'">`;
     }
     
     setTimeout(() => {
@@ -309,7 +319,6 @@ window.toggleReaction = async function(index, type) {
     p.likes = (p.likes || 0) + diffLike; 
     p.dislikes = (p.dislikes || 0) + diffDislike;
     
-    // Обновляем локально, чтобы сразу увидеть результат
     let customParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
     let localIndex = customParties.findIndex(cp => cp.title === p.title);
     if(localIndex !== -1) {
@@ -320,7 +329,6 @@ window.toggleReaction = async function(index, type) {
 
     window.renderGalleryHTML();
 
-    // Отправляем изменения в облако (Через эндпоинт /rate)
     if (p.db_id) {
         try {
             let url = window.API_URL.endsWith('/') ? window.API_URL + 'rate' : window.API_URL + '/rate';
@@ -333,7 +341,7 @@ window.toggleReaction = async function(index, type) {
                 const resData = await response.json();
                 p.likes = resData.likes;
                 p.dislikes = resData.dislikes;
-                window.renderGalleryHTML(); // Обновляем с реальными данными сервера
+                window.renderGalleryHTML(); 
             }
         } catch(e) {}
     }
@@ -341,7 +349,7 @@ window.toggleReaction = async function(index, type) {
 
 window.renderGallery = async function() {
     const gallery = document.getElementById('community-gallery');
-    gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-xl">...поиск свитков...</p>`;
+    gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-lg">...поиск свитков...</p>`;
     
     let localParties = JSON.parse(localStorage.getItem('chess_saga_custom') || '[]');
     let dbParties = [];
@@ -374,7 +382,7 @@ window.renderGalleryHTML = function() {
     );
 
     if (filteredParties.length === 0) {
-        gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-xl">Свитки не найдены...</p>`;
+        gallery.innerHTML = `<p class="col-span-full text-center text-slate-600 italic text-lg">Свитки не найдены...</p>`;
         return;
     }
 
@@ -383,35 +391,35 @@ window.renderGalleryHTML = function() {
         window.scenarios['custom_' + originalIndex] = p; 
         const canDelete = p.author_id === window.myAuthorId;
         const uId = p.db_id || p.title;
-        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-[11px] px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
+        let tagsHtml = p.tags && p.tags.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2 mb-2">` + p.tags.map(t => `<span class="bg-sky-900/40 text-sky-300 text-[10px] px-2 py-1 rounded-full uppercase tracking-wider">${t}</span>`).join('') + `</div>` : '';
 
         return `
-        <div class="scenario-card border-purple-900 bg-slate-900/80 p-6 rounded-3xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
+        <div class="scenario-card border-purple-900 bg-slate-900/80 p-5 rounded-2xl flex flex-col justify-between hover:scale-105 transition-transform h-full relative">
             <div class="mb-4 pr-6">
-                <h3 class="text-purple-400 font-bold truncate text-2xl" title="${p.title}">${p.title}</h3>
+                <h3 class="text-purple-400 font-bold truncate text-xl" title="${p.title}">${p.title}</h3>
                 ${tagsHtml}
-                <p class="text-sm text-slate-400 mt-2 uppercase">Ходов: ${p.story.length}</p>
+                <p class="text-xs text-slate-400 mt-2 uppercase">Ходов: ${p.story.length}</p>
             </div>
-            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-6 right-6 text-slate-500 hover:scale-110 transition-transform" title="Сжечь свиток">
-                <img src="Visualization/🗑️.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-2xl\\'>🗑️</span>'">
+            ${canDelete ? `<button onclick="deleteFromGallery(${originalIndex})" class="absolute top-4 right-4 text-slate-500 hover:scale-110 transition-transform" title="Сжечь свиток">
+                <img src="Visualization/🗑️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span class=\\'text-xl\\'>🗑️</span>'">
             </button>` : ''}
-            <div class="flex justify-between items-center mb-5">
-                <span class="text-sm text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
-                <div class="flex gap-4 text-base">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-xs text-amber-500 font-bold truncate pr-2">Лорд: ${p.author_name || t('unknown')}</span>
+                <div class="flex gap-3 text-sm">
                     <button onclick="toggleReaction(${originalIndex}, 'like')" class="${window.userLikes[uId] === 1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/♥️.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
+                        <img src="Visualization/♥️.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>♥️</span>'"> ${p.likes || 0}
                     </button>
                     <button onclick="toggleReaction(${originalIndex}, 'dislike')" class="${window.userLikes[uId] === -1 ? 'opacity-100' : 'opacity-50'} hover:opacity-100 transition-opacity flex items-center gap-1">
-                        <img src="Visualization/💔.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
+                        <img src="Visualization/💔.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>💔</span>'"> ${p.dislikes || 0}
                     </button>
                 </div>
             </div>
-            <div class="flex gap-4">
-                <button onclick="if(typeof playCustomScenario === 'function') playCustomScenario(${originalIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-3 rounded-xl text-base font-bold uppercase transition-colors text-white flex items-center justify-center gap-2 shadow-lg">
-                    <img src="Visualization/👁️.png" class="w-6 h-6" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
+            <div class="flex gap-3">
+                <button onclick="if(typeof playCustomScenario === 'function') playCustomScenario(${originalIndex})" class="flex-1 bg-sky-600 hover:bg-sky-500 py-2.5 rounded-xl text-sm font-bold uppercase transition-colors text-white flex items-center justify-center gap-2 shadow-lg">
+                    <img src="Visualization/👁️.png" class="w-5 h-5" onerror="this.outerHTML='<span>👁️</span>'"> ${t('read')}
                 </button>
-                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-5 py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center" title="Забрать в архив">
-                    <img src="Visualization/💾.png" class="w-6 h-6 object-contain" onerror="this.outerHTML='<span class=\\'text-xl text-white\\'>💾</span>'">
+                <button onclick="if(typeof downloadFromGallery === 'function') downloadFromGallery(${originalIndex})" class="bg-slate-700 hover:bg-slate-600 px-4 py-2.5 rounded-xl transition-colors shadow-lg flex items-center justify-center" title="Забрать в архив">
+                    <img src="Visualization/💾.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span class=\\'text-base text-white\\'>💾</span>'">
                 </button>
             </div>
         </div>`;
