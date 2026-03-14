@@ -6,18 +6,28 @@ window.selectedEditorStepIndex = null;
 window.editorFlipped = false;
 window.pendingPromotionMove = null;
 
+// Новые иконки добавлены + группировка 35 штук на страницу (5 строк по 7 иконок)
 const availableIcons = [
-    "‼️", "❗", "❓",
-    "✨","🚩","🌑","🏰","⚔️","🔥","👑","💀","🛡️","🐐","👁️","⛓️","🤺","🌀",
-    "☀️","⚡","🔱","😰","🪓","🐎","🐢","☁️","🔨","🩸","🕊️","🦅","👺","🏃",
-    "🔆","🌫️","🏆","⛪","⚠️","🍴","💥","👸","💎","😵","😈","💔",
-    "🗿","🧐","👽","🎀","👓","👟","🎓","🥇","🧩","♥️","🥁","⛏️","🔧",
-    "🪨","🪵","⚙️","🪚","💣","🔫","🔪","🔍","💡","🕯","💰","💸","✏️","✒️",
-    "⏱️","✂️","⌛","🌍","🏳️","💘","☣️",
-    "♔","♕","♖","♗","♘","♙","♚","♛","♜","♝","♞","♟"
+    "‼️", "❗", "❓", "❓❗", "❓❓", "✨","🚩",
+    "🌑","🏰","⚔️","🔥","👑","💀","🛡️",
+    "🐐","👁️","⛓️","🤺","🌀","☀️","⚡",
+    "🔱","😰","🪓","🐎","🐢","☁️","🔨",
+    "🩸","🕊️","🦅","👺","🏃","🔆","🌫️",
+    
+    "🏆","⛪","⚠️","🍴","💥","👸","💎",
+    "😵","😈","💔","🗿","🧐","👽","🎀",
+    "👓","👟","🎓","🥇","🧩","♥️","🥁",
+    "⛏️","🔧","🪨","🪵","⚙️","🪚","💣",
+    "🔫","🔪","🔍","💡","🕯","💰","💸",
+    
+    "✏️","✒️","⏱️","✂️","⌛","🌍","🏳️",
+    "💘","☣️","🏹", "🕸️", "🗡️", "🧸", "⛅",
+    "❄️", "🌨️", "🌋", "⛰️", "🏝️", "👻", "🪜",
+    "💧","♔","♕","♖","♗","♘","♙",
+    "♚","♛","♜","♝","♞","♟"
 ];
 
-const ICONS_PER_PAGE = 21; 
+const ICONS_PER_PAGE = 35; // 5 строк по 7 иконок
 window.currentIconPage = 0;
 
 window.initIcons = function() {
@@ -29,8 +39,8 @@ window.initIcons = function() {
     const pageIcons = availableIcons.slice(start, end);
 
     container.innerHTML = pageIcons.map(icon => 
-        `<button onclick="setEditIcon('${icon}')" class="p-2 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
-            <img src="Visualization/${icon}.png" class="w-8 h-8 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
+        `<button onclick="setEditIcon('${icon}')" class="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-base transition-transform hover:scale-110 cursor-pointer shadow-md flex items-center justify-center">
+            <img src="Visualization/${icon}.png" class="w-6 h-6 object-contain" alt="${icon}" onerror="this.outerHTML='<span>${icon}</span>'">
         </button>`
     ).join('');
 
@@ -180,10 +190,10 @@ window.showPromotionModal = function(color) {
     const prefix = color === 'w' ? 'w' : 'b';
     
     container.innerHTML = `
-        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
-        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
-        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Слон">
-        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-20 h-20 cursor-pointer hover:scale-125 transition-transform" title="Конь">
+        <img src="${window.figuresPath}${prefix}_queen.png" onclick="confirmPromotion('q')" class="w-16 h-16 cursor-pointer hover:scale-125 transition-transform" title="Ферзь">
+        <img src="${window.figuresPath}${prefix}_rook.png" onclick="confirmPromotion('r')" class="w-16 h-16 cursor-pointer hover:scale-125 transition-transform" title="Ладья">
+        <img src="${window.figuresPath}${prefix}_bishop.png" onclick="confirmPromotion('b')" class="w-16 h-16 cursor-pointer hover:scale-125 transition-transform" title="Слон">
+        <img src="${window.figuresPath}${prefix}_knight.png" onclick="confirmPromotion('n')" class="w-16 h-16 cursor-pointer hover:scale-125 transition-transform" title="Конь">
     `;
     modal.classList.remove('hidden');
 }
@@ -255,7 +265,6 @@ window.renderEditorStepsList = function() {
         const moveNum = Math.floor(i / 2) + 1;
         const turnName = s.turn === 'white' ? 'Белые' : 'Черные';
         
-        // Золотое свечение для выбранного хода
         const isActive = window.selectedEditorStepIndex === i ? 'border-amber-500 bg-amber-900/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-slate-700 bg-slate-800/80 hover:border-sky-500';
         
         let targetText = "";
@@ -263,10 +272,10 @@ window.renderEditorStepsList = function() {
         if (s.egoal === 0) targetText += `<span class="text-red-500 font-bold ml-1 text-[10px]">✓ В</span>`;
 
         return `
-        <div onclick="selectEditorStep(${i})" class="flex flex-col min-w-[160px] max-w-[160px] p-3 border-2 rounded-xl cursor-pointer transition-all ${isActive} shrink-0">
+        <div onclick="selectEditorStep(${i})" class="flex flex-col min-w-[140px] max-w-[140px] p-2 border-2 rounded-xl cursor-pointer transition-all ${isActive} shrink-0">
             <div class="flex justify-between items-center w-full mb-1">
-                <span class="text-sm"><b class="text-amber-500">${moveNum}. ${s.san}</b></span>
-                <img src="Visualization/${s.icon}.png" class="w-5 h-5 object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'">
+                <span class="text-xs"><b class="text-amber-500">${moveNum}. ${s.san}</b></span>
+                <img src="Visualization/${s.icon}.png" class="w-4 h-4 object-contain" onerror="this.outerHTML='<span>${s.icon}</span>'">
             </div>
             <div class="flex justify-between items-center w-full">
                 <span class="text-[10px] text-slate-400 truncate w-[70%]">${s.title || '...'}</span>
@@ -307,16 +316,25 @@ window.selectEditorStep = function(index) {
 window.updateCurrentStepData = function() {
     if (window.selectedEditorStepIndex === null) return;
     
-    // Умное вырезание цифр (1. 2) из названия, чтобы не было дублей "1. 1. Атака"
+    // Умное вырезание "1. ", "1)", чтобы не было дублей "1. 1. Атака"
     let titleRaw = document.getElementById('edit-title').value;
     let title = titleRaw.replace(/^\s*\d+[\.\)]\s*/, '');
     
-    const text = document.getElementById('edit-text').value;
+    let text = document.getElementById('edit-text').value;
     const icon = document.getElementById('edit-icon-input').value;
     const goalSelect = document.getElementById('edit-step-goal-select').value;
 
-    if (window.AntiMat && (window.AntiMat.check(text) || window.AntiMat.check(title))) {
-        return window.showNotification(window.t('msg_inq'), "error");
+    // ЦЕНЗУРА (Инквизиция)
+    if (window.AntiMat) {
+        let cTitle = window.AntiMat.censor(title);
+        let cText = window.AntiMat.censor(text);
+        if (cTitle !== title || cText !== text) {
+            window.showNotification(window.t('msg_inq'), "inq");
+            title = cTitle;
+            text = cText;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-text').value = text;
+        }
     }
 
     window.editorSteps[window.selectedEditorStepIndex].title = title;
@@ -333,20 +351,28 @@ window.updateCurrentStepData = function() {
 }
 
 window.publishStory = async function() {
-    const scenarioName = document.getElementById('edit-scenario-name').value;
+    let scenarioName = document.getElementById('edit-scenario-name').value;
     const rawTags = document.getElementById('edit-scenario-tags').value;
-    const tagsArr = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t) : [];
     
+    // ЦЕНЗУРА НАЗВАНИЯ И ТЕГОВ
+    if (window.AntiMat) {
+        let cName = window.AntiMat.censor(scenarioName);
+        let cTags = window.AntiMat.censor(rawTags);
+        if (cName !== scenarioName || cTags !== rawTags) {
+            window.showNotification(window.t('msg_inq'), "inq");
+            scenarioName = cName;
+            document.getElementById('edit-scenario-name').value = scenarioName;
+            document.getElementById('edit-scenario-tags').value = cTags;
+        }
+    }
+    
+    const tagsArr = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t) : [];
     const gGoal = document.getElementById('edit-scenario-goal').value || "Победить";
     const eGoal = document.getElementById('edit-scenario-egoal').value || "Уничтожить врага";
 
     if (!scenarioName) return window.showNotification(window.t('msg_title_empty'), "error");
     if (window.editorSteps.length < 1) return window.showNotification(window.t('msg_forge_empty'), "error");
 
-    if (window.AntiMat && window.AntiMat.check(scenarioName)) {
-        return window.showNotification(window.t('msg_inq'), "error");
-    }
-    
     const newScenario = {
         title: scenarioName,
         author_id: window.myAuthorId, 
